@@ -332,6 +332,13 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
   }
   if (input.ratingMin != null) params["vote_average.gte"] = String(input.ratingMin);
   if (input.language) params.with_original_language = input.language;
+  if (input.originCountry) params.with_origin_country = input.originCountry;
+  if (input.runtimeMax != null) params["with_runtime.lte"] = String(input.runtimeMax);
+  if (input.accessType) {
+    params.with_watch_monetization_types =
+      input.accessType === "free_or_ads" ? "free|ads" : input.accessType;
+    params.watch_region = WATCH_REGION;
+  }
   if (input.platformId) {
     const tmdbIds = getPlatformTmdbIds(input.platformId);
     if (tmdbIds.length > 0) {
