@@ -118,6 +118,17 @@ export const DiscoverInput = z
       .regex(/^[a-z]{2}$/)
       .optional()
       .describe("ISO 639-1 original language code"),
+    originCountry: z
+      .string()
+      .length(2)
+      .regex(/^[A-Z]{2}$/)
+      .optional()
+      .describe("ISO 3166-1 country of origin code"),
+    runtimeMax: z.number().int().min(1).max(600).optional().describe("Maximum runtime in minutes"),
+    accessType: z
+      .enum(["free", "ads", "free_or_ads"])
+      .optional()
+      .describe("Limit results to free or ad-supported streaming in the US"),
     platformId: z.string().optional().describe("Platform ID to filter by"),
   })
   .merge(PageParam)
