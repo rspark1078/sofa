@@ -52,6 +52,24 @@ const LANGUAGE_OPTIONS = [
   { code: "pt", name: "Portuguese" },
 ] as const;
 
+const COUNTRY_OPTIONS = [
+  { code: "KR", name: "South Korea" },
+  { code: "US", name: "United States" },
+  { code: "JP", name: "Japan" },
+  { code: "HK", name: "Hong Kong" },
+  { code: "CN", name: "China" },
+  { code: "FR", name: "France" },
+  { code: "GB", name: "United Kingdom" },
+  { code: "IN", name: "India" },
+] as const;
+
+const RUNTIME_OPTIONS = [
+  { value: 90, label: "≤ 90 min" },
+  { value: 120, label: "≤ 2 hr" },
+  { value: 135, label: "≤ 2 hr 15 min" },
+  { value: 150, label: "≤ 2 hr 30 min" },
+] as const;
+
 export function DiscoverSection() {
   const { t } = useLingui();
 
@@ -67,6 +85,11 @@ export function DiscoverSection() {
     | "primary_release_date.asc";
   const [sortBy, setSortBy] = useState<DiscoverSortBy | undefined>(undefined);
   const [language, setLanguage] = useState<string | undefined>(undefined);
+  const [originCountry, setOriginCountry] = useState<string | undefined>(undefined);
+  const [runtimeMax, setRuntimeMax] = useState<number | undefined>(undefined);
+  const [accessType, setAccessType] = useState<"free" | "ads" | "free_or_ads" | undefined>(
+    undefined,
+  );
   const [platformId, setPlatformId] = useState<string | undefined>(undefined);
 
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
@@ -82,6 +105,9 @@ export function DiscoverSection() {
         ratingMin,
         sortBy,
         language,
+        originCountry,
+        runtimeMax,
+        accessType,
         platformId,
         page: pageParam,
       }),
@@ -150,6 +176,20 @@ export function DiscoverSection() {
 
   function handleLanguageChange(value: string | null) {
     setLanguage(value || undefined);
+  }
+
+  function handleCountryChange(value: string | null) {
+    setOriginCountry(value || undefined);
+  }
+
+  function handleRuntimeChange(value: string | null) {
+    setRuntimeMax(value ? Number(value) : undefined);
+  }
+
+  function handleAccessTypeChange(value: string | null) {
+    setAccessType(
+      (value || undefined) as "free" | "ads" | "free_or_ads" | undefined,
+    );
   }
 
   function handleProviderChange(value: string | null) {
@@ -331,6 +371,93 @@ export function DiscoverSection() {
             {LANGUAGE_OPTIONS.map((lang) => (
               <SelectItem key={lang.code} value={lang.code}>
                 {languageNames[lang.code]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Country of origin */}
+        <Select
+          value={originCountry ?? ""}
+          onValueChange={handleCountryChange}
+          modal={false}
+          aria-label={t`Country of origin`}
+        >
+          <SelectTrigger
+            size="sm"
+            data-active={originCountry ? "" : undefined}
+            className="data-[active]:border-primary/40 data-[active]:text-foreground"
+          >
+            <SelectValue>
+              {(value: string | null) => {
+                if (!value) return t`Country`;
+                return COUNTRY_OPTIONS.find((country) => country.code === value)?.name ?? t`Country`;
+              }}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="p-1">
+            <SelectItem value="">{t`Any country`}</SelectItem>
+            {COUNTRY_OPTIONS.map((country) => (
+              <SelectItem key={country.code} value={country.code}>
+                {country.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Free / ad-supported access */}
+        <Select
+          value={accessType ?? ""}
+          onValueChange={handleAccessTypeChange}
+          modal={false}
+          aria-label={t`Access type`}
+        >
+          <SelectTrigger
+            size="sm"
+            data-active={accessType ? "" : undefined}
+            className="data-[active]:border-primary/40 data-[active]:text-foreground"
+          >
+            <SelectValue>
+              {(value: string | null) => {
+                if (value === "free") return t`Free`;
+                if (value === "ads") return t`Free with ads`;
+                if (value === "free_or_ads") return t`Free / with ads`;
+                return t`Access`;
+              }}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="p-1">
+            <SelectItem value="">{t`Any access`}</SelectItem>
+            <SelectItem value="free_or_ads">{t`Free / with ads`}</SelectItem>
+            <SelectItem value="free">{t`Free`}</SelectItem>
+            <SelectItem value="ads">{t`Free with ads`}</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Maximum runtime */}
+        <Select
+          value={runtimeMax != null ? String(runtimeMax) : ""}
+          onValueChange={handleRuntimeChange}
+          modal={false}
+          aria-label={t`Maximum runtime`}
+        >
+          <SelectTrigger
+            size="sm"
+            data-active={runtimeMax != null ? "" : undefined}
+            className="data-[active]:border-primary/40 data-[active]:text-foreground"
+          >
+            <SelectValue>
+              {(value: string | null) => {
+                if (!value) return t`Runtime`;
+                return RUNTIME_OPTIONS.find((runtime) => String(runtime.value) === value)?.label ?? t`Runtime`;
+              }}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="p-1">
+            <SelectItem value="">{t`Any runtime`}</SelectItem>
+            {RUNTIME_OPTIONS.map((runtime) => (
+              <SelectItem key={runtime.value} value={String(runtime.value)}>
+                {runtime.label}
               </SelectItem>
             ))}
           </SelectContent>
