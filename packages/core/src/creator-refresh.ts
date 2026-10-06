@@ -9,6 +9,11 @@ import {
 import { listCreatorRefreshUserIds } from "@sofa/db/queries/settings";
 import { createLogger } from "@sofa/logger";
 
+import {
+  getVideoPickCheck,
+  processCreatorVideo,
+  readCreatorUploads,
+} from "./creator-pick-extraction";
 import { getCriticPreferences, getSetting, setSetting } from "./settings";
 
 const log = createLogger("creator-refresh");
@@ -73,30 +78,36 @@ async function checkCreator(creator: ReturnType<typeof listRecommendationCreator
       const match = channel.pathname.match(/^\/channel\/(UC[A-Za-z0-9_-]{22})$/);
       if (channel.protocol !== "https:" || channel.hostname !== "www.youtube.com" || !match)
         throw new Error("Unsupported creator channel");
-      const response = await fetch(
-        `https://www.youtube.com/feeds/videos.xml?channel_id=${match[1]}`,
-        { signal: AbortSignal.timeout(15_000), redirect: "error" },
-      );
-      if (!response.ok) throw new Error("Creator feed unavailable");
-      if (Number(response.headers.get("content-length")) > 1_000_000)
-        throw new Error("Creator feed too large");
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("Empty creator feed");
-      let xml = "";
-      let bytes = 0;
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        bytes += value.byteLength;
-        if (bytes > 1_000_000) {
-          await reader.cancel();
+      let entries: { videoId: string; videoTitle: string; publishedAt: string }[];
+      try {
+        const response = await fetch(
+          `https://www.youtube.com/feeds/videos.xml?channel_id=${match[1]}`,
+          { signal: AbortSignal.timeout(15_000), redirect: "error" },
+        );
+        if (!response.ok) throw new Error("Creator feed unavailable");
+        if (Number(response.headers.get("content-length")) > 1_000_000)
           throw new Error("Creator feed too large");
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error("Empty creator feed");
+        let xml = "";
+        let bytes = 0;
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          bytes += value.byteLength;
+          if (bytes > 1_000_000) {
+            await reader.cancel();
+            throw new Error("Creator feed too large");
+          }
+          xml += decoder.decode(value, { stream: true });
         }
-        xml += decoder.decode(value, { stream: true });
+        xml += decoder.decode();
+        entries = await parseCreatorFeed(xml, match[1]);
+      } catch {
+        entries = await readCreatorUploads(match[1]);
       }
-      xml += decoder.decode();
-      saveCreatorFeedEntries(creator.id, await parseCreatorFeed(xml, match[1]));
+      saveCreatorFeedEntries(creator.id, entries);
       setSetting(`creator:${creator.id}:lastSuccess`, String(Date.now()));
       setSetting(`creator:${creator.id}:error`, "false");
     } catch (error) {
@@ -118,8 +129,16 @@ export function getCreatorRefreshStatus(userId: string) {
   return {
     lastCheckedAt: lastChecked ? new Date(lastChecked).toISOString() : null,
     failed: getSetting(`user:${userId}:criticRefreshFailed`) === "true",
+    videosChecked: timestamp(`user:${userId}:criticVideosChecked`),
+    picksAdded: timestamp(`user:${userId}:criticPicksAdded`),
     videos: listRecentCreatorFeedEntries(creators.map((creator) => creator.slug)).map((video) =>
-      Object.assign({}, video, { videoUrl: `https://www.youtube.com/watch?v=${video.videoId}` }),
+      Object.assign({}, video, {
+        pickCheck: getVideoPickCheck(
+          creators.find((creator) => creator.slug === video.creatorSlug)!.id,
+          video.videoId,
+        ),
+        videoUrl: `https://www.youtube.com/watch?v=${video.videoId}`,
+      }),
     ),
   };
 }
@@ -136,8 +155,31 @@ export async function refreshUserCreators(userId: string) {
       log.error("Creator feed refresh failed", { creator: creator.slug });
     }
   }
+  let videosChecked = 0;
+  let picksAdded = 0;
+  const videos = listRecentCreatorFeedEntries(creators.map((creator) => creator.slug));
+  for (const video of videos
+    .filter((item) => {
+      const creator = creators.find((itemCreator) => itemCreator.slug === item.creatorSlug)!;
+      const check = getVideoPickCheck(creator.id, item.videoId);
+      return !check || check.state === "failed";
+    })
+    .slice(0, 3)) {
+    if (JSON.stringify(getCriticPreferences(userId)) !== preferencesAtStart) break;
+    const creator = creators.find((item) => item.slug === video.creatorSlug)!;
+    const result = await processCreatorVideo(
+      creator.id,
+      creator.channelUrl.split("/").pop()!,
+      video,
+    );
+    videosChecked++;
+    picksAdded += result.picksAdded;
+    if (result.state === "failed") failed = true;
+  }
   if (JSON.stringify(getCriticPreferences(userId)) !== preferencesAtStart)
     return getCreatorRefreshStatus(userId);
+  setSetting(`user:${userId}:criticVideosChecked`, String(videosChecked));
+  setSetting(`user:${userId}:criticPicksAdded`, String(picksAdded));
   setSetting(`user:${userId}:criticLastAttempt`, String(Date.now()));
   setSetting(`user:${userId}:criticRefreshFailed`, String(failed));
   if (!failed) setSetting(`user:${userId}:criticLastSuccess`, String(Date.now()));

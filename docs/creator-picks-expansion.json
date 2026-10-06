@@ -1,0 +1,117 @@
+[
+  {
+    "channelUrl": "https://www.youtube.com/channel/UCbiOAho0h23IMInURiESx1w",
+    "videoUrl": "https://www.youtube.com/watch?v=-ujfuk6QAbo",
+    "videoTitle": "The Best & Worst Movies of 2024!",
+    "publishedAt": "2024-12-31",
+    "evidenceUrl": "https://www.youtube.com/watch?v=-ujfuk6QAbo",
+    "evidenceSummary": "Dan explicitly ranks these first, second and third in his favorite films section, before the worst-films section.",
+    "picks": [
+      {
+        "tmdbId": 933260,
+        "movieTitle": "The Substance",
+        "startSeconds": 1474
+      },
+      {
+        "tmdbId": 549509,
+        "movieTitle": "The Brutalist",
+        "startSeconds": 1363
+      },
+      {
+        "tmdbId": 426063,
+        "movieTitle": "Nosferatu",
+        "startSeconds": 1304
+      }
+    ]
+  },
+  {
+    "channelUrl": "https://www.youtube.com/channel/UCQxTL5uhg3jYRakna8CvJ5g",
+    "videoUrl": "https://www.youtube.com/watch?v=V1GKsQ6372U",
+    "videoTitle": "The Best Movies of 2024",
+    "publishedAt": "2024-12-31",
+    "evidenceUrl": "https://www.youtube.com/watch?v=V1GKsQ6372U",
+    "evidenceSummary": "Sean explicitly names these as his top three films of 2024.",
+    "picks": [
+      {
+        "tmdbId": 1184918,
+        "movieTitle": "The Wild Robot",
+        "startSeconds": 1232
+      },
+      {
+        "tmdbId": 693134,
+        "movieTitle": "Dune: Part Two",
+        "startSeconds": 1088
+      },
+      {
+        "tmdbId": 1128559,
+        "movieTitle": "Super/Man: The Christopher Reeve Story",
+        "startSeconds": 943
+      }
+    ]
+  },
+  {
+    "channelUrl": "https://www.youtube.com/channel/UCPobrqqzq3qH3P40t49rcJg",
+    "videoUrl": "https://www.youtube.com/watch?v=uVN9j7Z44Pg",
+    "videoTitle": "BEST MOVIES OF 2024 SO FAR",
+    "publishedAt": "2024-07-05",
+    "evidenceUrl": "https://www.youtube.com/watch?v=uVN9j7Z44Pg",
+    "evidenceSummary": "Selected favorites discussed by Christy Lemire and Alonso Duralde in their midyear best-of video; these are channel-level picks, not claimed as a shared numeric ranking.",
+    "picks": [
+      {
+        "tmdbId": 937287,
+        "movieTitle": "Challengers",
+        "startSeconds": 66
+      },
+      {
+        "tmdbId": 693134,
+        "movieTitle": "Dune: Part Two",
+        "startSeconds": 201
+      },
+      {
+        "tmdbId": 838240,
+        "movieTitle": "Robot Dreams",
+        "startSeconds": 364
+      }
+    ]
+  },
+  {
+    "channelUrl": "https://www.youtube.com/channel/UCErmMCK1sHF-kCtyHpuSXtQ",
+    "videoUrl": "https://www.youtube.com/watch?v=hIXJ88Tu9r0",
+    "videoTitle": "Best Films of 2024 - Kermode and Mayo's Take",
+    "publishedAt": "2024-12-25",
+    "evidenceUrl": "https://www.youtube.com/watch?v=hIXJ88Tu9r0",
+    "evidenceSummary": "Mark Kermode names his own gold, silver and bronze selections after the listener submissions; these are not listener picks.",
+    "picks": [
+      {
+        "tmdbId": 933260,
+        "movieTitle": "The Substance",
+        "startSeconds": 278
+      },
+      {
+        "tmdbId": 948549,
+        "movieTitle": "Love Lies Bleeding",
+        "startSeconds": 273
+      },
+      {
+        "tmdbId": 1064213,
+        "movieTitle": "Anora",
+        "startSeconds": 268
+      }
+    ]
+  },
+  {
+    "channelUrl": "https://www.youtube.com/channel/UCrTNhL_yO3tPTdQ5XgmmWjA",
+    "videoUrl": "https://www.youtube.com/watch?v=y3ZLDfB2N3g",
+    "videoTitle": "Mike and Jay Talk About Dinner in America",
+    "publishedAt": "2024-02-09",
+    "evidenceUrl": "https://www.youtube.com/watch?v=y3ZLDfB2N3g",
+    "evidenceSummary": "Mike explains that he recommended the movie to Jay, and both devote this spotlight to encouraging viewers to discover it. Other referenced films are not imported as recommendations.",
+    "picks": [
+      {
+        "tmdbId": 653664,
+        "movieTitle": "Dinner in America",
+        "startSeconds": 77
+      }
+    ]
+  }
+]

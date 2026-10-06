@@ -86,6 +86,11 @@ msgstr "{0, plural, other {# 件のタイトル}}"
 #~ msgid "{0} ratings"
 #~ msgstr ""
 
+#. placeholder {0}: selected.length
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "{0} selected"
+#~ msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #~ msgid "{0} titles"
 #~ msgstr "{0} titles"
@@ -175,6 +180,7 @@ msgstr "{movieCount}本の映画、{episodeCount}件のエピソード"
 msgid "{ratingCount} ratings"
 msgstr "{ratingCount}件の評価"
 
+#: apps/web/src/components/settings/critics-section.tsx
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "{selectedCount} selected"
 msgstr "{selectedCount} 件選択済み"
@@ -335,10 +341,18 @@ msgstr "「Generic Destination」を追加し、上記のURLを貼り付けて�
 msgid "Add a <0>Generic Destination</0> and paste the URL above"
 msgstr "<0>Generic Destination</0>を追加し、上記のURLを貼り付けてください"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Add a critic"
+msgstr ""
+
 #: apps/native/src/components/settings/integration-configs.ts
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Add a new webhook and paste the URL above"
 msgstr "新しいWebhookを追加し、上記のURLを貼り付けてください"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Add critic"
+msgstr ""
 
 #: apps/web/src/routes/setup.tsx
 msgid "Add it to your environment"
@@ -367,11 +381,19 @@ msgstr "ウォッチリストに追加"
 msgid "Added \"{titleName}\" to watchlist"
 msgstr "「{titleName}」をウォッチリストに追加しました"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Added to the shared catalog. Users following all critics will include this channel. Adding a channel does not add verified movie picks or guarantee its video feed is available."
+msgstr ""
+
 #: apps/native/src/hooks/use-title-actions.ts
 #: apps/native/src/lib/title-actions.ts
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Added to watchlist"
 msgstr "ウォッチリストに追加しました"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Adding critic…"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/components/nav-bar.tsx
@@ -537,6 +559,10 @@ msgstr "自動アップデート確認"
 msgid "Automatically back up your database on a schedule"
 msgstr "スケジュールに従ってデータベースを自動的にバックアップする"
 
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Automatically identified recommendation"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Availability"
 msgstr "配信情報"
@@ -549,6 +575,10 @@ msgstr ""
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Available to stream"
 #~ msgstr "Available to stream"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Awaiting recommendation check"
+msgstr ""
 
 #: apps/native/src/app/(auth)/register.tsx
 msgid "Back to Login"
@@ -708,8 +738,12 @@ msgid "Checking…"
 msgstr "確認中…"
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+msgid "Checks your selected channels while the server is running. Clear recommendations with exact movie matches are added automatically. Other videos need review."
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+#~ msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "China"
@@ -729,6 +763,10 @@ msgstr "{sourceLabel}データのインポート方法を選択してくださ�
 
 #: apps/web/src/components/settings/explore-section.tsx
 msgid "Choose which sections appear on Explore. Discover is always shown."
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Choose whose movie picks appear in your recommendations"
 msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
@@ -970,12 +1008,24 @@ msgstr ""
 msgid "Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden."
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Critic added"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Critic channel checks"
 msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
+msgid "Critic name"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
 msgid "Critics and creators"
+msgstr ""
+
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Curated recommendation"
 msgstr ""
 
 #: apps/native/src/app/change-password.tsx
@@ -1188,6 +1238,10 @@ msgstr "<0>Playback</0>イベントカテゴリを有効にしてください"
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "English"
 msgstr "英語"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Enter a name and a YouTube channel URL containing its channel ID."
+msgstr ""
 
 #: apps/native/src/app/(auth)/login.tsx
 #: apps/native/src/app/(auth)/register.tsx
@@ -1900,6 +1954,10 @@ msgstr "最後のポーリング {relativeTime}"
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Last polled {timeAgo}"
 msgstr "最後のポーリング {timeAgo}"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Last refresh: {videosChecked} videos checked, {picksAdded} movie picks added."
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Last run"
@@ -2768,7 +2826,11 @@ msgid "Recent Searches"
 msgstr "最近の検索"
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "Recent videos — recommendation review required"
+#~ msgid "Recent videos — recommendation review required"
+#~ msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Recent videos and recommendation checks"
 msgstr ""
 
 #: apps/native/src/components/search/recently-viewed-list.ios.tsx
@@ -2778,6 +2840,10 @@ msgstr "最近見た作品"
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "Recommendation availability"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Recommendation review required"
 msgstr ""
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
@@ -3313,8 +3379,12 @@ msgid "Sofa will automatically log movies and episodes when you finish watching 
 msgstr "視聴完了後、Sofaが自動的に映画やエピソードを記録します"
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "Some critic channels could not be checked. Try again later."
+msgid "Some channels or recommendation checks could not be completed. Try again later."
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Some critic channels could not be checked. Try again later."
+#~ msgstr ""
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/app/change-password.tsx
@@ -3441,8 +3511,12 @@ msgid "Takes effect after restarting the app"
 msgstr "アプリを再起動後に反映されます"
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
+msgid "The last check could not complete every channel or recommendation check. Existing recommendations are preserved."
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
+#~ msgstr ""
 
 #: apps/native/src/app/+not-found.tsx
 msgid "The page you're looking for doesn't exist."
@@ -3603,6 +3677,15 @@ msgstr "今日"
 msgid "Today"
 msgstr "今日"
 
+#. placeholder {0}: creator.name
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Toggle {0}"
+#~ msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Toggle {creatorName}"
+msgstr ""
+
 #: apps/web/src/components/platforms/platform-grid.tsx
 msgid "Toggle {name}"
 msgstr "{name}を切り替え"
@@ -3693,6 +3776,10 @@ msgstr "TVシリーズ"
 #: apps/native/src/components/library/filter-sheet.tsx
 msgid "Type"
 msgstr "タイプ"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to add critic. The channel may already exist or the catalog may be full."
+msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Unable to check critic channels"
@@ -3891,6 +3978,10 @@ msgstr ""
 msgid "Use at least 8 characters"
 msgstr "8文字以上使用してください"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Use the channel ID URL, not an @handle or video link. On YouTube, open the channel description, choose Share channel, then Copy channel ID."
+msgstr ""
+
 #: apps/native/src/components/header-avatar.tsx
 msgid "User menu"
 msgstr "ユーザーメニュー"
@@ -3899,6 +3990,14 @@ msgstr "ユーザーメニュー"
 #: apps/web/src/components/library/library-toolbar.tsx
 msgid "User Rating"
 msgstr "ユーザー評価"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Verification unavailable; retry required"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Verified recommendations saved"
+msgstr ""
 
 #: apps/web/src/components/titles/title-hero.tsx
 msgid "View on TMDB"
@@ -3912,6 +4011,10 @@ msgstr "リリースを確認"
 #: apps/web/src/components/settings/critics-section.tsx
 #~ msgid "Visit {0}'s channel"
 #~ msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Visit {creatorName}'s channel"
+msgstr ""
 
 #: apps/web/src/components/titles/title-availability.tsx
 msgid "Visit {name}"
@@ -4101,4 +4204,8 @@ msgstr "お名前…"
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "Your watch history"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "YouTube channel URL"
 msgstr ""

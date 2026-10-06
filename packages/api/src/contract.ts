@@ -40,6 +40,7 @@ import {
   CriticPreferences,
   CreatorRefreshStatus,
   RecommendationCreator,
+  AddRecommendationCreatorInput,
   PopularOutput,
   ProviderParam,
   PublicInfoOutput,
@@ -419,6 +420,15 @@ export const contract = {
         summary: "Check selected critics for recent videos",
       })
       .output(CreatorRefreshStatus),
+    addCritic: oc
+      .route({
+        method: "POST",
+        path: "/account/critics",
+        tags: ["Account"],
+        summary: "Add a critic to the shared catalog (administrator only)",
+      })
+      .input(AddRecommendationCreatorInput)
+      .output(RecommendationCreator),
     criticPreferences: oc
       .route({
         method: "GET",

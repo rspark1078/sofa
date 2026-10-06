@@ -6,7 +6,10 @@ import { ORPCError } from "@orpc/server";
 import { AppErrorCode } from "@sofa/api/errors";
 import { auth } from "@sofa/auth/server";
 import { AVATAR_DIR } from "@sofa/config";
-import { getRecommendationCreators } from "@sofa/core/creator-recommendations";
+import {
+  addCritic as coreAddCritic,
+  getRecommendationCreators,
+} from "@sofa/core/creator-recommendations";
 import { getCreatorRefreshStatus, refreshUserCreators } from "@sofa/core/creator-refresh";
 import {
   getDiscoveryPresets,
@@ -29,7 +32,7 @@ import {
 } from "@sofa/core/settings";
 
 import { os } from "../context";
-import { authed } from "../middleware";
+import { admin, authed } from "../middleware";
 
 const MIME_TO_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -145,6 +148,10 @@ export const saveDiscoveryPreset = os.account.saveDiscoveryPreset
 export const deleteDiscoveryPreset = os.account.deleteDiscoveryPreset
   .use(authed)
   .handler(({ context, input }) => coreDeleteDiscoveryPreset(context.user.id, input.id));
+
+export const addCritic = os.account.addCritic
+  .use(admin)
+  .handler(({ input }) => coreAddCritic(input));
 
 export const criticPreferences = os.account.criticPreferences
   .use(authed)

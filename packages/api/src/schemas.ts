@@ -499,6 +499,8 @@ export const CriticPreferences = z.object({
 });
 
 export const CreatorRefreshStatus = z.object({
+  videosChecked: z.number(),
+  picksAdded: z.number(),
   lastCheckedAt: z.string().datetime().nullable(),
   failed: z.boolean(),
   videos: z.array(
@@ -509,8 +511,23 @@ export const CreatorRefreshStatus = z.object({
       creatorSlug: z.string(),
       creatorName: z.string(),
       videoUrl: z.string().url(),
+      pickCheck: z
+        .object({
+          state: z.enum(["added", "review", "failed"]),
+          picksAdded: z.number(),
+          reason: z.string(),
+        })
+        .nullable(),
     }),
   ),
+});
+
+export const AddRecommendationCreatorInput = z.object({
+  name: z.string().trim().min(1).max(100),
+  channelUrl: z
+    .string()
+    .trim()
+    .regex(/^https:\/\/www\.youtube\.com\/channel\/UC[A-Za-z0-9_-]{22}\/?$/),
 });
 
 export const RecommendationCreator = z.object({
@@ -519,6 +536,7 @@ export const RecommendationCreator = z.object({
   channelUrl: z.string().url(),
 });
 export const CreatorCredit = RecommendationCreator.extend({
+  origin: z.enum(["curated", "automated"]).optional(),
   videoUrl: z.string().url(),
   videoTitle: z.string(),
   publishedAt: z.string().date(),

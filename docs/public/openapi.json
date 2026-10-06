@@ -1029,6 +1029,13 @@
                   "type": "string",
                   "format": "uri"
                 },
+                "origin": {
+                  "enum": [
+                    "curated",
+                    "automated"
+                  ],
+                  "type": "string"
+                },
                 "videoUrl": {
                   "type": "string",
                   "format": "uri"
@@ -1218,6 +1225,13 @@
                 "channelUrl": {
                   "type": "string",
                   "format": "uri"
+                },
+                "origin": {
+                  "enum": [
+                    "curated",
+                    "automated"
+                  ],
+                  "type": "string"
                 },
                 "videoUrl": {
                   "type": "string",
@@ -1944,6 +1958,13 @@
                           "channelUrl": {
                             "type": "string",
                             "format": "uri"
+                          },
+                          "origin": {
+                            "enum": [
+                              "curated",
+                              "automated"
+                            ],
+                            "type": "string"
                           },
                           "videoUrl": {
                             "type": "string",
@@ -5711,6 +5732,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "videosChecked": {
+                      "type": "number"
+                    },
+                    "picksAdded": {
+                      "type": "number"
+                    },
                     "lastCheckedAt": {
                       "anyOf": [
                         {
@@ -5749,6 +5776,37 @@
                           "videoUrl": {
                             "type": "string",
                             "format": "uri"
+                          },
+                          "pickCheck": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "state": {
+                                    "enum": [
+                                      "added",
+                                      "review",
+                                      "failed"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "picksAdded": {
+                                    "type": "number"
+                                  },
+                                  "reason": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "state",
+                                  "picksAdded",
+                                  "reason"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -5757,12 +5815,15 @@
                           "publishedAt",
                           "creatorSlug",
                           "creatorName",
-                          "videoUrl"
+                          "videoUrl",
+                          "pickCheck"
                         ]
                       }
                     }
                   },
                   "required": [
+                    "videosChecked",
+                    "picksAdded",
                     "lastCheckedAt",
                     "failed",
                     "videos"
@@ -5792,6 +5853,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "videosChecked": {
+                      "type": "number"
+                    },
+                    "picksAdded": {
+                      "type": "number"
+                    },
                     "lastCheckedAt": {
                       "anyOf": [
                         {
@@ -5830,6 +5897,37 @@
                           "videoUrl": {
                             "type": "string",
                             "format": "uri"
+                          },
+                          "pickCheck": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "state": {
+                                    "enum": [
+                                      "added",
+                                      "review",
+                                      "failed"
+                                    ],
+                                    "type": "string"
+                                  },
+                                  "picksAdded": {
+                                    "type": "number"
+                                  },
+                                  "reason": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "state",
+                                  "picksAdded",
+                                  "reason"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -5838,15 +5936,89 @@
                           "publishedAt",
                           "creatorSlug",
                           "creatorName",
-                          "videoUrl"
+                          "videoUrl",
+                          "pickCheck"
                         ]
                       }
                     }
                   },
                   "required": [
+                    "videosChecked",
+                    "picksAdded",
                     "lastCheckedAt",
                     "failed",
                     "videos"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/account/critics": {
+      "post": {
+        "operationId": "account.addCritic",
+        "summary": "Add a critic to the shared catalog (administrator only)",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "channelUrl": {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/www\\.youtube\\.com\\/channel\\/UC[A-Za-z0-9_-]{22}\\/?$"
+                  }
+                },
+                "required": [
+                  "name",
+                  "channelUrl"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "channelUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "channelUrl"
                   ]
                 }
               }

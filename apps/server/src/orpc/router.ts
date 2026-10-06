@@ -47,6 +47,7 @@ export const implementedRouter = {
     deleteDiscoveryPreset: account.deleteDiscoveryPreset,
     creatorRefreshStatus: account.creatorRefreshStatus,
     refreshCreators: account.refreshCreators,
+    addCritic: account.addCritic,
     criticPreferences: account.criticPreferences,
     updateCriticPreferences: account.updateCriticPreferencesHandler,
     explorePreferences: account.explorePreferences,

@@ -15,6 +15,14 @@ import {
 import { getSetting, setSetting, updateCriticPreferences } from "../src/settings";
 import { seedCreatorCatalog } from "./fixtures/creator-catalog";
 
+vi.mock("../src/creator-pick-extraction", () => ({
+  getVideoPickCheck: () => null,
+  readCreatorUploads: async () => {
+    throw new Error("Channel unavailable");
+  },
+  processCreatorVideo: async () => ({ state: "review", picksAdded: 0, reason: "Review required" }),
+}));
+
 vi.mock("@sofa/logger", () => ({
   createLogger: () => ({
     error: vi.fn<() => void>(),

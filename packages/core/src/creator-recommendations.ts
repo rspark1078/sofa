@@ -1,7 +1,14 @@
+import { ORPCError } from "@orpc/server";
 import type { z } from "zod";
 
-import { CreatorCredit, RecommendationCreator, RecommendationSource } from "@sofa/api/schemas";
 import {
+  AddRecommendationCreatorInput,
+  CreatorCredit,
+  RecommendationCreator,
+  RecommendationSource,
+} from "@sofa/api/schemas";
+import {
+  addRecommendationCreator,
   getCreatorCreditRows,
   listCreatorMoviePicks,
   listRecommendationCreators,
@@ -11,7 +18,19 @@ import { getMovieDetails } from "@sofa/tmdb/client";
 
 import { getRecommendationsFeed } from "./discovery";
 import { ensureBrowseTitlesExist } from "./metadata";
-import { getCriticPreferences } from "./settings";
+import { getCriticPreferences, getSetting } from "./settings";
+
+export function addCritic(input: z.infer<typeof AddRecommendationCreatorInput>) {
+  const parsed = AddRecommendationCreatorInput.parse(input);
+  const result = addRecommendationCreator(parsed.name, parsed.channelUrl.replace(/\/$/, ""));
+  if (result.error === "duplicate") throw new ORPCError("CONFLICT");
+  if (result.error === "limit") throw new ORPCError("BAD_REQUEST");
+  return RecommendationCreator.parse({
+    id: result.creator.slug,
+    name: result.creator.name,
+    channelUrl: result.creator.channelUrl,
+  });
+}
 
 type Source = z.infer<typeof RecommendationSource>;
 export function getRecommendationCreators() {
@@ -32,6 +51,7 @@ export function getCreatorCredits(tmdbId: number, type: string): z.infer<typeof 
     if (pick.startSeconds != null) videoUrl.searchParams.set("t", pick.startSeconds + "s");
     return CreatorCredit.parse({
       id: pick.creatorSlug,
+      origin: getSetting(`creator-pick:${pick.id}:provenance`) ? "automated" : "curated",
       name: pick.creatorName,
       channelUrl: pick.channelUrl,
       videoUrl: videoUrl.toString(),

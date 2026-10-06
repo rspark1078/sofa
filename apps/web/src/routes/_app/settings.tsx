@@ -102,7 +102,7 @@ function SettingsPage() {
           <StreamingServicesSection />
           <LanguageSection />
           <ExploreSection />
-          <CriticsSection />
+          <CriticsSection isAdmin={isAdmin} />
         </div>
       </div>
 

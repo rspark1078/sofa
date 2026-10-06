@@ -22,6 +22,11 @@ export function CreatorCredits({ credits }: { credits?: z.infer<typeof CreatorCr
               {credit.name}
             </a>
           </p>
+          <p className="text-muted-foreground">
+            {credit.origin === "automated"
+              ? t`Automatically identified recommendation`
+              : t`Curated recommendation`}
+          </p>
           <a
             className="text-primary block hover:underline"
             href={credit.videoUrl}

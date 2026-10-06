@@ -86,6 +86,11 @@ msgstr ""
 #~ msgid "{0} ratings"
 #~ msgstr ""
 
+#. placeholder {0}: selected.length
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "{0} selected"
+#~ msgstr "{0} selected"
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #~ msgid "{0} titles"
 #~ msgstr "{0} titles"
@@ -175,6 +180,7 @@ msgstr "{movieCount} movies, {episodeCount} episodes"
 msgid "{ratingCount} ratings"
 msgstr "{ratingCount} ratings"
 
+#: apps/web/src/components/settings/critics-section.tsx
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "{selectedCount} selected"
 msgstr "{selectedCount} selected"
@@ -335,10 +341,18 @@ msgstr ""
 msgid "Add a <0>Generic Destination</0> and paste the URL above"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Add a critic"
+msgstr "Add a critic"
+
 #: apps/native/src/components/settings/integration-configs.ts
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Add a new webhook and paste the URL above"
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Add critic"
+msgstr "Add critic"
 
 #: apps/web/src/routes/setup.tsx
 msgid "Add it to your environment"
@@ -367,11 +381,19 @@ msgstr ""
 msgid "Added \"{titleName}\" to watchlist"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Added to the shared catalog. Users following all critics will include this channel. Adding a channel does not add verified movie picks or guarantee its video feed is available."
+msgstr "Added to the shared catalog. Users following all critics will include this channel. Adding a channel does not add verified movie picks or guarantee its video feed is available."
+
 #: apps/native/src/hooks/use-title-actions.ts
 #: apps/native/src/lib/title-actions.ts
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Added to watchlist"
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Adding critic…"
+msgstr "Adding critic…"
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/components/nav-bar.tsx
@@ -537,6 +559,10 @@ msgstr ""
 msgid "Automatically back up your database on a schedule"
 msgstr ""
 
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Automatically identified recommendation"
+msgstr "Automatically identified recommendation"
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Availability"
 msgstr ""
@@ -549,6 +575,10 @@ msgstr "Availability could not be refreshed. Try again later."
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Available to stream"
 #~ msgstr "Available to stream"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Awaiting recommendation check"
+msgstr "Awaiting recommendation check"
 
 #: apps/native/src/app/(auth)/register.tsx
 msgid "Back to Login"
@@ -708,8 +738,12 @@ msgid "Checking…"
 msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
-msgstr "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+msgid "Checks your selected channels while the server is running. Clear recommendations with exact movie matches are added automatically. Other videos need review."
+msgstr "Checks your selected channels while the server is running. Clear recommendations with exact movie matches are added automatically. Other videos need review."
+
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+#~ msgstr "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "China"
@@ -730,6 +764,10 @@ msgstr "Choose how to import your {sourceLabel} data."
 #: apps/web/src/components/settings/explore-section.tsx
 msgid "Choose which sections appear on Explore. Discover is always shown."
 msgstr "Choose which sections appear on Explore. Discover is always shown."
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Choose whose movie picks appear in your recommendations"
+msgstr "Choose whose movie picks appear in your recommendations"
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Choose whose movie picks appear in your recommendations. Your watch-history recommendations remain available."
@@ -970,13 +1008,25 @@ msgstr "Creator channels"
 msgid "Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden."
 msgstr "Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden."
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Critic added"
+msgstr "Critic added"
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Critic channel checks"
 msgstr "Critic channel checks"
 
 #: apps/web/src/components/settings/critics-section.tsx
+msgid "Critic name"
+msgstr "Critic name"
+
+#: apps/web/src/components/settings/critics-section.tsx
 msgid "Critics and creators"
 msgstr "Critics and creators"
+
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Curated recommendation"
+msgstr "Curated recommendation"
 
 #: apps/native/src/app/change-password.tsx
 #: apps/web/src/components/settings/account-section.tsx
@@ -1188,6 +1238,10 @@ msgstr ""
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "English"
 msgstr "English"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Enter a name and a YouTube channel URL containing its channel ID."
+msgstr "Enter a name and a YouTube channel URL containing its channel ID."
 
 #: apps/native/src/app/(auth)/login.tsx
 #: apps/native/src/app/(auth)/register.tsx
@@ -1900,6 +1954,10 @@ msgstr "Last polled {relativeTime}"
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Last polled {timeAgo}"
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Last refresh: {videosChecked} videos checked, {picksAdded} movie picks added."
+msgstr "Last refresh: {videosChecked} videos checked, {picksAdded} movie picks added."
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Last run"
@@ -2768,8 +2826,12 @@ msgid "Recent Searches"
 msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "Recent videos — recommendation review required"
-msgstr "Recent videos — recommendation review required"
+#~ msgid "Recent videos — recommendation review required"
+#~ msgstr "Recent videos — recommendation review required"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Recent videos and recommendation checks"
+msgstr "Recent videos and recommendation checks"
 
 #: apps/native/src/components/search/recently-viewed-list.ios.tsx
 #: apps/native/src/components/search/recently-viewed-list.tsx
@@ -2779,6 +2841,10 @@ msgstr ""
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "Recommendation availability"
 msgstr "Recommendation availability"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Recommendation review required"
+msgstr "Recommendation review required"
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "Recommendation source"
@@ -3313,8 +3379,12 @@ msgid "Sofa will automatically log movies and episodes when you finish watching 
 msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "Some critic channels could not be checked. Try again later."
-msgstr "Some critic channels could not be checked. Try again later."
+msgid "Some channels or recommendation checks could not be completed. Try again later."
+msgstr "Some channels or recommendation checks could not be completed. Try again later."
+
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Some critic channels could not be checked. Try again later."
+#~ msgstr "Some critic channels could not be checked. Try again later."
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/app/change-password.tsx
@@ -3441,8 +3511,12 @@ msgid "Takes effect after restarting the app"
 msgstr "Takes effect after restarting the app"
 
 #: apps/web/src/components/settings/critics-section.tsx
-msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
-msgstr "The last check could not reach every selected channel. Existing recommendations are preserved."
+msgid "The last check could not complete every channel or recommendation check. Existing recommendations are preserved."
+msgstr "The last check could not complete every channel or recommendation check. Existing recommendations are preserved."
+
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
+#~ msgstr "The last check could not reach every selected channel. Existing recommendations are preserved."
 
 #: apps/native/src/app/+not-found.tsx
 msgid "The page you're looking for doesn't exist."
@@ -3603,6 +3677,15 @@ msgstr "today"
 msgid "Today"
 msgstr ""
 
+#. placeholder {0}: creator.name
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Toggle {0}"
+#~ msgstr "Toggle {0}"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Toggle {creatorName}"
+msgstr "Toggle {creatorName}"
+
 #: apps/web/src/components/platforms/platform-grid.tsx
 msgid "Toggle {name}"
 msgstr "Toggle {name}"
@@ -3693,6 +3776,10 @@ msgstr "TV Shows"
 #: apps/native/src/components/library/filter-sheet.tsx
 msgid "Type"
 msgstr "Type"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to add critic. The channel may already exist or the catalog may be full."
+msgstr "Unable to add critic. The channel may already exist or the catalog may be full."
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Unable to check critic channels"
@@ -3891,6 +3978,10 @@ msgstr "US availability checked per title. Free includes ad-supported offers; li
 msgid "Use at least 8 characters"
 msgstr "Use at least 8 characters"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Use the channel ID URL, not an @handle or video link. On YouTube, open the channel description, choose Share channel, then Copy channel ID."
+msgstr "Use the channel ID URL, not an @handle or video link. On YouTube, open the channel description, choose Share channel, then Copy channel ID."
+
 #: apps/native/src/components/header-avatar.tsx
 msgid "User menu"
 msgstr "User menu"
@@ -3899,6 +3990,14 @@ msgstr "User menu"
 #: apps/web/src/components/library/library-toolbar.tsx
 msgid "User Rating"
 msgstr "User Rating"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Verification unavailable; retry required"
+msgstr "Verification unavailable; retry required"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Verified recommendations saved"
+msgstr "Verified recommendations saved"
 
 #: apps/web/src/components/titles/title-hero.tsx
 msgid "View on TMDB"
@@ -3912,6 +4011,10 @@ msgstr ""
 #: apps/web/src/components/settings/critics-section.tsx
 #~ msgid "Visit {0}'s channel"
 #~ msgstr "Visit {0}'s channel"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Visit {creatorName}'s channel"
+msgstr "Visit {creatorName}'s channel"
 
 #: apps/web/src/components/titles/title-availability.tsx
 msgid "Visit {name}"
@@ -4102,3 +4205,7 @@ msgstr "Your name…"
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "Your watch history"
 msgstr "Your watch history"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "YouTube channel URL"
+msgstr "YouTube channel URL"
