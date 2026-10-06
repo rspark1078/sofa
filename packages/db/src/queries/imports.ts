@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gt, gte, inArray, lte, ne } from "drizzle-orm";
 
 import { db } from "../client";
 import {
@@ -27,6 +27,62 @@ export function hasEpisodeWatch(userId: string, episodeId: string): boolean {
     .where(and(eq(userEpisodeWatches.userId, userId), eq(userEpisodeWatches.episodeId, episodeId)))
     .get();
   return !!existing;
+}
+
+export function hasMovieWatchBetween(
+  userId: string,
+  titleId: string,
+  from: Date,
+  to: Date,
+): boolean {
+  const existing = db
+    .select({ id: userMovieWatches.id })
+    .from(userMovieWatches)
+    .where(
+      and(
+        eq(userMovieWatches.userId, userId),
+        eq(userMovieWatches.titleId, titleId),
+        gte(userMovieWatches.watchedAt, from),
+        lte(userMovieWatches.watchedAt, to),
+      ),
+    )
+    .get();
+  return !!existing;
+}
+
+export function hasEpisodeWatchBetween(
+  userId: string,
+  episodeId: string,
+  from: Date,
+  to: Date,
+): boolean {
+  const existing = db
+    .select({ id: userEpisodeWatches.id })
+    .from(userEpisodeWatches)
+    .where(
+      and(
+        eq(userEpisodeWatches.userId, userId),
+        eq(userEpisodeWatches.episodeId, episodeId),
+        gte(userEpisodeWatches.watchedAt, from),
+        lte(userEpisodeWatches.watchedAt, to),
+      ),
+    )
+    .get();
+  return !!existing;
+}
+
+/** Move a library row's addedAt earlier (never later). Used by imports. */
+export function backdateTitleStatusAddedAt(userId: string, titleId: string, addedAt: Date): void {
+  db.update(userTitleStatus)
+    .set({ addedAt })
+    .where(
+      and(
+        eq(userTitleStatus.userId, userId),
+        eq(userTitleStatus.titleId, titleId),
+        gt(userTitleStatus.addedAt, addedAt),
+      ),
+    )
+    .run();
 }
 
 export function hasTitleStatus(userId: string, titleId: string): boolean {
@@ -58,6 +114,44 @@ export function hasRating(userId: string, titleId: string): boolean {
 
 export function getImportJob(jobId: string) {
   return db.select().from(importJobs).where(eq(importJobs.id, jobId)).get();
+}
+
+/** A job without its payload (which can be several MB) — for progress polling. */
+export function getImportJobSummary(jobId: string) {
+  return db
+    .select({
+      id: importJobs.id,
+      userId: importJobs.userId,
+      source: importJobs.source,
+      status: importJobs.status,
+      totalItems: importJobs.totalItems,
+      processedItems: importJobs.processedItems,
+      importedCount: importJobs.importedCount,
+      skippedCount: importJobs.skippedCount,
+      failedCount: importJobs.failedCount,
+      currentMessage: importJobs.currentMessage,
+      errors: importJobs.errors,
+      warnings: importJobs.warnings,
+      createdAt: importJobs.createdAt,
+      startedAt: importJobs.startedAt,
+      finishedAt: importJobs.finishedAt,
+    })
+    .from(importJobs)
+    .where(eq(importJobs.id, jobId))
+    .get();
+}
+
+const FINISHED_STATUSES = ["success", "error", "cancelled"] as const;
+
+/** Empty the payload of finished jobs; only the processor reads it. Returns rows changed. */
+export function clearFinishedImportPayloads(jobId?: string): number {
+  const finished = inArray(importJobs.status, [...FINISHED_STATUSES]);
+  return db
+    .update(importJobs)
+    .set({ payload: "" })
+    .where(and(finished, ne(importJobs.payload, ""), jobId ? eq(importJobs.id, jobId) : undefined))
+    .returning({ id: importJobs.id })
+    .all().length;
 }
 
 export function updateImportJobProgress(

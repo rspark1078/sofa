@@ -4,15 +4,23 @@ import { client, orpc } from "@/lib/orpc";
 import { queryClient } from "@/lib/query-client";
 import { toast } from "@/lib/toast";
 import { refreshWidgets } from "@/lib/widgets";
+import { trackingDerivedQueryKeys, trackingStateQueryKeys } from "@sofa/api/query-keys";
 import { i18n } from "@sofa/i18n";
 
 let widgetRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 
-/** Invalidate title + tracking + library queries. Used by most title mutations. */
-export function invalidateTitleQueries() {
-  queryClient.invalidateQueries({ queryKey: orpc.titles.key() });
-  queryClient.invalidateQueries({ queryKey: orpc.tracking.key() });
-  queryClient.invalidateQueries({ queryKey: orpc.library.key() });
+/**
+ * Mark every query that depends on the user's tracking state as stale — the shared
+ * `trackingStateQueryKeys` and `trackingDerivedQueryKeys` lists from `@sofa/api/query-keys`.
+ * Title details (`titles.get`) are excluded — they don't depend on tracking (same rule as the
+ * web's invalidateTrackingQueries). Derived queries are fire-and-forget; resolves once the
+ * tracking-state queries (tracking + library) have refetched, so mutations can stay pending
+ * until the UI reflects the change.
+ */
+export function invalidateTitleQueries(): Promise<unknown> {
+  for (const queryKey of trackingDerivedQueryKeys(orpc)) {
+    void queryClient.invalidateQueries({ queryKey });
+  }
 
   // Debounce widget refresh to batch rapid mutations (e.g. watching multiple episodes)
   if (widgetRefreshTimer) clearTimeout(widgetRefreshTimer);
@@ -20,6 +28,10 @@ export function invalidateTitleQueries() {
     void refreshWidgets();
     widgetRefreshTimer = null;
   }, 2000);
+
+  return Promise.all(
+    trackingStateQueryKeys(orpc).map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+  );
 }
 
 /**
@@ -29,17 +41,25 @@ export function invalidateTitleQueries() {
 export const titleActions = {
   async addToWatchlist(id: string, titleName?: string) {
     try {
-      await client.tracking.updateStatus({ id, status: "watchlist" });
-      toast.success(
-        titleName
-          ? i18n._(msg`Added "${titleName}" to watchlist`)
-          : i18n._(msg`Added to watchlist`),
-      );
+      const result = await client.tracking.updateStatus({ id, status: "watchlist" });
+      if (result.alreadyAdded) {
+        toast.info(
+          titleName
+            ? i18n._(msg`"${titleName}" is already in your library`)
+            : i18n._(msg`Already in your library`),
+        );
+      } else {
+        toast.success(
+          titleName
+            ? i18n._(msg`Added "${titleName}" to watchlist`)
+            : i18n._(msg`Added to watchlist`),
+        );
+      }
       invalidateTitleQueries();
     } catch {
       toast.error(i18n._(msg`Failed to add to watchlist`));
       // Refetch so any optimistic local status reverts on failure
-      queryClient.invalidateQueries({ queryKey: orpc.titles.key() });
+      queryClient.invalidateQueries({ queryKey: orpc.tracking.key() });
     }
   },
 

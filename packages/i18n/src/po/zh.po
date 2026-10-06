@@ -22,10 +22,13 @@ msgstr ""
 #~ msgid "...and {0} more"
 #~ msgstr ""
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "...and {remainingErrors} more"
 msgstr "...及另外 {remainingErrors} 个"
+
+#: apps/native/src/lib/title-actions.ts
+msgid "\"{titleName}\" is already in your library"
+msgstr ""
 
 #. placeholder {0}: systemHealth.data.imageCache.imageCount
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
@@ -84,11 +87,6 @@ msgstr "{0, plural, other {# 部}}"
 
 #: apps/web/src/components/settings/imports-section.tsx
 #~ msgid "{0} ratings"
-#~ msgstr ""
-
-#. placeholder {0}: selected.length
-#: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "{0} selected"
 #~ msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
@@ -235,22 +233,6 @@ msgstr "{watchedEpisodes}/{totalEpisodes, plural, other {# 集}}"
 msgid "{watchlistCount} items"
 msgstr "{watchlistCount} 个项目"
 
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "≤ 2 hr"
-#~ msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "≤ 2 hr 15 min"
-#~ msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "≤ 2 hr 30 min"
-#~ msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "≤ 90 min"
-#~ msgstr ""
-
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 msgid "1★+"
 msgstr ""
@@ -305,14 +287,6 @@ msgstr "80年代"
 #: apps/native/src/components/library/filter-sheet.tsx
 msgid "90s"
 msgstr "90年代"
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Access"
-#~ msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Access type"
-#~ msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/routes/_app/settings.tsx
@@ -420,6 +394,7 @@ msgid "age {age}"
 msgstr "{age} 岁"
 
 #: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/native/src/app/(tabs)/(library)/history.tsx
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/explore/filterable-title-row.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
@@ -427,6 +402,7 @@ msgstr "{age} 岁"
 #: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
+#: apps/web/src/routes/_app/history.tsx
 #: apps/web/src/routes/_app/upcoming.tsx
 msgid "All"
 msgstr "全部"
@@ -462,9 +438,22 @@ msgstr "已有账户？"
 msgid "Already have an account? Sign in"
 msgstr "已有账户？立即登录"
 
+#: apps/native/src/hooks/use-title-actions.ts
+#: apps/native/src/lib/title-actions.ts
+msgid "Already in your library"
+msgstr ""
+
 #: apps/web/src/components/titles/title-availability.tsx
 msgid "Also available on"
 msgstr "同样在以下平台可用"
+
+#: packages/i18n/src/errors.ts
+msgid "An account with this email already exists"
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "An import is already in progress"
+msgstr ""
 
 #: apps/web/src/components/route-error.tsx
 #: apps/web/src/routes/__root.tsx
@@ -481,10 +470,6 @@ msgid "Any"
 msgstr "任意"
 
 #: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Any access"
-#~ msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
 msgid "Any content rating"
 msgstr ""
 
@@ -499,10 +484,6 @@ msgstr "任意语言"
 #: apps/web/src/components/explore/discover-section.tsx
 #~ msgid "Any rating"
 #~ msgstr "任意评分"
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Any runtime"
-#~ msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Any TMDB score"
@@ -600,6 +581,14 @@ msgstr "备份已创建"
 msgid "Backup deleted"
 msgstr "备份已删除"
 
+#: packages/i18n/src/errors.ts
+msgid "Backup not found"
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "Backup restoration failed"
+msgstr ""
+
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Backup schedule"
 msgstr "备份计划"
@@ -636,6 +625,10 @@ msgstr "缓存管理"
 msgid "Can't reach server"
 msgstr "无法连接服务器"
 
+#: apps/native/src/app/(auth)/register.tsx
+msgid "Can't reach the server"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/native/src/components/header-avatar.tsx
 #: apps/native/src/components/search/recently-viewed-list.ios.tsx
@@ -660,6 +653,10 @@ msgstr "取消编辑"
 #: apps/web/src/components/titles/cast-carousel.tsx
 msgid "Cast"
 msgstr "演员表"
+
+#: apps/web/src/components/settings/system-health-section.tsx
+msgid "Cast & crew"
+msgstr ""
 
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Catch up"
@@ -740,10 +737,6 @@ msgstr "检查中…"
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Checks your selected channels while the server is running. Clear recommendations with exact movie matches are added automatically. Other videos need review."
 msgstr ""
-
-#: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
-#~ msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "China"
@@ -831,6 +824,7 @@ msgid "Click the button to verify your configuration"
 msgstr "点击按钮验证您的配置"
 
 #: apps/native/src/components/navigation/modal-layout.tsx
+#: apps/native/src/components/ui/select-modal.tsx
 #: apps/web/src/components/ui/dialog.tsx
 #: apps/web/src/components/ui/sheet.tsx
 msgid "Close"
@@ -887,6 +881,14 @@ msgstr "连接到 TMDB"
 msgid "Connect with {sourceLabel}"
 msgstr "通过 {sourceLabel} 连接"
 
+#: apps/web/src/components/settings/imports-section.tsx
+msgid "Connect your Simkl account or upload a JSON export"
+msgstr ""
+
+#: apps/web/src/components/settings/imports-section.tsx
+msgid "Connect your Trakt account or upload your Trakt export (ZIP or JSON)"
+msgstr ""
+
 #: apps/native/src/app/(auth)/server-url.tsx
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/components/settings/system-health-section.tsx
@@ -912,6 +914,10 @@ msgstr "连接中..."
 #: apps/native/src/components/settings/integration-card.tsx
 msgid "Connecting…"
 msgstr "连接中…"
+
+#: apps/native/src/app/(auth)/server-url.tsx
+msgid "Connection timed out. The server might be down or unreachable."
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
@@ -962,6 +968,38 @@ msgstr "无法加载标题详情"
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 msgid "Could not load your library"
 msgstr "无法加载您的媒体库"
+
+#: apps/native/src/app/(auth)/server-url.tsx
+msgid "Could not reach the server. Check your connection and the URL."
+msgstr ""
+
+#: apps/native/src/components/ui/load-more-footer.tsx
+msgid "Couldn't load more"
+msgstr ""
+
+#: apps/native/src/components/explore/filterable-title-row.tsx
+msgid "Couldn't load titles"
+msgstr ""
+
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+msgid "Couldn't load upcoming releases"
+msgstr ""
+
+#: apps/native/src/app/(tabs)/(home)/index.tsx
+msgid "Couldn't load your library"
+msgstr ""
+
+#: apps/native/src/app/(tabs)/(library)/history.tsx
+msgid "Couldn't load your watch history"
+msgstr ""
+
+#: apps/native/src/app/(tabs)/(search)/index.tsx
+msgid "Couldn't search right now"
+msgstr ""
+
+#: apps/native/src/app/(auth)/login.tsx
+msgid "Couldn't start sign-in"
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Country"
@@ -1033,6 +1071,10 @@ msgstr ""
 msgid "Current password"
 msgstr "当前密码"
 
+#: packages/i18n/src/errors.ts
+msgid "Current password is incorrect"
+msgstr ""
+
 #: apps/native/src/app/change-password.tsx
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Current password is required"
@@ -1074,9 +1116,17 @@ msgstr "数据库"
 msgid "Database backups"
 msgstr "数据库备份"
 
+#: apps/web/src/components/settings/system-health-section.tsx
+msgid "Database maintenance"
+msgstr ""
+
 #: apps/web/src/components/settings/backup-restore-section.tsx
 msgid "Database restored. Reloading..."
 msgstr "数据库已还原。正在重新加载..."
+
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Date"
+msgstr ""
 
 #: apps/native/src/components/library/sort-menu.tsx
 #: apps/web/src/components/library/library-toolbar.tsx
@@ -1095,7 +1145,7 @@ msgstr "年代"
 msgid "Default"
 msgstr "默认"
 
-#: apps/native/src/components/ui/swipeable-row.tsx
+#: apps/native/src/components/search/recently-viewed-row.tsx
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Delete"
 msgstr "删除"
@@ -1165,8 +1215,7 @@ msgstr "没有服务器？"
 msgid "Don't have an account?"
 msgstr "没有账户？"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Done"
 msgstr "完成"
 
@@ -1198,6 +1247,10 @@ msgstr "下载备份"
 msgid "Download your library, watch history, and ratings as JSON"
 msgstr "将媒体库、观看历史和评分下载为 JSON"
 
+#: packages/i18n/src/date-buckets.ts
+msgid "Earlier this week"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Edit profile photo"
 msgstr "编辑头像"
@@ -1218,6 +1271,12 @@ msgstr "邮箱"
 #: apps/native/src/app/(auth)/register.tsx
 msgid "Email is required"
 msgstr "邮箱不能为空"
+
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
+#: apps/web/src/routes/_app/history.tsx
+msgid "Emby"
+msgstr ""
 
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Enable the \"Playback Stop\" notification type"
@@ -1245,6 +1304,7 @@ msgstr ""
 
 #: apps/native/src/app/(auth)/login.tsx
 #: apps/native/src/app/(auth)/register.tsx
+#: packages/i18n/src/errors.ts
 msgid "Enter a valid email address"
 msgstr "请输入有效的电子邮件地址"
 
@@ -1283,6 +1343,10 @@ msgstr "第 {episodeNumber} 集"
 #: apps/native/src/components/titles/episode-row.tsx
 msgid "Episode {episodeNumber}, {episodeLabel}"
 msgstr "第 {episodeNumber} 集，{episodeLabel}"
+
+#: packages/i18n/src/errors.ts
+msgid "Episode not found"
+msgstr ""
 
 #: apps/native/src/components/titles/season-accordion.tsx
 #: apps/native/src/hooks/use-title-actions.ts
@@ -1334,8 +1398,7 @@ msgstr "错误"
 #~ msgid "Errors ({0})"
 #~ msgstr ""
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Errors ({errorCount})"
 msgstr "错误 ({errorCount})"
 
@@ -1343,8 +1406,13 @@ msgstr "错误 ({errorCount})"
 msgid "Every {n}h"
 msgstr "每 {n} 小时"
 
+#: apps/web/src/routes/_app/history.tsx
+msgid "Everything you've watched, newest first."
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(explore)/_layout.tsx
 #: apps/native/src/app/(tabs)/(home)/index.tsx
+#: apps/native/src/components/navigation/native-tab-bar.android.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/nav-bar.tsx
 msgid "Explore"
@@ -1367,8 +1435,7 @@ msgstr ""
 msgid "Export"
 msgstr "导出"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Failed"
 msgstr "失败"
 
@@ -1386,8 +1453,8 @@ msgid "Failed to change password"
 msgstr "修改密码失败"
 
 #: apps/web/src/components/settings/imports-section.tsx
-msgid "Failed to connect"
-msgstr "连接失败"
+#~ msgid "Failed to connect"
+#~ msgstr "连接失败"
 
 #: apps/native/src/components/settings/integration-card.tsx
 #: apps/web/src/components/settings/integration-card.tsx
@@ -1403,6 +1470,7 @@ msgid "Failed to create backup"
 msgstr "创建备份失败"
 
 #: apps/web/src/components/settings/backup-section.tsx
+#: packages/i18n/src/errors.ts
 msgid "Failed to delete backup"
 msgstr "删除备份失败"
 
@@ -1410,6 +1478,10 @@ msgstr "删除备份失败"
 #: apps/web/src/components/settings/integration-card.tsx
 msgid "Failed to disconnect {label}"
 msgstr "断开 {label} 连接失败"
+
+#: packages/i18n/src/errors.ts
+msgid "Failed to export data"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Failed to load backup schedule settings"
@@ -1422,6 +1494,10 @@ msgstr "加载备份计划设置失败"
 #: apps/web/src/routes/_app/titles.$id.tsx
 msgid "Failed to load title"
 msgstr "加载影视内容失败"
+
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Failed to log watch"
+msgstr ""
 
 #: apps/native/src/lib/title-actions.ts
 #: apps/web/src/components/titles/use-title-actions.ts
@@ -1442,6 +1518,7 @@ msgstr "标记为已观看失败"
 
 #: apps/native/src/hooks/use-title-actions.ts
 #: apps/native/src/lib/title-actions.ts
+#: apps/web/src/components/dashboard/use-quick-watch.ts
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Failed to mark episode"
 msgstr "标记单集失败"
@@ -1477,6 +1554,11 @@ msgstr "清除元数据缓存失败"
 #: apps/web/src/components/settings/integration-card.tsx
 msgid "Failed to regenerate {label} URL"
 msgstr "重新生成 {label} URL 失败"
+
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/use-delete-watch.ts
+msgid "Failed to remove from history"
+msgstr ""
 
 #: apps/native/src/lib/title-actions.ts
 msgid "Failed to remove from library"
@@ -1552,11 +1634,14 @@ msgid "Failed to update scheduled backup setting"
 msgstr "更新定时备份设置失败"
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
+#: apps/web/src/components/settings/streaming-services-section.tsx
 #: apps/web/src/components/settings/update-check-section.tsx
+#: apps/web/src/routes/_app/onboarding.tsx
 msgid "Failed to update setting"
 msgstr "更新设置失败"
 
 #: apps/native/src/hooks/use-title-actions.ts
+#: apps/web/src/components/title-card.tsx
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Failed to update status"
 msgstr "更新状态失败"
@@ -1591,13 +1676,13 @@ msgstr ""
 msgid "Find title-specific US watch links on TMDB / JustWatch"
 msgstr ""
 
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Finished importing from {source}."
 msgstr "已完成从 {source} 导入。"
 
 #: apps/web/src/components/settings/account-section.tsx
-msgid "Finished importing your Sofa export."
-msgstr "已完成导入您的 Sofa 导出文件。"
+#~ msgid "Finished importing your Sofa export."
+#~ msgstr "已完成导入您的 Sofa 导出文件。"
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Follow all critics, including new additions"
@@ -1615,20 +1700,12 @@ msgid "Free"
 msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Free / with ads"
-#~ msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
 msgid "Free providers"
 msgstr ""
 
 #: apps/web/src/components/settings/danger-section.tsx
 msgid "Free up disk space by clearing cached metadata and images"
 msgstr "通过清除缓存的元数据和图片来释放磁盘空间"
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Free with ads"
-#~ msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "French"
@@ -1739,7 +1816,16 @@ msgstr "评分最高"
 msgid "Hindi"
 msgstr "印地语"
 
+#: apps/native/src/app/(tabs)/(library)/_layout.tsx
+#: apps/native/src/app/(tabs)/(library)/history.tsx
+#: apps/web/src/components/nav-bar.tsx
+#: apps/web/src/routes/_app/history.tsx
+#: apps/web/src/routes/_app/library.tsx
+msgid "History"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(home)/_layout.tsx
+#: apps/native/src/components/navigation/native-tab-bar.android.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/nav-bar.tsx
 msgid "Home"
@@ -1766,7 +1852,10 @@ msgstr "图片缓存"
 msgid "Image cache and backup disk usage"
 msgstr "图片缓存与备份磁盘用量"
 
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
 #: apps/web/src/components/settings/account-section.tsx
+#: apps/web/src/routes/_app/history.tsx
 #: apps/web/src/routes/_app/settings.tsx
 msgid "Import"
 msgstr "导入"
@@ -1776,13 +1865,11 @@ msgstr "导入"
 msgid "Import {totalItems} items"
 msgstr "导入 {totalItems} 个项目"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Import complete"
 msgstr "导入完成"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/use-import-job.ts
 msgid "Import failed"
 msgstr "导入失败"
 
@@ -1798,8 +1885,7 @@ msgstr "从 {source} 导入"
 msgid "Import from {sourceLabel}"
 msgstr "从 {sourceLabel} 导入"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/use-import-job.ts
 msgid "Import is still running in the background. Check back later."
 msgstr "导入仍在后台运行，请稍后再来查看。"
 
@@ -1808,12 +1894,15 @@ msgstr "导入仍在后台运行，请稍后再来查看。"
 msgid "Import options"
 msgstr "导入选项"
 
+#: packages/i18n/src/errors.ts
+msgid "Import payload is too large"
+msgstr ""
+
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Import Sofa data"
 msgstr "导入 Sofa 数据"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Imported"
 msgstr "已导入"
 
@@ -1830,10 +1919,10 @@ msgid "Imported {importedCount} items from Sofa export"
 msgstr "已从 Sofa 导出文件导入 {importedCount} 个条目"
 
 #: apps/web/src/components/settings/account-section.tsx
-msgid "Importing data"
-msgstr "正在导入数据"
+#~ msgid "Importing data"
+#~ msgstr "正在导入数据"
 
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Importing from {source}"
 msgstr "正在从 {source} 导入"
 
@@ -1868,10 +1957,22 @@ msgstr "从 Jellyfin 的插件目录安装 <0>Webhook 插件<1/></0>"
 msgid "Install the Webhook plugin from Jellyfin's plugin catalog"
 msgstr "从 Jellyfin 的插件目录安装 Webhook 插件"
 
+#: packages/i18n/src/errors.ts
+msgid "Integration not found"
+msgstr ""
+
 #: apps/native/src/components/settings/integrations-section.tsx
 #: apps/web/src/routes/_app/settings.tsx
 msgid "Integrations"
 msgstr "集成"
+
+#: packages/i18n/src/errors.ts
+msgid "Invalid email or password"
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "Invalid import file"
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Invalid token"
@@ -1889,9 +1990,19 @@ msgstr ""
 msgid "Japanese"
 msgstr "日语"
 
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
+#: apps/web/src/routes/_app/history.tsx
+msgid "Jellyfin"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Job"
 msgstr "任务"
+
+#: packages/i18n/src/errors.ts
+msgid "Job not found"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Keeping"
@@ -1935,25 +2046,25 @@ msgstr "上次 <0/>"
 #~ msgid "Last event {0}"
 #~ msgstr ""
 
-#: apps/web/src/components/settings/integration-card.tsx
+#: packages/i18n/src/integration-status.ts
 msgid "Last event {relativeTime}"
 msgstr "最近事件 {relativeTime}"
 
 #: apps/native/src/components/settings/integration-configs.ts
-msgid "Last event {timeAgo}"
-msgstr "最近事件 {timeAgo}"
+#~ msgid "Last event {timeAgo}"
+#~ msgstr "最近事件 {timeAgo}"
 
 #: apps/web/src/components/settings/integration-card.tsx
 #~ msgid "Last polled {0}"
 #~ msgstr ""
 
-#: apps/web/src/components/settings/integration-card.tsx
+#: packages/i18n/src/integration-status.ts
 msgid "Last polled {relativeTime}"
 msgstr "最近轮询 {relativeTime}"
 
 #: apps/native/src/components/settings/integration-configs.ts
-msgid "Last polled {timeAgo}"
-msgstr "最近轮询 {timeAgo}"
+#~ msgid "Last polled {timeAgo}"
+#~ msgstr "最近轮询 {timeAgo}"
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Last refresh: {videosChecked} videos checked, {picksAdded} movie picks added."
@@ -1971,16 +2082,17 @@ msgstr "上次运行失败"
 msgid "Last run succeeded"
 msgstr "上次运行成功"
 
-#. placeholder {0}: formatDate(status.lastCheckedAt)
-#: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "Last successful check: {0}"
-#~ msgstr ""
-
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Last successful check: {lastCheckedLabel}"
 msgstr ""
 
+#: apps/native/src/components/library/sort-menu.tsx
+#: apps/web/src/components/library/library-toolbar.tsx
+msgid "Last watched"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(library)/_layout.tsx
+#: apps/native/src/components/navigation/native-tab-bar.android.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/nav-bar.tsx
 #: apps/web/src/components/settings/account-section.tsx
@@ -2005,12 +2117,23 @@ msgstr "加载中"
 msgid "Loading…"
 msgstr "加载中…"
 
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Log a watch"
+msgstr ""
+
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Log a watch…"
+msgstr ""
+
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Log watch"
+msgstr ""
+
 #: apps/web/src/components/auth-form.tsx
 msgid "Login failed"
 msgstr "登录失败"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/use-import-job.ts
 msgid "Lost connection to import. Check status in settings."
 msgstr "导入连接已断开，请在设置中查看状态。"
 
@@ -2018,7 +2141,10 @@ msgstr "导入连接已断开，请在设置中查看状态。"
 msgid "Manage your account and preferences"
 msgstr "管理您的账户和偏好设置"
 
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
 #: apps/web/src/components/settings/critics-section.tsx
+#: apps/web/src/routes/_app/history.tsx
 msgid "Manual"
 msgstr ""
 
@@ -2056,6 +2182,21 @@ msgstr "将第 {epNum} 集标记为已观看"
 #: apps/native/src/components/dashboard/upcoming-row.tsx
 msgid "Mark Episode Watched"
 msgstr "标记剧集为已观看"
+
+#. placeholder {0}: nextEpisode.seasonNumber
+#. placeholder {1}: nextEpisode.episodeNumber
+#: apps/web/src/components/dashboard/continue-watching-card.tsx
+#~ msgid "Mark S{0} E{1} watched"
+#~ msgstr ""
+
+#: apps/web/src/components/dashboard/continue-watching-card.tsx
+#: apps/web/src/components/dashboard/upcoming-item.tsx
+msgid "Mark S{quickWatchSeason} E{quickWatchEpisode} watched"
+msgstr ""
+
+#: apps/native/src/components/dashboard/continue-watching-card.tsx
+msgid "Mark S{seasonNum} E{epNum} Watched"
+msgstr ""
 
 #: apps/native/src/app/title/[id].tsx
 #: apps/native/src/components/dashboard/upcoming-row.tsx
@@ -2097,6 +2238,10 @@ msgstr ""
 msgid "Marked \"{titleName}\" as watched"
 msgstr "已将\"{titleName}\"标记为已观看"
 
+#: apps/web/src/components/dashboard/use-quick-watch.ts
+msgid "Marked {label} as watched"
+msgstr ""
+
 #: apps/native/src/lib/title-actions.ts
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Marked all episodes as watched"
@@ -2137,10 +2282,6 @@ msgstr "最大"
 #~ msgstr "Maximum rating"
 
 #: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Maximum runtime"
-#~ msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
 msgid "Maximum US content rating"
 msgstr ""
 
@@ -2172,6 +2313,10 @@ msgstr "星期一"
 msgid "More"
 msgstr "更多"
 
+#: apps/web/src/components/history/history-row.tsx
+msgid "More actions"
+msgstr ""
+
 #: apps/native/src/app/title/[id].tsx
 msgid "More Like This"
 msgstr "更多相似内容"
@@ -2195,7 +2340,9 @@ msgstr "电影"
 #: apps/native/src/app/title/[id].tsx
 #: apps/native/src/components/library/filter-sheet.tsx
 #: apps/native/src/components/search/recently-viewed-row-content.tsx
+#: apps/native/src/components/search/recently-viewed-row.tsx
 #: apps/native/src/components/search/search-result-row.tsx
+#: apps/native/src/lib/widgets.ts
 #: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/explore/hero-banner.tsx
 #: apps/web/src/components/library/library-filters.tsx
@@ -2204,10 +2351,12 @@ msgid "Movie"
 msgstr "电影"
 
 #: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/native/src/app/(tabs)/(library)/history.tsx
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
 #: apps/web/src/components/settings/account-section.tsx
 #: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/routes/_app/history.tsx
 #: apps/web/src/routes/_app/upcoming.tsx
 msgid "Movies"
 msgstr "电影"
@@ -2317,6 +2466,10 @@ msgstr "下一集"
 msgid "Next run"
 msgstr "下次运行"
 
+#: packages/i18n/src/date-buckets.ts
+msgid "Next Week"
+msgstr ""
+
 #: apps/native/src/components/dashboard/continue-watching-card.tsx
 msgid "Next: S{seasonNum} E{epNum}"
 msgstr "下一集：S{seasonNum} E{epNum}"
@@ -2334,10 +2487,6 @@ msgstr "无网络连接"
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 msgid "No matching titles"
 msgstr "没有匹配的标题"
-
-#: apps/web/src/components/dashboard/recommendations-section.tsx
-#~ msgid "No recommendations match this availability filter in the cached US offers."
-#~ msgstr ""
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "No recommendations match this US availability filter."
@@ -2396,6 +2545,10 @@ msgstr ""
 msgid "No verified matches on these pages. Check more results or broaden your filters."
 msgstr ""
 
+#: apps/native/src/app/(tabs)/(library)/history.tsx
+msgid "No watches yet."
+msgstr ""
+
 #: apps/native/src/components/settings/integration-card.tsx
 #: apps/web/src/components/settings/integration-card.tsx
 #: apps/web/src/components/settings/system-health-section.tsx
@@ -2405,6 +2558,18 @@ msgstr "未配置"
 #: apps/native/src/app/+not-found.tsx
 msgid "Not Found"
 msgstr "未找到"
+
+#: apps/native/src/lib/widgets.ts
+msgid "Nothing to watch"
+msgstr ""
+
+#: apps/native/src/lib/widgets.ts
+msgid "Nothing upcoming"
+msgstr ""
+
+#: apps/web/src/routes/_app/history.tsx
+msgid "Nothing watched yet."
+msgstr ""
 
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Older"
@@ -2479,6 +2644,10 @@ msgstr "打开 Radarr，前往 Settings > Import Lists"
 msgid "Open registration"
 msgstr "开放注册"
 
+#: apps/native/src/lib/widgets.ts
+msgid "Open Sofa to see what's next"
+msgstr ""
+
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Open Sonarr, go to <0>Settings > Import Lists</0>"
 msgstr "打开 Sonarr，前往 <0>Settings > Import Lists</0>"
@@ -2486,6 +2655,10 @@ msgstr "打开 Sonarr，前往 <0>Settings > Import Lists</0>"
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Open Sonarr, go to Settings > Import Lists"
 msgstr "打开 Sonarr，前往 Settings > Import Lists"
+
+#: apps/native/src/app/(tabs)/(library)/index.tsx
+msgid "Opens options"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Opens options to change or remove your photo"
@@ -2540,6 +2713,14 @@ msgstr "密码"
 msgid "Password is required"
 msgstr "密码不能为空"
 
+#: packages/i18n/src/errors.ts
+msgid "Password is too long"
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "Password is too short"
+msgstr ""
+
 #: apps/native/src/app/change-password.tsx
 msgid "Password must be at least 8 characters"
 msgstr "密码至少需要 8 个字符"
@@ -2573,12 +2754,14 @@ msgid "person"
 msgstr "人物"
 
 #: apps/native/src/components/search/recently-viewed-row-content.tsx
+#: apps/native/src/components/search/recently-viewed-row.tsx
 #: apps/native/src/components/search/search-result-row.tsx
 msgid "Person"
 msgstr "人物"
 
 #: apps/native/src/app/person/[id].tsx
 #: apps/web/src/routes/_app/people.$id.tsx
+#: packages/i18n/src/errors.ts
 msgid "Person not found"
 msgstr "未找到该人物"
 
@@ -2602,6 +2785,12 @@ msgstr "请确认您的密码"
 #: apps/native/src/hooks/use-server-connection.ts
 msgid "Please sign in again."
 msgstr "请重新登录。"
+
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
+#: apps/web/src/routes/_app/history.tsx
+msgid "Plex"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
 #: apps/web/src/components/settings/explore-section.tsx
@@ -2673,18 +2862,9 @@ msgstr "服务提供商"
 msgid "Provider icons open a title page when available, otherwise a provider search or home page. Availability and account requirements can change."
 msgstr ""
 
-#: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Provider icons open provider search or home pages. Availability and account requirements can change."
-#~ msgstr ""
-
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Provider type"
 msgstr ""
-
-#. placeholder {0}: selectedPlatformIds.length
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Providers ({0})"
-#~ msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Providers ({providerCount})"
@@ -2799,8 +2979,8 @@ msgid "Rating removed"
 msgstr "评分已删除"
 
 #: apps/native/src/components/ui/star-rating.tsx
-msgid "Rating: {rating} out of 5 stars"
-msgstr "评分：{rating} / 5 星"
+#~ msgid "Rating: {rating} out of 5 stars"
+#~ msgstr "评分：{rating} / 5 星"
 
 #: apps/web/src/components/settings/account-section.tsx
 #: apps/web/src/components/settings/imports-section.tsx
@@ -2811,13 +2991,11 @@ msgstr "评分"
 msgid "Read more"
 msgstr "阅读更多"
 
-#: apps/native/src/components/settings/integration-configs.ts
-#: apps/web/src/components/settings/integration-card.tsx
+#: packages/i18n/src/integration-status.ts
 msgid "Ready — not polled yet"
 msgstr "就绪 — 尚未轮询"
 
-#: apps/native/src/components/settings/integration-configs.ts
-#: apps/web/src/components/settings/integration-card.tsx
+#: packages/i18n/src/integration-status.ts
 msgid "Ready — nothing received yet"
 msgstr "就绪 — 尚未收到任何事件"
 
@@ -2826,11 +3004,12 @@ msgid "Recent Searches"
 msgstr "最近搜索"
 
 #: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "Recent videos — recommendation review required"
-#~ msgstr ""
-
-#: apps/web/src/components/settings/critics-section.tsx
 msgid "Recent videos and recommendation checks"
+msgstr ""
+
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Recently aired"
 msgstr ""
 
 #: apps/native/src/components/search/recently-viewed-list.ios.tsx
@@ -2862,6 +3041,10 @@ msgstr "推荐内容"
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "Recommended for You"
 msgstr "为您推荐"
+
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Record when you watched this."
+msgstr ""
 
 #: apps/web/src/components/auth-form.tsx
 msgid "Redirecting…"
@@ -2911,6 +3094,10 @@ msgstr "注册已关闭"
 msgid "Registration failed"
 msgstr "注册失败"
 
+#: packages/i18n/src/errors.ts
+msgid "Registration is currently closed"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/components/settings/registration-section.tsx
 msgid "Registration opened"
@@ -2925,6 +3112,11 @@ msgstr "发行日期"
 #: apps/web/src/components/titles/status-button.tsx
 msgid "Remove"
 msgstr "移除"
+
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
+msgid "Remove from history"
+msgstr ""
 
 #: apps/native/src/components/dashboard/continue-watching-card.tsx
 #: apps/native/src/components/dashboard/upcoming-row.tsx
@@ -2960,6 +3152,11 @@ msgstr "删除图片"
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Remove profile picture"
 msgstr "删除头像"
+
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/use-delete-watch.ts
+msgid "Removed from history"
+msgstr ""
 
 #: apps/native/src/hooks/use-title-actions.ts
 #: apps/native/src/lib/title-actions.ts
@@ -2998,12 +3195,16 @@ msgid "Reset filters"
 msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
-msgid "Restart"
-msgstr "重启"
+#~ msgid "Restart"
+#~ msgstr "重启"
+
+#: apps/native/src/components/root-error-fallback.tsx
+msgid "Restart app"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
-msgid "Restart Required"
-msgstr "需要重启"
+#~ msgid "Restart Required"
+#~ msgstr "需要重启"
 
 #: apps/web/src/components/settings/backup-restore-section.tsx
 msgid "Restore"
@@ -3033,8 +3234,17 @@ msgstr "结果"
 msgid "Retrieving your watch history, watchlist, and ratings..."
 msgstr "正在获取您的观看记录、观看列表和评分..."
 
+#: apps/native/src/app/(auth)/register.tsx
+#: apps/native/src/app/(tabs)/(home)/index.tsx
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/native/src/app/(tabs)/(library)/history.tsx
 #: apps/native/src/app/(tabs)/(library)/index.tsx
+#: apps/native/src/app/(tabs)/(search)/index.tsx
+#: apps/native/src/components/explore/filterable-title-row.tsx
 #: apps/native/src/components/settings/integrations-section.tsx
+#: apps/native/src/components/ui/load-more-footer.tsx
+#: apps/native/src/components/ui/offline-banner.ios.tsx
+#: apps/native/src/components/ui/offline-banner.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.ios.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.tsx
 #: apps/web/src/components/dashboard/recommendations-section.tsx
@@ -3060,19 +3270,30 @@ msgstr "查看已发现的内容，选择要导入的项目。"
 msgid "Run now"
 msgstr "立即运行"
 
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "Runtime"
-#~ msgstr ""
-
 #: apps/native/src/components/dashboard/upcoming-row.tsx
 #: apps/web/src/components/dashboard/upcoming-item.tsx
 #~ msgid "S{0} · {1} {2, plural, one {episode} other {episodes}}"
 #~ msgstr "S{0} · {1} {2, plural, one {episode} other {episodes}}"
 
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
+msgid "S{season} E{episode}"
+msgstr ""
+
+#: apps/native/src/components/history/history-row.tsx
+#: apps/web/src/components/history/history-row.tsx
+msgid "S{season} E{episode} · {name}"
+msgstr ""
+
 #: apps/native/src/components/dashboard/upcoming-row.tsx
+#: apps/native/src/lib/widgets.ts
 #: apps/web/src/components/dashboard/upcoming-item.tsx
 msgid "S{seasonNum} · {epCount, plural, one {# episode} other {# episodes}}"
 msgstr "第 {seasonNum} 季 · {epCount, plural, other {# 集}}"
+
+#: apps/native/src/lib/widgets.ts
+msgid "S{seasonNum} E{epNum}"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Saturday"
@@ -3147,6 +3368,7 @@ msgid "Scroll right"
 msgstr ""
 
 #: apps/native/src/app/(tabs)/(search)/_layout.tsx
+#: apps/native/src/components/navigation/native-tab-bar.android.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/command-palette.tsx
 msgid "Search"
@@ -3238,6 +3460,10 @@ msgstr "自托管电影和电视剧追踪器"
 msgid "Server"
 msgstr "服务器"
 
+#: apps/native/src/app/(auth)/server-url.tsx
+msgid "Server found but reporting an issue. Try again in a moment."
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Server Health"
 msgstr "服务器健康状态"
@@ -3266,6 +3492,7 @@ msgstr "设置您偏好的质量配置和根文件夹"
 
 #: apps/native/src/app/(tabs)/(settings)/_layout.tsx
 #: apps/native/src/components/header-avatar.tsx
+#: apps/native/src/components/navigation/native-tab-bar.android.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/nav-bar.tsx
 #: apps/web/src/components/settings/settings-shell.tsx
@@ -3348,18 +3575,25 @@ msgstr "退出登录"
 msgid "Sign out of other sessions"
 msgstr "退出其他会话"
 
+#: apps/native/src/app/(auth)/login.tsx
+msgid "Sign-in didn't complete"
+msgstr ""
+
 #: apps/web/src/routes/_app/onboarding.tsx
 msgid "Skip for now"
 msgstr "暂时跳过"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Skipped"
 msgstr "已跳过"
 
+#: apps/native/src/components/root-error-fallback.tsx
+msgid "Sofa hit an unexpected error."
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
-msgid "Sofa needs to restart to apply the new layout direction."
-msgstr "Sofa 需要重启以应用新的布局方向。"
+#~ msgid "Sofa needs to restart to apply the new layout direction."
+#~ msgstr "Sofa 需要重启以应用新的布局方向。"
 
 #: apps/web/src/routes/setup.tsx
 msgid "Sofa uses <0>The Movie Database{linkIcon}</0> for movie & TV metadata, posters, and streaming availability. You'll need a free API key to get started."
@@ -3382,18 +3616,20 @@ msgstr "当您看完电影或剧集时，Sofa 将自动记录"
 msgid "Some channels or recommendation checks could not be completed. Try again later."
 msgstr ""
 
-#: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "Some critic channels could not be checked. Try again later."
-#~ msgstr ""
-
+#: apps/native/src/app/(tabs)/(home)/index.tsx
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/native/src/app/(tabs)/(library)/history.tsx
 #: apps/native/src/app/(tabs)/(library)/index.tsx
+#: apps/native/src/app/(tabs)/(search)/index.tsx
 #: apps/native/src/app/change-password.tsx
 #: apps/native/src/app/person/[id].tsx
 #: apps/native/src/app/title/[id].tsx
+#: apps/native/src/components/root-error-fallback.tsx
 #: apps/web/src/components/auth-form.tsx
 #: apps/web/src/components/route-error.tsx
 #: apps/web/src/components/settings/account-section.tsx
 #: apps/web/src/routes/__root.tsx
+#: packages/i18n/src/errors.ts
 msgid "Something went wrong"
 msgstr "出现错误"
 
@@ -3445,8 +3681,7 @@ msgstr "开始记录您的观看历史"
 msgid "Starting at"
 msgstr "开始时间"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Starting import..."
 msgstr "正在开始导入..."
 
@@ -3510,13 +3745,21 @@ msgstr "切换到 {name}"
 msgid "Takes effect after restarting the app"
 msgstr "重启应用后生效"
 
-#: apps/web/src/components/settings/critics-section.tsx
-msgid "The last check could not complete every channel or recommendation check. Existing recommendations are preserved."
+#: apps/web/src/components/settings/system-health-section.tsx
+msgid "Telemetry"
+msgstr ""
+
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "That time is in the future"
+msgstr ""
+
+#: apps/native/src/app/(auth)/server-url.tsx
+msgid "That URL doesn't look right. Include the full server address."
 msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
-#~ msgstr ""
+msgid "The last check could not complete every channel or recommendation check. Existing recommendations are preserved."
+msgstr ""
 
 #: apps/native/src/app/+not-found.tsx
 msgid "The page you're looking for doesn't exist."
@@ -3534,8 +3777,19 @@ msgstr "您查找的内容不存在，或已从数据库中删除。"
 msgid "then"
 msgstr "然后"
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/native/src/app/(auth)/server-url.tsx
+msgid "This doesn't appear to be a Sofa server. Double-check the URL."
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "This import cannot be cancelled"
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "This job is already running"
+msgstr ""
+
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "This may take a few minutes for large libraries. Please don't close this tab."
 msgstr "大型媒体库可能需要几分钟。请勿关闭此标签页。"
 
@@ -3569,6 +3823,7 @@ msgstr "本周"
 
 #: apps/native/src/components/dashboard/stats-card.tsx
 #: apps/web/src/components/dashboard/stats-display.tsx
+#: packages/i18n/src/date-buckets.ts
 msgid "This Week"
 msgstr "本周"
 
@@ -3622,9 +3877,17 @@ msgstr "今年"
 msgid "Thursday"
 msgstr "星期四"
 
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Time (optional)"
+msgstr ""
+
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Time:"
 msgstr "时间："
+
+#: apps/web/src/components/settings/backup-schedule-section.tsx
+msgid "Times use the server's time zone ({timeZone})"
+msgstr ""
 
 #: apps/web/src/components/command-palette.tsx
 msgid "Title"
@@ -3637,6 +3900,7 @@ msgstr "标题 A-Z"
 
 #: apps/native/src/app/title/[id].tsx
 #: apps/web/src/routes/_app/titles.$id.tsx
+#: packages/i18n/src/errors.ts
 msgid "Title not found"
 msgstr "未找到内容"
 
@@ -3654,6 +3918,10 @@ msgstr "您 Sofa 待看列表中的内容将在 Radarr 轮询此列表时自动�
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Titles on your Sofa watchlist will be automatically added for download when Sonarr polls this list (every 6 hours by default)"
 msgstr "您 Sofa 待看列表中的内容将在 Sonarr 轮询此列表时自动添加到下载队列（默认每 6 小时一次）"
+
+#: packages/i18n/src/errors.ts
+msgid "TMDB API key is not configured"
+msgstr ""
 
 #: apps/native/src/components/library/sort-menu.tsx
 #: apps/web/src/components/library/library-toolbar.tsx
@@ -3673,14 +3941,11 @@ msgid "today"
 msgstr "今天"
 
 #: apps/native/src/components/dashboard/stats-card.tsx
+#: apps/native/src/lib/widgets.ts
 #: apps/web/src/components/dashboard/stats-display.tsx
+#: packages/i18n/src/date-buckets.ts
 msgid "Today"
 msgstr "今天"
-
-#. placeholder {0}: creator.name
-#: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "Toggle {0}"
-#~ msgstr ""
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Toggle {creatorName}"
@@ -3705,6 +3970,15 @@ msgstr "切换定时备份"
 #: apps/web/src/components/ui/sidebar.tsx
 msgid "Toggle Sidebar"
 msgstr "切换侧边栏"
+
+#: apps/native/src/lib/widgets.ts
+#: packages/i18n/src/date-buckets.ts
+msgid "Tomorrow"
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "Too many attempts. Wait a moment and try again."
+msgstr ""
 
 #: apps/web/src/components/landing-page.tsx
 msgid "Track what you watch. Know what's next.<0/>Your library, your data, your rules."
@@ -3734,6 +4008,7 @@ msgid "Try adjusting your filters"
 msgstr "请尝试调整筛选条件"
 
 #: apps/native/src/app/title/[id].tsx
+#: apps/native/src/components/root-error-fallback.tsx
 #: apps/web/src/components/route-error.tsx
 #: apps/web/src/routes/__root.tsx
 msgid "Try again"
@@ -3748,11 +4023,14 @@ msgid "tv"
 msgstr "电视剧"
 
 #: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/native/src/app/(tabs)/(library)/history.tsx
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/app/title/[id].tsx
 #: apps/native/src/components/library/filter-sheet.tsx
 #: apps/native/src/components/search/recently-viewed-row-content.tsx
+#: apps/native/src/components/search/recently-viewed-row.tsx
 #: apps/native/src/components/search/search-result-row.tsx
+#: apps/native/src/lib/widgets.ts
 #: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/explore/hero-banner.tsx
 #: apps/web/src/components/library/library-filters.tsx
@@ -3769,6 +4047,7 @@ msgstr "电视剧集"
 msgid "TV show"
 msgstr "电视剧"
 
+#: apps/web/src/routes/_app/history.tsx
 #: apps/web/src/routes/_app/upcoming.tsx
 msgid "TV Shows"
 msgstr "电视剧"
@@ -3797,9 +4076,9 @@ msgstr ""
 msgid "Unable to load critics. Retry"
 msgstr ""
 
-#: apps/web/src/components/dashboard/recommendations-section.tsx
-#~ msgid "Unable to load recommendations."
-#~ msgstr ""
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Unable to load more titles."
+msgstr ""
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
 msgid "Unable to refresh recommendation availability."
@@ -3848,6 +4127,10 @@ msgstr "标记全部为未看"
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Unwatched all of {seasonLabel}"
 msgstr "已将 {seasonLabel} 全部标记为未看"
+
+#: apps/web/src/routes/_app/upcoming.tsx
+#~ msgid "Unwatched episodes from the last 90 days."
+#~ msgstr ""
 
 #: apps/web/src/components/titles/use-title-actions.ts
 msgid "Unwatched S{seasonNum} E{epNum}"
@@ -3954,6 +4237,10 @@ msgstr "上传图片"
 msgid "Upload profile picture"
 msgstr "上传头像"
 
+#: apps/web/src/components/settings/imports-section.tsx
+msgid "Upload the ZIP export from your Letterboxd account settings"
+msgstr ""
+
 #: apps/native/src/components/settings/integration-card.tsx
 msgid "URL copied to clipboard"
 msgstr "URL 已复制到剪贴板"
@@ -3969,10 +4256,6 @@ msgstr ""
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "US availability checked per title. Free includes ad-supported offers; library services may require a library card."
 msgstr ""
-
-#: apps/web/src/components/explore/discover-section.tsx
-#~ msgid "US content rating"
-#~ msgstr ""
 
 #: apps/native/src/app/(auth)/register.tsx
 msgid "Use at least 8 characters"
@@ -4007,11 +4290,6 @@ msgstr "在 TMDB 上查看"
 msgid "View release"
 msgstr "查看发布说明"
 
-#. placeholder {0}: creator.name
-#: apps/web/src/components/settings/critics-section.tsx
-#~ msgid "Visit {0}'s channel"
-#~ msgstr ""
-
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Visit {creatorName}'s channel"
 msgstr ""
@@ -4037,8 +4315,7 @@ msgstr "警告"
 #~ msgid "Warnings ({0})"
 #~ msgstr ""
 
-#: apps/web/src/components/settings/account-section.tsx
-#: apps/web/src/components/settings/imports-section.tsx
+#: apps/web/src/components/settings/import-dialog-parts.tsx
 msgid "Warnings ({warningCount})"
 msgstr "警告（{warningCount}）"
 
@@ -4050,6 +4327,14 @@ msgstr "标记全部为已看"
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Watch history"
 msgstr "观看历史"
+
+#: apps/web/src/components/titles/log-watch-dialog.tsx
+msgid "Watch logged"
+msgstr ""
+
+#: packages/i18n/src/errors.ts
+msgid "Watch not found"
+msgstr ""
 
 #: apps/web/src/components/titles/title-availability.tsx
 #~ msgid "Watch on {name}"
@@ -4172,9 +4457,18 @@ msgstr "年份"
 #~ msgid "Year to"
 #~ msgstr "Year to"
 
+#: packages/i18n/src/date-buckets.ts
+msgid "Yesterday"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "You'll be signed out to change the server URL."
 msgstr "更改服务器 URL 将使您退出登录。"
+
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "You're all caught up on the last 90 days."
+msgstr ""
 
 #: apps/web/src/components/update-toast.tsx
 #~ msgid "You're running v{0}."

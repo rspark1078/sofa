@@ -12,6 +12,7 @@ import { Button, ButtonLabel } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { Input, Label, TextField } from "@/components/ui/text-field";
+import { getAuthErrorMessage } from "@/lib/error-messages";
 import { orpc } from "@/lib/orpc";
 import { queryClient } from "@/lib/query-client";
 import { authClient, getServerUrl, splitUrl } from "@/lib/server";
@@ -69,7 +70,7 @@ export default function RegisterScreen() {
         },
         {
           onError(error) {
-            toast.error(error.error?.message || t`Failed to create account`);
+            toast.error(getAuthErrorMessage(error.error, t`Failed to create account`));
           },
           onSuccess() {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -96,7 +97,38 @@ export default function RegisterScreen() {
     }
   };
 
-  if (!registrationOpen && !publicInfo.isPending) {
+  if (publicInfo.isPending) {
+    return (
+      <AuthScreen title={t`Create account`}>
+        <View className="items-center py-12">
+          <Spinner />
+        </View>
+      </AuthScreen>
+    );
+  }
+
+  if (publicInfo.isError && !publicInfo.data) {
+    return (
+      <AuthScreen title={t`Can't reach the server`}>
+        <Animated.View entering={FadeInDown.duration(300).delay(200)}>
+          <Button className="bg-primary mt-6" onPress={() => publicInfo.refetch()}>
+            <ButtonLabel className="text-primary-foreground">
+              <Trans>Retry</Trans>
+            </ButtonLabel>
+          </Button>
+          <Link href="/(auth)/login" asChild>
+            <Button variant="secondary" className="mt-3">
+              <ButtonLabel>
+                <Trans>Back to Login</Trans>
+              </ButtonLabel>
+            </Button>
+          </Link>
+        </Animated.View>
+      </AuthScreen>
+    );
+  }
+
+  if (publicInfo.data && !registrationOpen) {
     return (
       <AuthScreen
         title={t`Registration Closed`}

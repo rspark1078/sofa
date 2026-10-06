@@ -15,6 +15,7 @@ import { ScaledIcon } from "@/components/ui/scaled-icon";
 import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { Input, Label, TextField } from "@/components/ui/text-field";
+import { getAuthErrorMessage } from "@/lib/error-messages";
 import { orpc } from "@/lib/orpc";
 import { queryClient } from "@/lib/query-client";
 import { authClient, getServerUrl, splitUrl } from "@/lib/server";
@@ -58,7 +59,7 @@ export default function LoginScreen() {
         { email: result.data.email, password: result.data.password },
         {
           onError(error) {
-            toast.error(error.error?.message || t`Failed to sign in`);
+            toast.error(getAuthErrorMessage(error.error, t`Failed to sign in`));
           },
           onSuccess() {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -72,6 +73,34 @@ export default function LoginScreen() {
 
   const isSubmitting = useStore(form.store, (s) => s.isSubmitting);
   const busy = isSubmitting || isSignedIn;
+  const [isSsoPending, setSsoPending] = useState(false);
+
+  const signInWithSso = async () => {
+    if (isSsoPending) return;
+    setSsoPending(true);
+    try {
+      const result = await authClient.signIn.social({
+        provider: "oidc",
+        callbackURL: "/(tabs)/(home)",
+        // Same prefix as callbackURL so the auth session also closes on failure (Android matches by prefix).
+        errorCallbackURL: "/(tabs)/(home)",
+      });
+      if (result.error) {
+        toast.error(getAuthErrorMessage(result.error, t`Couldn't start sign-in`));
+        return;
+      }
+      // The Expo plugin stores the session cookie when the browser returns successfully; if no
+      // session appeared, the flow was cancelled or failed at the provider.
+      const session = await authClient.getSession();
+      if (!session.data) {
+        toast.error(t`Sign-in didn't complete`);
+      }
+    } catch {
+      toast.error(t`Couldn't start sign-in`);
+    } finally {
+      setSsoPending(false);
+    }
+  };
 
   const statusCompletedColor = useCSSVariable("--color-status-completed") as string;
   const serverHost = splitUrl(getServerUrl()).host;
@@ -98,18 +127,18 @@ export default function LoginScreen() {
           return (
             <Animated.View entering={FadeInDown.duration(300).delay(100)} className="mb-4">
               <Button
-                onPress={() => {
-                  authClient.signIn.social({
-                    provider: "oidc",
-                    callbackURL: "/(tabs)/(home)",
-                  });
-                }}
+                onPress={() => void signInWithSso()}
+                disabled={busy || isSsoPending}
                 variant="secondary"
                 className="w-full"
               >
-                <ButtonLabel>
-                  <Trans>Sign in with {providerName}</Trans>
-                </ButtonLabel>
+                {isSsoPending ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <ButtonLabel>
+                    <Trans>Sign in with {providerName}</Trans>
+                  </ButtonLabel>
+                )}
               </Button>
 
               {showPasswordLogin && (
@@ -209,26 +238,26 @@ export default function LoginScreen() {
               </Link>
             </Animated.View>
           )}
-
-          <Animated.View entering={FadeIn.duration(300).delay(500)} className="mt-8 items-center">
-            <Link href="/(auth)/server-url" replace asChild>
-              <Pressable
-                disabled={busy}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: busy }}
-                className="flex-row items-center gap-1.5"
-              >
-                <ScaledIcon icon={IconServer2} size={14} color={statusCompletedColor} />
-                <Text className="text-muted-foreground font-sans text-xs">
-                  <Trans>
-                    Connected to <Text className="font-medium">{serverHost}</Text>. Tap to change.
-                  </Trans>
-                </Text>
-              </Pressable>
-            </Link>
-          </Animated.View>
         </View>
       )}
+
+      <Animated.View entering={FadeIn.duration(300).delay(500)} className="mt-8 items-center">
+        <Link href="/(auth)/server-url" replace asChild>
+          <Pressable
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: busy }}
+            className="flex-row items-center gap-1.5"
+          >
+            <ScaledIcon icon={IconServer2} size={14} color={statusCompletedColor} />
+            <Text className="text-muted-foreground font-sans text-xs">
+              <Trans>
+                Connected to <Text className="font-medium">{serverHost}</Text>. Tap to change.
+              </Trans>
+            </Text>
+          </Pressable>
+        </Link>
+      </Animated.View>
     </AuthScreen>
   );
 }

@@ -15,6 +15,7 @@ import { orpc } from "@/lib/orpc/client";
 import { groupByDateBucket } from "@sofa/i18n/date-buckets";
 
 const upcomingSearchSchema = z.object({
+  view: z.enum(["upcoming", "recent"]).optional().catch(undefined),
   type: z.enum(["all", "movie", "tv"]).optional().catch(undefined),
   status: z.enum(["all", "watching", "watchlist"]).optional().catch(undefined),
 });
@@ -32,7 +33,6 @@ export const Route = createFileRoute("/_app/upcoming")({
         }),
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-        maxPages: 10,
       }),
     );
   },
@@ -67,30 +67,46 @@ function UpcomingPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
+  const view = search.view ?? "upcoming";
+  const isRecent = view === "recent";
   const typeFilter = search.type ?? "all";
   const statusFilter = search.status ?? "all";
 
-  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(
-    orpc.library.upcoming.infiniteOptions({
-      input: (pageParam: string | undefined) => ({
-        days: 90,
-        limit: 20,
-        cursor: pageParam,
-        mediaType: typeFilter !== "all" ? (typeFilter as "movie" | "tv") : undefined,
-        statusFilter:
-          statusFilter !== "all" ? [statusFilter as "watching" | "watchlist"] : undefined,
+  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError } =
+    useInfiniteQuery(
+      orpc.library.upcoming.infiniteOptions({
+        input: (pageParam: string | undefined) => ({
+          days: 90,
+          limit: 20,
+          cursor: pageParam,
+          direction: isRecent ? "recent" : undefined,
+          mediaType: !isRecent && typeFilter !== "all" ? (typeFilter as "movie" | "tv") : undefined,
+          statusFilter:
+            !isRecent && statusFilter !== "all"
+              ? [statusFilter as "watching" | "watchlist"]
+              : undefined,
+        }),
+        initialPageParam: undefined as string | undefined,
+        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       }),
-      initialPageParam: undefined as string | undefined,
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-      maxPages: 10,
-    }),
-  );
+    );
 
   const sentinelRef = useInfiniteScroll({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   });
+
+  function setView(value: "upcoming" | "recent") {
+    void navigate({
+      search: (prev) => ({
+        ...prev,
+        view: value === "upcoming" ? undefined : value,
+      }),
+      replace: true,
+    });
+  }
 
   function setTypeFilter(value: string) {
     void navigate({
@@ -113,33 +129,49 @@ function UpcomingPage() {
   }
 
   const filterToggles = (
-    <div className="flex flex-wrap gap-3">
+    <div className="space-y-3">
       <ToggleGroup
-        value={[typeFilter]}
+        value={[view]}
         onValueChange={(values) => {
-          const next = values.find((v) => v !== typeFilter) ?? "all";
-          setTypeFilter(next);
+          const next = values.find((v) => v !== view);
+          if (next === "upcoming" || next === "recent") setView(next);
         }}
         variant="outline"
         size="sm"
       >
-        <ToggleGroupItem value="all">{t`All`}</ToggleGroupItem>
-        <ToggleGroupItem value="movie">{t`Movies`}</ToggleGroupItem>
-        <ToggleGroupItem value="tv">{t`TV Shows`}</ToggleGroupItem>
+        <ToggleGroupItem value="upcoming">{t`Upcoming`}</ToggleGroupItem>
+        <ToggleGroupItem value="recent">{t`Recently aired`}</ToggleGroupItem>
       </ToggleGroup>
-      <ToggleGroup
-        value={[statusFilter]}
-        onValueChange={(values) => {
-          const next = values.find((v) => v !== statusFilter) ?? "all";
-          setStatusFilter(next);
-        }}
-        variant="outline"
-        size="sm"
-      >
-        <ToggleGroupItem value="all">{t`All`}</ToggleGroupItem>
-        <ToggleGroupItem value="watching">{t`Watching`}</ToggleGroupItem>
-        <ToggleGroupItem value="watchlist">{t`Watchlist`}</ToggleGroupItem>
-      </ToggleGroup>
+      {!isRecent && (
+        <div className="flex flex-wrap gap-3">
+          <ToggleGroup
+            value={[typeFilter]}
+            onValueChange={(values) => {
+              const next = values.find((v) => v !== typeFilter) ?? "all";
+              setTypeFilter(next);
+            }}
+            variant="outline"
+            size="sm"
+          >
+            <ToggleGroupItem value="all">{t`All`}</ToggleGroupItem>
+            <ToggleGroupItem value="movie">{t`Movies`}</ToggleGroupItem>
+            <ToggleGroupItem value="tv">{t`TV Shows`}</ToggleGroupItem>
+          </ToggleGroup>
+          <ToggleGroup
+            value={[statusFilter]}
+            onValueChange={(values) => {
+              const next = values.find((v) => v !== statusFilter) ?? "all";
+              setStatusFilter(next);
+            }}
+            variant="outline"
+            size="sm"
+          >
+            <ToggleGroupItem value="all">{t`All`}</ToggleGroupItem>
+            <ToggleGroupItem value="watching">{t`Watching`}</ToggleGroupItem>
+            <ToggleGroupItem value="watchlist">{t`Watchlist`}</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      )}
     </div>
   );
 
@@ -150,15 +182,19 @@ function UpcomingPage() {
   if (allItems.length === 0) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
-        <UpcomingHeader />
+        <UpcomingHeader view={view} />
         {filterToggles}
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <IconCalendarEvent className="text-muted-foreground/40 size-12" />
           <p className="text-muted-foreground mt-4 text-sm">
-            <Trans>
-              No upcoming episodes or releases for your library match these filters in the next 90
-              days. Add upcoming movies or shows to your watchlist to see them here.
-            </Trans>
+            {isRecent ? (
+              <Trans>You're all caught up on the last 90 days.</Trans>
+            ) : (
+              <Trans>
+                No upcoming episodes or releases for your library match these filters in the next 90
+                days. Add upcoming movies or shows to your watchlist to see them here.
+              </Trans>
+            )}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {(typeFilter !== "all" || statusFilter !== "all") && (
@@ -177,11 +213,11 @@ function UpcomingPage() {
     );
   }
 
-  const buckets = groupByDateBucket(allItems);
+  const buckets = groupByDateBucket(allItems, { past: isRecent });
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <UpcomingHeader />
+      <UpcomingHeader view={view} />
       {filterToggles}
       {buckets.map((bucket) => (
         <section key={bucket.key}>
@@ -201,11 +237,13 @@ function UpcomingPage() {
   );
 }
 
-function UpcomingHeader() {
+function UpcomingHeader({ view }: { view: "upcoming" | "recent" }) {
   const { t } = useLingui();
   return (
     <div>
-      <h1 className="font-display text-2xl tracking-tight">{t`Upcoming`}</h1>
+      <h1 className="font-display text-2xl tracking-tight">
+        {view === "recent" ? t`Recently aired` : t`Upcoming`}
+      </h1>
       <p className="text-muted-foreground mt-1 text-sm">
         <Trans>
           Upcoming episodes and movie releases for titles in your library over the next 90 days.

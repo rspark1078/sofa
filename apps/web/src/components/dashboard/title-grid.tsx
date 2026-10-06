@@ -20,6 +20,7 @@ interface TitleGridItem {
   firstAirDate?: string | null;
   voteAverage?: number | null;
   userStatus?: "in_watchlist" | "watching" | "caught_up" | "completed" | null;
+  episodeProgress?: { watched: number; total: number } | null;
 }
 
 export function TitleGridSectionSkeleton() {
@@ -64,6 +65,7 @@ export function TitleGrid({ items, wide = false }: { items: TitleGridItem[]; wid
             releaseDate={t.releaseDate ?? t.firstAirDate}
             voteAverage={t.voteAverage}
             userStatus={t.userStatus}
+            episodeProgress={t.episodeProgress}
           />
           {(t.usAvailability || t.recommendationSources?.length) && (
             <TitleDiscoveryContext

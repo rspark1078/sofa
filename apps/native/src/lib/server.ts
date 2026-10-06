@@ -4,7 +4,7 @@ import { adminClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import * as Network from "expo-network";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
 import { globalStorage } from "@/lib/mmkv";
@@ -15,7 +15,6 @@ export {
   getScopeKey,
   hasScopedStorage,
   onStorageScopeChange,
-  queryPersister,
   setStorageScope,
 } from "@/lib/mmkv";
 
@@ -101,6 +100,15 @@ export function onServerUrlChange(callback: () => void): () => void {
 
 export function hasStoredServerUrl(): boolean {
   return globalStorage.contains(SERVER_URL_KEY);
+}
+
+function hasServerUrlSnapshot(): boolean {
+  return !!process.env.EXPO_PUBLIC_SERVER_URL || hasStoredServerUrl();
+}
+
+/** Whether a server is configured; re-renders when the server URL changes (React-Compiler safe). */
+export function useHasServerUrl(): boolean {
+  return useSyncExternalStore(onServerUrlChange, hasServerUrlSnapshot);
 }
 
 // ---------------------------------------------------------------------------
@@ -206,6 +214,7 @@ export async function validateServerUrl(url: string): Promise<ValidationResult> 
 // ---------------------------------------------------------------------------
 
 let isReachable = true;
+let lastNetworkState: Network.NetworkState | null = null;
 const reachabilityListeners: Array<(reachable: boolean) => void> = [];
 
 function notifyReachability() {
@@ -218,14 +227,31 @@ function setReachable(nextReachable: boolean) {
   if (isReachable === nextReachable) return;
   isReachable = nextReachable;
   notifyReachability();
+  syncOnlineState();
 }
 
 function isDeviceOnline(state: Network.NetworkState): boolean {
   return !!state.isConnected && state.isInternetReachable !== false;
 }
 
-function syncOnlineState(state: Network.NetworkState) {
-  onlineManager.setOnline(isDeviceOnline(state) || isReachable);
+function syncOnlineState(state: Network.NetworkState | null = lastNetworkState) {
+  if (state) lastNetworkState = state;
+  const deviceOnline = lastNetworkState ? isDeviceOnline(lastNetworkState) : true;
+  onlineManager.setOnline(deviceOnline || isReachable);
+}
+
+// While the server is unreachable, queries are paused and never hit serverFetch, so probe the
+// health endpoint directly; a response flips reachability (and the online flag) back. `force`
+// probes even while reachable — used when the OS reports the device offline, because reachability
+// only changes on a request and an idle app would otherwise never notice.
+export function probeServer({ force = false }: { force?: boolean } = {}): Promise<boolean> {
+  if (isReachable && !force) return Promise.resolve(true);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  return serverFetch(`${getServerUrl()}/api/health`, { method: "GET", signal: controller.signal })
+    .then(() => true)
+    .catch(() => false)
+    .finally(() => clearTimeout(timer));
 }
 
 function syncAppFocus(state: AppStateStatus) {
@@ -252,9 +278,6 @@ export async function serverFetch(input: RequestInfo | URL, init?: RequestInit):
   try {
     const response = await fetch(input, init);
     setReachable(true);
-    if (!onlineManager.isOnline()) {
-      onlineManager.setOnline(true);
-    }
     return response;
   } catch (error) {
     if (isNetworkError(error)) {
@@ -278,16 +301,24 @@ export function onServerReachabilityChange(callback: (reachable: boolean) => voi
 
 export function startReachabilityMonitor(): () => void {
   syncAppFocus(AppState.currentState);
-  void Network.getNetworkStateAsync().then(syncOnlineState);
+  const syncNetworkState = (state: Network.NetworkState) => {
+    syncOnlineState(state);
+    void probeServer({ force: !isDeviceOnline(state) });
+  };
+  void Network.getNetworkStateAsync().then(syncNetworkState);
 
-  const networkSubscription = Network.addNetworkStateListener(syncOnlineState);
+  const networkSubscription = Network.addNetworkStateListener(syncNetworkState);
 
   const appStateSubscription = AppState.addEventListener("change", (nextState) => {
     syncAppFocus(nextState);
     if (nextState === "active") {
-      void Network.getNetworkStateAsync().then(syncOnlineState);
+      void Network.getNetworkStateAsync().then(syncNetworkState);
     }
   });
+
+  const probeTimer = setInterval(() => {
+    if (AppState.currentState === "active") void probeServer();
+  }, 30_000);
 
   const removeServerUrlListener = onServerUrlChange(() => {
     setReachable(true);
@@ -298,6 +329,7 @@ export function startReachabilityMonitor(): () => void {
     networkSubscription.remove();
     appStateSubscription.remove();
     removeServerUrlListener();
+    clearInterval(probeTimer);
     focusManager.setFocused(undefined);
     onlineManager.setOnline(true);
   };
@@ -379,8 +411,6 @@ function getCachedSession(): CachedSessionData | null {
   }
 }
 
-let cachedSessionSeeded = false;
-
 /**
  * Seed the Better Auth session atom from SecureStore before React renders.
  * Call at module scope in the root layout. Idempotent.
@@ -388,7 +418,6 @@ let cachedSessionSeeded = false;
 export function initSession(): void {
   const cached = getCachedSession();
   if (cached) {
-    cachedSessionSeeded = true;
     const sessionAtom = authClient.$store.atoms.session;
     sessionAtom.set({
       data: cached,
@@ -398,36 +427,6 @@ export function initSession(): void {
       refetch: sessionAtom.get().refetch,
     });
   }
-}
-
-export function wasCachedSessionSeeded(): boolean {
-  return cachedSessionSeeded;
-}
-
-export function clearCachedSessionSeeded(): void {
-  cachedSessionSeeded = false;
-}
-
-// ---------------------------------------------------------------------------
-// serverManager — compound operations for server-url screen
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Server-change flag
-// ---------------------------------------------------------------------------
-
-// Signals that the next session-loss redirect should go to the server-url
-// screen instead of login (set by the "Change Server" flow in settings).
-let serverChangeRequested = false;
-
-export function requestServerChange(): void {
-  serverChangeRequested = true;
-}
-
-export function consumeServerChangeRequest(): boolean {
-  const was = serverChangeRequested;
-  serverChangeRequested = false;
-  return was;
 }
 
 // ---------------------------------------------------------------------------
@@ -446,11 +445,12 @@ export const serverManager = {
   connectToServer(url: string, instanceId: string): void {
     registerServer(url, instanceId);
     setServerUrlInternal(url);
-    // Validation just succeeded, so mark the server as reachable before
-    // rebuilding. This prevents a banner flash between the monitor starting
-    // (once hasServerUrl becomes true) and the first successful fetch.
-    setReachable(true);
     authClient = buildAuthClient();
+    // Validation just succeeded, so mark the server as reachable. Do it after the auth client is
+    // rebuilt: the reachability listeners refetch the session, which must hit the new server, not
+    // the old one. This also prevents a banner flash between the monitor starting (once
+    // hasServerUrl becomes true) and the first successful fetch.
+    setReachable(true);
     for (const listener of serverUrlListeners) listener();
   },
 };

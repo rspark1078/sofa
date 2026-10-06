@@ -1,11 +1,17 @@
 import AdmZip from "adm-zip";
 import { describe, expect, test } from "vitest";
 
+import { NormalizedImportSchema } from "@sofa/api/schemas";
+
 import {
+  assertZipWithinLimits,
   type ParseResult,
   parseLetterboxdExport,
   parseSimklPayload,
+  parseTraktExport,
   parseTraktPayload,
+  ZIP_LIMITS,
+  ZipTooLargeError,
 } from "../src/imports/parsers";
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -21,6 +27,15 @@ function createLetterboxdZip(files: Record<string, string>): Blob {
 // ─── parseTraktPayload ───────────────────────────────────────────────
 
 describe("parseTraktPayload", () => {
+  test("passes through warnings from the OAuth proxy", () => {
+    const result = parseTraktPayload({
+      history: { movies: [] },
+      warnings: ["Only some history fit", 42],
+    } as never);
+    expect(result.warnings).toContain("Only some history fit");
+    expect(result.warnings.every((w) => typeof w === "string")).toBe(true);
+  });
+
   test("parses valid data with movies, episodes, watchlist, and ratings", () => {
     const result = parseTraktPayload({
       history: {
@@ -346,6 +361,34 @@ describe("parseTraktPayload", () => {
     });
 
     expect(result.data.watchlist[0].type).toBe("tv");
+  });
+
+  test("maps season and episode watchlist items to their show", () => {
+    const result = parseTraktPayload({
+      watchlist: [
+        { type: "season", show: { title: "Show S", ids: { tmdb: 10 } } },
+        { type: "episode", show: { title: "Show E", ids: { tmdb: 11 } } },
+      ],
+    });
+
+    expect(result.data.watchlist).toHaveLength(2);
+    expect(result.data.watchlist.map((w) => w.type)).toEqual(["tv", "tv"]);
+    expect(result.data.watchlist.map((w) => w.tmdbId)).toEqual([10, 11]);
+  });
+
+  test("skips season and episode ratings as unsupported", () => {
+    const result = parseTraktPayload({
+      ratings: [
+        { type: "episode", rating: 8, show: { title: "Show", ids: { tmdb: 12 } } },
+        { type: "season", rating: 6, show: { title: "Show", ids: { tmdb: 12 } } },
+        { type: "movie", rating: 10, movie: { title: "M", ids: { tmdb: 13 } } },
+      ],
+    });
+
+    expect(result.data.ratings).toHaveLength(1);
+    expect(result.data.ratings[0].type).toBe("movie");
+    expect(result.diagnostics?.unsupported).toBe(2);
+    expect(result.warnings.some((w) => w.includes("2 Trakt season/episode ratings"))).toBe(true);
   });
 
   test("maps show rating type to tv", () => {
@@ -699,6 +742,88 @@ describe("parseSimklPayload", () => {
     // movie watch + library item, both without IDs
     expect(result.diagnostics?.unresolved).toBe(2);
   });
+
+  test("parses nested backup items", () => {
+    const result = parseSimklPayload({
+      movies: [
+        {
+          status: "completed",
+          last_watched_at: "2024-01-15T20:00:00Z",
+          user_rating: 8,
+          movie: { title: "Inception", year: 2010, ids: { tmdb: 27205, imdb: "tt1375666" } },
+        },
+      ],
+      shows: [
+        {
+          status: "watching",
+          show: { title: "Lost", year: 2004, ids: { tvdb: 73739 } },
+          seasons: [
+            {
+              number: 1,
+              episodes: [{ number: 1, watched_at: "2024-01-16T20:00:00Z" }, { number: 2 }],
+            },
+          ],
+        },
+      ],
+      anime: [{ status: "plantowatch", show: { title: "Frieren", ids: { tmdb: 209867 } } }],
+    } as never);
+
+    expect(result.data.movies).toHaveLength(1);
+    expect(result.data.movies[0].title).toBe("Inception");
+    expect(result.data.movies[0].tmdbId).toBe(27205);
+    expect(result.data.ratings.filter((r) => r.type === "movie")).toHaveLength(1);
+    expect(result.data.episodes).toHaveLength(1);
+    expect(result.data.episodes[0].seasonNumber).toBe(1);
+    expect(result.data.episodes[0].episodeNumber).toBe(1);
+    expect(result.data.watchlist.some((w) => w.type === "tv" && w.title === "Frieren")).toBe(true);
+  });
+
+  test("treats all listed episodes as watched when none carry watched_at", () => {
+    const result = parseSimklPayload({
+      shows: [
+        {
+          status: "watching",
+          show: { title: "Severance", ids: { tmdb: 95396 } },
+          seasons: [{ number: 1, episodes: [{ number: 1 }, { number: 2 }] }],
+        },
+      ],
+    } as never);
+
+    expect(result.data.episodes).toHaveLength(2);
+  });
+
+  test("maps added_to_watchlist_at to addedAt", () => {
+    const result = parseSimklPayload({
+      movies: [
+        {
+          status: "plantowatch",
+          added_to_watchlist_at: "2023-05-01T10:00:00Z",
+          movie: { title: "Dune", year: 2021, ids: { tmdb: 438631 } },
+        },
+      ],
+    } as never);
+
+    expect(result.data.watchlist).toHaveLength(1);
+    expect(new Date(result.data.watchlist[0].addedAt as string).toISOString()).toBe(
+      "2023-05-01T10:00:00.000Z",
+    );
+  });
+
+  test("keeps a watchlist item whose added_to_watchlist_at is unparseable", () => {
+    const result = parseSimklPayload({
+      movies: [
+        {
+          status: "plantowatch",
+          added_to_watchlist_at: "not a date",
+          movie: { title: "Odd Date", ids: { tmdb: 99 } },
+        },
+      ],
+    } as never);
+
+    expect(result.data.watchlist).toHaveLength(1);
+    expect(result.data.watchlist[0].title).toBe("Odd Date");
+    expect(result.data.watchlist[0].addedAt).toBeUndefined();
+  });
 });
 
 // ─── parseLetterboxdExport ───────────────────────────────────────────
@@ -1042,5 +1167,282 @@ describe("parseLetterboxdExport", () => {
     for (const item of result.data.watchlist) {
       expect(item.type).toBe("movie");
     }
+  });
+});
+
+// ─── Output always matches the API schema ────────────────────────────
+
+describe("parser output always matches the API schema", () => {
+  test("Trakt nulls become undefined", () => {
+    const result = parseTraktPayload({
+      history: {
+        movies: [
+          {
+            watched_at: "2024-01-15T20:00:00.000Z",
+            movie: { title: "No IDs", year: null, ids: { trakt: 1, tmdb: null, imdb: null } },
+          },
+        ],
+        shows: [
+          {
+            watched_at: "2024-01-15T21:00:00.000Z",
+            show: { title: "Show", year: null, ids: { tmdb: 1396, imdb: null, tvdb: null } },
+            episode: { season: 1, number: 1 },
+          },
+        ],
+      },
+      watchlist: [
+        { type: "movie", movie: { title: "W", year: null, ids: { tmdb: 5, imdb: null } } },
+      ],
+      ratings: [
+        {
+          type: "movie",
+          rating: 8,
+          rated_at: null,
+          movie: { title: "R", year: 2000, ids: { tmdb: 6, imdb: null } },
+        },
+      ],
+    } as never);
+
+    expect(NormalizedImportSchema.safeParse(result.data).success).toBe(true);
+    expect(result.data.movies).toHaveLength(1);
+    expect(result.data.episodes).toHaveLength(1);
+    expect(result.data.watchlist).toHaveLength(1);
+    expect(result.data.ratings).toHaveLength(1);
+    expect(result.data.movies[0].imdbId).toBeUndefined();
+  });
+
+  test("invalid items are dropped with a warning, not fatal", () => {
+    const result = parseTraktPayload({
+      history: {
+        shows: [
+          {
+            watched_at: "2024-01-15T21:00:00.000Z",
+            show: { title: "Show", ids: { tmdb: 1396 } },
+            episode: { season: 0, number: 0 },
+          },
+          {
+            watched_at: "2024-01-15T21:00:00.000Z",
+            show: { title: "Show", ids: { tmdb: 1396 } },
+            episode: { season: 1, number: 2 },
+          },
+        ],
+      },
+    });
+
+    expect(result.data.episodes).toHaveLength(1);
+    expect(NormalizedImportSchema.safeParse(result.data).success).toBe(true);
+    expect(result.warnings.some((w) => w.includes("episodes"))).toBe(true);
+    expect(result.diagnostics?.unsupported).toBeGreaterThanOrEqual(1);
+  });
+
+  test("Simkl nulls become undefined", () => {
+    const result = parseSimklPayload({
+      movies: [
+        {
+          title: "M",
+          year: null,
+          status: "completed",
+          last_watched_at: null,
+          ids: { tmdb: 7, imdb: null },
+        },
+      ],
+    } as never);
+
+    expect(result.data.movies).toHaveLength(1);
+    expect(NormalizedImportSchema.safeParse(result.data).success).toBe(true);
+    expect(result.data.movies[0].watchedAt).toBeUndefined();
+  });
+
+  test("oversized lists are truncated with a warning", () => {
+    const result = parseTraktPayload({
+      history: {
+        movies: Array.from({ length: 50_001 }, (_, i) => ({
+          watched_at: "2024-01-15T20:00:00.000Z",
+          movie: { title: `M${i}`, ids: { tmdb: i + 1 } },
+        })),
+      },
+    });
+
+    expect(result.data.movies).toHaveLength(50_000);
+    expect(NormalizedImportSchema.safeParse(result.data).success).toBe(true);
+    expect(result.warnings.some((w) => w.includes("50,000"))).toBe(true);
+  });
+});
+
+// ─── parseTraktExport ────────────────────────────────────────────────
+
+function createZip(files: Record<string, string>): Blob {
+  const zip = new AdmZip();
+  for (const [name, content] of Object.entries(files)) {
+    zip.addFile(name, Buffer.from(content, "utf-8"));
+  }
+  return new Blob([zip.toBuffer()], { type: "application/zip" });
+}
+
+function jsonBlob(value: unknown): Blob {
+  return new Blob([JSON.stringify(value)], { type: "application/json" });
+}
+
+describe("parseTraktExport", () => {
+  const historyItems = [
+    {
+      watched_at: "2024-01-15T20:00:00.000Z",
+      type: "movie",
+      movie: { title: "Inception", year: 2010, ids: { tmdb: 27205 } },
+    },
+    {
+      watched_at: "2024-01-16T20:00:00.000Z",
+      type: "episode",
+      show: { title: "Lost", year: 2004, ids: { tmdb: 4607 } },
+      episode: { season: 1, number: 2 },
+    },
+  ];
+  const ratingItems = [
+    {
+      rated_at: "2024-01-01T00:00:00.000Z",
+      rating: 8,
+      type: "movie",
+      movie: { title: "M", ids: { tmdb: 1 } },
+    },
+  ];
+  const watchlistItems = [
+    {
+      listed_at: "2024-01-01T00:00:00.000Z",
+      type: "show",
+      show: { title: "S", ids: { tmdb: 2 } },
+    },
+  ];
+
+  test("parses a watched-history file (array of mixed movie/episode plays)", async () => {
+    const result = await parseTraktExport(jsonBlob(historyItems));
+    expect(result.data.source).toBe("trakt");
+    expect(result.data.movies).toHaveLength(1);
+    expect(result.data.episodes).toHaveLength(1);
+  });
+
+  test("parses a ratings file", async () => {
+    const result = await parseTraktExport(jsonBlob(ratingItems));
+    expect(result.data.ratings).toHaveLength(1);
+  });
+
+  test("parses a watchlist file", async () => {
+    const result = await parseTraktExport(jsonBlob(watchlistItems));
+    expect(result.data.watchlist).toHaveLength(1);
+    expect(result.data.watchlist[0]?.type).toBe("tv");
+  });
+
+  test("parses the official ZIP", async () => {
+    const zip = createZip({
+      "trakt-export/watched-history-1.json": JSON.stringify(historyItems),
+      "trakt-export/watched-history-2.json": JSON.stringify([
+        {
+          watched_at: "2024-03-01T20:00:00.000Z",
+          type: "movie",
+          movie: { title: "Heat", year: 1995, ids: { tmdb: 949 } },
+        },
+      ]),
+      "trakt-export/ratings-movies.json": JSON.stringify(ratingItems),
+      "trakt-export/lists-watchlist.json": JSON.stringify(watchlistItems),
+      "trakt-export/user-profile.json": "{}",
+    });
+    const result = await parseTraktExport(zip);
+    expect(result.data.movies).toHaveLength(2);
+    expect(result.data.episodes).toHaveLength(1);
+    expect(result.data.ratings).toHaveLength(1);
+    expect(result.data.watchlist).toHaveLength(1);
+  });
+
+  test("still accepts the aggregated format", async () => {
+    const result = await parseTraktExport(
+      jsonBlob({
+        history: { movies: [historyItems[0]], shows: [] },
+        watchlist: [],
+        ratings: [],
+      }),
+    );
+    expect(result.data.movies).toHaveLength(1);
+  });
+
+  test("reports unrecognized files instead of silently returning nothing", async () => {
+    const result = await parseTraktExport(jsonBlob({ foo: 1 }));
+    expect(result.data.movies).toHaveLength(0);
+    expect(result.data.episodes).toHaveLength(0);
+    expect(result.data.watchlist).toHaveLength(0);
+    expect(result.data.ratings).toHaveLength(0);
+    expect(result.warnings.some((w) => w.includes("No Trakt history, ratings or watchlist"))).toBe(
+      true,
+    );
+  });
+
+  test("accepts a JSON file with a UTF-8 byte-order mark", async () => {
+    const bytes = new Uint8Array([
+      0xef,
+      0xbb,
+      0xbf,
+      ...new TextEncoder().encode(JSON.stringify(historyItems)),
+    ]);
+    const result = await parseTraktExport(new Blob([bytes], { type: "application/json" }));
+    expect(result.data.movies).toHaveLength(1);
+    expect(result.data.episodes).toHaveLength(1);
+  });
+
+  test("skips an unparsable JSON entry inside the ZIP", async () => {
+    const zip = createZip({
+      "watched-history-1.json": JSON.stringify(historyItems),
+      "broken.json": "{not json",
+    });
+    const result = await parseTraktExport(zip);
+    expect(result.data.movies).toHaveLength(1);
+    expect(result.data.episodes).toHaveLength(1);
+  });
+});
+
+describe("ZIP limits", () => {
+  const limits = { maxEntries: 10, maxEntryBytes: 10, maxTotalBytes: 100 };
+  const entry = (entryName: string, size: number) => ({
+    entryName,
+    isDirectory: false,
+    header: { size },
+  });
+  const isJson = (e: { entryName: string }) => e.entryName.endsWith(".json");
+
+  function createOversizedZip(): Blob {
+    const zip = new AdmZip();
+    for (let i = 0; i < ZIP_LIMITS.maxEntries + 1; i++) {
+      zip.addFile(`f${i}.txt`, Buffer.from("x"));
+    }
+    return new Blob([zip.toBuffer()], { type: "application/zip" });
+  }
+
+  test("rejects a selected entry that declares more than maxEntryBytes", () => {
+    expect(() => assertZipWithinLimits([entry("a.json", 11)], isJson, limits)).toThrow(
+      ZipTooLargeError,
+    );
+  });
+
+  test("rejects when the selected entries' total exceeds maxTotalBytes", () => {
+    const entries = [entry("a.json", 40), entry("b.json", 40), entry("c.json", 40)];
+    expect(() => assertZipWithinLimits(entries, isJson, { ...limits, maxEntryBytes: 50 })).toThrow(
+      ZipTooLargeError,
+    );
+  });
+
+  test("ignores oversized entries the predicate does not select", () => {
+    expect(() => assertZipWithinLimits([entry("reviews.csv", 1000)], isJson, limits)).not.toThrow();
+  });
+
+  test("rejects archives with more than maxEntries entries", () => {
+    const entries = Array.from({ length: 11 }, (_, i) => entry(`f${i}.json`, 1));
+    expect(() => assertZipWithinLimits(entries, isJson, limits)).toThrow(ZipTooLargeError);
+  });
+
+  test("parseTraktExport rejects an archive with too many entries", async () => {
+    await expect(parseTraktExport(createOversizedZip())).rejects.toBeInstanceOf(ZipTooLargeError);
+  });
+
+  test("parseLetterboxdExport returns a warning for an archive with too many entries", async () => {
+    const result = await parseLetterboxdExport(createOversizedZip());
+    expect(result.data.movies).toHaveLength(0);
+    expect(result.warnings.some((w) => w.includes("too large"))).toBe(true);
   });
 });

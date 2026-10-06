@@ -2,7 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro";
 import type { Icon } from "@tabler/icons-react-native";
 import { skipToken, useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 import {
   HorizontalPosterRow,
@@ -11,10 +11,23 @@ import {
 import { GenreChip } from "@/components/explore/genre-chip";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Text } from "@/components/ui/text";
+import { dedupeById } from "@/lib/dedupe-by-id";
 import { orpc } from "@/lib/orpc";
 
 type TitleStatus = "in_watchlist" | "watching" | "caught_up" | "completed";
 const genreChipsContentStyle = { paddingHorizontal: 16 };
+
+function LoadError({ onRetry }: { onRetry: () => void }) {
+  const { t } = useLingui();
+  return (
+    <View className="items-center gap-2 py-6">
+      <Text className="text-muted-foreground text-sm">{t`Couldn't load titles`}</Text>
+      <Pressable onPress={onRetry}>
+        <Text className="text-primary font-sans text-sm font-medium">{t`Retry`}</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export function FilterableTitleRow({
   title,
@@ -25,6 +38,10 @@ export function FilterableTitleRow({
   defaultEpisodeProgress,
   genres,
   isLoading,
+  isError,
+  onRetry,
+  onEndReachedDefault,
+  isFetchingNextPageDefault,
 }: {
   title: string;
   icon: Icon;
@@ -43,6 +60,13 @@ export function FilterableTitleRow({
   defaultEpisodeProgress: Record<string, { watched: number; total: number }>;
   genres?: Array<{ id: number; name: string }>;
   isLoading?: boolean;
+  /** Error state of the default (no genre) list. */
+  isError?: boolean;
+  /** Retries the default (no genre) list. */
+  onRetry?: () => void;
+  /** Loads the next page of the default (no genre) list. */
+  onEndReachedDefault?: () => void;
+  isFetchingNextPageDefault?: boolean;
 }) {
   const { t } = useLingui();
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
@@ -60,12 +84,11 @@ export function FilterableTitleRow({
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-      maxPages: 10,
     }),
   });
 
   const discoverItems = useMemo(
-    () => discover.data?.pages.flatMap((p) => p.items) ?? [],
+    () => dedupeById(discover.data?.pages.flatMap((p) => p.items) ?? []),
     [discover.data?.pages],
   );
   const discoverStatuses = useMemo(
@@ -130,14 +153,37 @@ export function FilterableTitleRow({
         </ScrollView>
       )}
 
-      {!showLoading && items.length === 0 && selectedGenre !== null ? (
+      {!showLoading && items.length === 0 && selectedGenre !== null && discover.isError ? (
+        <LoadError onRetry={() => discover.refetch()} />
+      ) : !showLoading && items.length === 0 && selectedGenre === null && isError ? (
+        <LoadError onRetry={() => onRetry?.()} />
+      ) : !showLoading && items.length === 0 && selectedGenre !== null ? (
         <View className="items-center py-6">
           <Text className="text-muted-foreground text-sm">
             <Trans>No titles found for this genre.</Trans>
           </Text>
         </View>
       ) : (
-        <HorizontalPosterRow items={items} isLoading={showLoading} />
+        <HorizontalPosterRow
+          items={items}
+          isLoading={showLoading}
+          onEndReached={
+            selectedGenre === null
+              ? onEndReachedDefault
+              : () => {
+                  if (
+                    discover.hasNextPage &&
+                    !discover.isFetchingNextPage &&
+                    !discover.isFetchNextPageError
+                  ) {
+                    void discover.fetchNextPage();
+                  }
+                }
+          }
+          isFetchingNextPage={
+            selectedGenre === null ? isFetchingNextPageDefault : discover.isFetchingNextPage
+          }
+        />
       )}
     </View>
   );

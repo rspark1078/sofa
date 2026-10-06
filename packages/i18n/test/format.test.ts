@@ -1,12 +1,14 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("../src/index", () => ({
   i18n: { locale: "en" },
 }));
 
 import {
+  calculateAge,
   formatBytes,
   formatDate,
+  formatList,
   formatNumber,
   formatRelativeTime,
   formatShortDate,
@@ -144,5 +146,53 @@ describe("formatBytes", () => {
 
   test("fractional megabytes", () => {
     expect(formatBytes(1536 * 1024)).toBe("1.5 MB");
+  });
+});
+
+describe("formatList", () => {
+  test("joins items as a conjunction by default", () => {
+    expect(formatList(["A", "B", "C"])).toBe("A, B, and C");
+  });
+
+  test("supports disjunctions", () => {
+    expect(formatList(["ZIP", "JSON"], { type: "disjunction" })).toBe("ZIP or JSON");
+  });
+
+  test("returns a single item unchanged", () => {
+    expect(formatList(["ZIP"], { type: "disjunction" })).toBe("ZIP");
+  });
+});
+
+describe("date-only values west of UTC", () => {
+  let prevTz: string | undefined;
+
+  beforeAll(() => {
+    prevTz = process.env.TZ;
+    process.env.TZ = "America/Los_Angeles";
+  });
+
+  afterAll(() => {
+    if (prevTz === undefined) delete process.env.TZ;
+    else process.env.TZ = prevTz;
+  });
+
+  test("formatShortDate keeps the calendar day", () => {
+    const result = formatShortDate("2024-01-03");
+    expect(result).toContain("3");
+    expect(result).toContain("Jan");
+    expect(result).not.toContain("Jan 2");
+  });
+
+  test("calculateAge does not increment early", () => {
+    expect(calculateAge("1990-05-15", null, new Date(2024, 4, 14, 20, 0))).toBe(33);
+    expect(calculateAge("1990-05-15", null, new Date(2024, 4, 15, 9, 0))).toBe(34);
+  });
+
+  test("calculateAge uses deathday when present", () => {
+    expect(calculateAge("1950-03-10", "2000-03-09")).toBe(49);
+  });
+
+  test("calculateAge returns null for malformed input", () => {
+    expect(calculateAge("unknown")).toBeNull();
   });
 });

@@ -29,7 +29,6 @@ export const Route = createFileRoute("/_app/explore")({
             initialPageParam: 1,
             getNextPageParam: (lastPage) =>
               lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-            maxPages: 10,
           }),
         ),
       preferences.popularMovies &&
@@ -92,13 +91,13 @@ function ExplorePage() {
     fetchNextPage: fetchNextTrending,
     hasNextPage: hasNextTrending,
     isFetchingNextPage: isFetchingNextTrending,
+    isFetchNextPageError: isTrendingNextPageError,
   } = useInfiniteQuery({
     ...orpc.discover.trending.infiniteOptions({
       input: (pageParam: number) => ({ type: "all" as const, page: pageParam }),
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-      maxPages: 10,
     }),
     enabled: preferences.trending,
   });
@@ -168,6 +167,7 @@ function ExplorePage() {
             onEndReached={fetchNextTrending}
             hasNextPage={hasNextTrending}
             isFetchingNextPage={isFetchingNextTrending}
+            isFetchNextPageError={isTrendingNextPageError}
           />
         </div>
       )}

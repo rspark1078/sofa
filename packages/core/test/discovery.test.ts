@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
+import { getNextEpisode } from "@sofa/api/utils";
 import {
   clearAllTables,
   insertPlatform,
@@ -23,6 +24,7 @@ import {
   getUserStats,
   getWatchCount,
   getWatchHistory,
+  periodStartTimestamp,
 } from "../src/discovery";
 
 const TEST_NOW = new Date("2026-03-01T12:00:00Z");
@@ -37,6 +39,7 @@ afterAll(() => {
 });
 
 beforeEach(() => {
+  vi.setSystemTime(TEST_NOW);
   clearAllTables();
 });
 
@@ -119,6 +122,66 @@ describe("getWatchHistory", () => {
   });
 });
 
+describe("getWatchHistory year buckets", () => {
+  test("yields 12 distinct consecutive months on Oct 31", () => {
+    vi.setSystemTime(new Date(2026, 9, 31, 12));
+    insertUser();
+    expect(getWatchHistory("user-1", "movies", "this_year").map((b) => b.bucket)).toEqual([
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10",
+    ]);
+  });
+
+  test("yields 12 distinct consecutive months on Mar 30", () => {
+    vi.setSystemTime(new Date(2027, 2, 30, 12));
+    insertUser();
+    expect(getWatchHistory("user-1", "movies", "this_year").map((b) => b.bucket)).toEqual([
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10",
+      "2026-11",
+      "2026-12",
+      "2027-01",
+      "2027-02",
+      "2027-03",
+    ]);
+  });
+});
+
+describe("window boundaries match chart buckets", () => {
+  test.each(["today", "this_week", "this_month", "this_year"] as const)(
+    "%s count equals chart sum at the window edge",
+    (period) => {
+      const now = new Date(2026, 6, 15, 12, 30);
+      vi.setSystemTime(now);
+      insertUser();
+      insertTitle({ id: "inside", tmdbId: 1 });
+      insertTitle({ id: "outside", tmdbId: 2 });
+      const startMs = periodStartTimestamp(period, now) * 1000;
+      insertMovieWatch("user-1", "inside", new Date(startMs + 60_000));
+      insertMovieWatch("user-1", "outside", new Date(startMs - 60_000));
+
+      expect(getWatchCount("user-1", "movies", period)).toBe(1);
+      const sum = getWatchHistory("user-1", "movies", period).reduce((n, b) => n + b.count, 0);
+      expect(sum).toBe(1);
+    },
+  );
+});
+
 // ── getUserStats ────────────────────────────────────────────────────
 
 describe("getUserStats", () => {
@@ -158,7 +221,9 @@ describe("getUserStats", () => {
 describe("getContinueWatchingFeed", () => {
   test("returns in-progress shows with next unwatched episode", () => {
     insertUser();
-    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 3);
+    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
     insertStatus("user-1", titleId, "in_progress");
     insertEpisodeWatch("user-1", episodeIds[0]);
 
@@ -172,7 +237,9 @@ describe("getContinueWatchingFeed", () => {
 
   test("excludes completed shows", () => {
     insertUser();
-    const { titleId } = insertTvShow("tv-1", 99999, 1, 3);
+    const { titleId } = insertTvShow("tv-1", 99999, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
     insertStatus("user-1", titleId, "completed");
 
     const feed = getContinueWatchingFeed("user-1");
@@ -196,8 +263,12 @@ describe("getContinueWatchingFeed", () => {
 
   test("sorts by most recent watch", () => {
     insertUser();
-    const show1 = insertTvShow("tv-1", 11111, 1, 3);
-    const show2 = insertTvShow("tv-2", 22222, 1, 3);
+    const show1 = insertTvShow("tv-1", 11111, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
+    const show2 = insertTvShow("tv-2", 22222, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
     insertStatus("user-1", show1.titleId, "in_progress");
     insertStatus("user-1", show2.titleId, "in_progress");
 
@@ -214,7 +285,9 @@ describe("getContinueWatchingFeed", () => {
 
   test("skips show when all episodes are watched (no next episode)", () => {
     insertUser();
-    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 2);
+    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 2, {
+      airDates: ["2026-01-01", "2026-01-08"],
+    });
     insertStatus("user-1", titleId, "in_progress");
     for (const epId of episodeIds) {
       insertEpisodeWatch("user-1", epId);
@@ -222,6 +295,89 @@ describe("getContinueWatchingFeed", () => {
 
     const feed = getContinueWatchingFeed("user-1");
     expect(feed).toHaveLength(0);
+  });
+
+  test("excludes a caught-up show whose only unwatched episode has no air date", () => {
+    insertUser();
+    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 3, {
+      airDates: ["2026-01-01", "2026-01-08"],
+    });
+    insertStatus("user-1", titleId, "in_progress");
+    insertEpisodeWatch("user-1", episodeIds[0]);
+    insertEpisodeWatch("user-1", episodeIds[1]);
+
+    const feed = getContinueWatchingFeed("user-1");
+    expect(feed).toHaveLength(0);
+  });
+
+  test("counts only aired episodes in totals", () => {
+    insertUser();
+    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 4, {
+      airDates: ["2026-01-01", "2026-01-08", "2026-01-15"],
+    });
+    insertStatus("user-1", titleId, "in_progress");
+    insertEpisodeWatch("user-1", episodeIds[0]);
+
+    const feed = getContinueWatchingFeed("user-1");
+    expect(feed).toHaveLength(1);
+    expect(feed[0].totalEpisodes).toBe(3);
+    expect(feed[0].watchedEpisodes).toBe(1);
+    expect(feed[0].nextEpisode?.episodeNumber).toBe(2);
+  });
+
+  test("skips future-dated episodes", () => {
+    insertUser();
+    const { titleId, episodeIds } = insertTvShow("tv-1", 99999, 1, 2, {
+      airDates: ["2026-01-01", "2026-12-01"],
+    });
+    insertStatus("user-1", titleId, "in_progress");
+    insertEpisodeWatch("user-1", episodeIds[0]);
+
+    const feed = getContinueWatchingFeed("user-1");
+    expect(feed).toHaveLength(0);
+  });
+});
+
+// ── getNextEpisode (client mirror) ──────────────────────────────────
+
+describe("getNextEpisode (client mirror)", () => {
+  test("treats undated episodes as unaired and counts only aired episodes", () => {
+    const seasons = [
+      {
+        seasonNumber: 1,
+        episodes: [
+          {
+            id: "e1",
+            episodeNumber: 1,
+            name: "E1",
+            airDate: "2026-01-01",
+            stillPath: null,
+            stillThumbHash: null,
+          },
+          {
+            id: "e2",
+            episodeNumber: 2,
+            name: "E2",
+            airDate: "2026-01-08",
+            stillPath: null,
+            stillThumbHash: null,
+          },
+          {
+            id: "e3",
+            episodeNumber: 3,
+            name: "E3",
+            airDate: null,
+            stillPath: null,
+            stillThumbHash: null,
+          },
+        ],
+      },
+    ] as never;
+
+    const result = getNextEpisode(seasons, new Set(["e1"]));
+    expect(result.nextEpisode?.episodeNumber).toBe(2);
+    expect(result.totalEpisodes).toBe(2);
+    expect(result.watchedEpisodes).toBe(1);
   });
 });
 

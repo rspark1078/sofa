@@ -1,7 +1,9 @@
 import { useRef } from "react";
 
 import { TitleCard } from "@/components/title-card";
-import { hasReachedHorizontalEnd } from "@/hooks/use-infinite-scroll";
+import { useInfiniteScroll, hasReachedHorizontalEnd } from "@/hooks/use-infinite-scroll";
+
+const noop = () => {};
 
 import { HorizontalTitleScroller } from "./horizontal-title-scroller";
 
@@ -25,6 +27,7 @@ interface TitleRowProps {
   onEndReached?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
+  isFetchNextPageError?: boolean;
 }
 
 export function TitleRow({
@@ -36,8 +39,17 @@ export function TitleRow({
   onEndReached,
   hasNextPage = false,
   isFetchingNextPage = false,
+  isFetchNextPageError = false,
 }: TitleRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useInfiniteScroll({
+    fetchNextPage: onEndReached ?? noop,
+    hasNextPage: !!onEndReached && hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    rootRef: scrollRef,
+    rootMargin: "0px 400px 0px 0px",
+  });
 
   if (items.length === 0) return null;
 
@@ -58,6 +70,7 @@ export function TitleRow({
             !onEndReached ||
             !hasNextPage ||
             isFetchingNextPage ||
+            isFetchNextPageError ||
             !hasReachedHorizontalEnd(viewport)
           ) {
             return;
@@ -92,6 +105,7 @@ export function TitleRow({
               <div className="border-primary size-5 animate-spin rounded-full border-2 border-t-transparent" />
             </div>
           )}
+          <div ref={sentinelRef} className="w-px shrink-0" aria-hidden />
         </div>
       </HorizontalTitleScroller>
     </section>

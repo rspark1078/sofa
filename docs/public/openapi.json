@@ -2175,6 +2175,7 @@
                   "ids": {
                     "type": "array",
                     "minItems": 1,
+                    "maxItems": 20000,
                     "items": {
                       "type": "string",
                       "minLength": 1
@@ -2231,6 +2232,7 @@
                   "ids": {
                     "type": "array",
                     "minItems": 1,
+                    "maxItems": 20000,
                     "items": {
                       "type": "string",
                       "minLength": 1
@@ -2311,7 +2313,23 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "alreadyAdded": {
+                      "type": "boolean",
+                      "description": "True when the title was already in the library, so nothing changed"
+                    }
+                  },
+                  "required": [
+                    "alreadyAdded"
+                  ]
+                }
+              }
+            }
           },
           "404": {
             "description": "404",
@@ -2622,6 +2640,497 @@
         ]
       }
     },
+    "/tracking/history": {
+      "get": {
+        "operationId": "tracking.history",
+        "summary": "List watch history",
+        "description": "List the user's watches (movies and episodes), newest first, with cursor pagination.",
+        "tags": [
+          "Tracking"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 30,
+              "description": "Maximum items to return"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Opaque cursor from a previous response's nextCursor"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "movie",
+                "tv"
+              ],
+              "type": "string",
+              "description": "Only movies or only TV episodes"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "manual",
+                "import",
+                "plex",
+                "jellyfin",
+                "emby"
+              ],
+              "type": "string",
+              "description": "Only watches logged by this source"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of watch history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "watchId": {
+                            "type": "string",
+                            "description": "Watch record ID"
+                          },
+                          "kind": {
+                            "enum": [
+                              "movie",
+                              "episode"
+                            ],
+                            "type": "string",
+                            "description": "Whether this watch is a movie or an episode"
+                          },
+                          "watchedAt": {
+                            "type": "string",
+                            "description": "ISO 8601 timestamp of the watch"
+                          },
+                          "source": {
+                            "enum": [
+                              "manual",
+                              "import",
+                              "plex",
+                              "jellyfin",
+                              "emby"
+                            ],
+                            "type": "string",
+                            "description": "How the watch was logged"
+                          },
+                          "title": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Title ID"
+                              },
+                              "title": {
+                                "type": "string",
+                                "description": "Display title"
+                              },
+                              "type": {
+                                "enum": [
+                                  "movie",
+                                  "tv"
+                                ],
+                                "type": "string",
+                                "description": "Title type"
+                              },
+                              "posterPath": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "Poster image URL"
+                              },
+                              "posterThumbHash": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ],
+                                "description": "Poster ThumbHash placeholder"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "title",
+                              "type",
+                              "posterPath",
+                              "posterThumbHash"
+                            ],
+                            "description": "The movie or show"
+                          },
+                          "episode": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "description": "Episode ID"
+                                  },
+                                  "seasonNumber": {
+                                    "type": "number",
+                                    "description": "Season number"
+                                  },
+                                  "episodeNumber": {
+                                    "type": "number",
+                                    "description": "Episode number"
+                                  },
+                                  "name": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ],
+                                    "description": "Episode name"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "seasonNumber",
+                                  "episodeNumber",
+                                  "name"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Episode details (null for movies)"
+                          }
+                        },
+                        "required": [
+                          "watchId",
+                          "kind",
+                          "watchedAt",
+                          "source",
+                          "title",
+                          "episode"
+                        ],
+                        "description": "A single watch event"
+                      },
+                      "description": "Watches, newest first"
+                    },
+                    "nextCursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Cursor for the next page, or null at the end"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "description": "A page of watch history"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/tracking/history/delete": {
+      "post": {
+        "operationId": "tracking.deleteWatch",
+        "summary": "Remove one watch",
+        "description": "Remove a single watch record (one play of a movie or episode) belonging to the current user.",
+        "tags": [
+          "Tracking"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "movie",
+                      "episode"
+                    ],
+                    "type": "string",
+                    "description": "Whether the watch is a movie or an episode"
+                  },
+                  "watchId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Watch record ID (from the history list)"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "watchId"
+                ],
+                "description": "Identifies a single watch record to remove"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "defined": {
+                          "const": true
+                        },
+                        "code": {
+                          "const": "NOT_FOUND"
+                        },
+                        "status": {
+                          "const": 404
+                        },
+                        "message": {
+                          "type": "string",
+                          "default": "Watch not found"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "const": "WATCH_NOT_FOUND"
+                            }
+                          },
+                          "required": [
+                            "code"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "defined",
+                        "code",
+                        "status",
+                        "message",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "defined": {
+                          "const": false
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "data": {}
+                      },
+                      "required": [
+                        "defined",
+                        "code",
+                        "status",
+                        "message"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/tracking/log": {
+      "post": {
+        "operationId": "tracking.logWatch",
+        "summary": "Log a watch at a date",
+        "description": "Log a watch of a movie (title ID) or an episode (episode ID) at a specific date and time. Dates in the future or before 1900 are rejected.",
+        "tags": [
+          "Tracking"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "movie",
+                      "episode"
+                    ],
+                    "type": "string",
+                    "description": "Whether id is a movie title ID or an episode ID"
+                  },
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Movie title ID or episode ID"
+                  },
+                  "watchedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp of when it was watched"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "id",
+                  "watchedAt"
+                ],
+                "description": "A watch to log at a specific date and time"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "defined": {
+                          "const": true
+                        },
+                        "code": {
+                          "const": "NOT_FOUND"
+                        },
+                        "status": {
+                          "const": 404
+                        },
+                        "message": {
+                          "type": "string",
+                          "default": "Title or episode not found"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "enum": [
+                                "TITLE_NOT_FOUND",
+                                "EPISODE_NOT_FOUND"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "code"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "defined",
+                        "code",
+                        "status",
+                        "message",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "defined": {
+                          "const": false
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "data": {}
+                      },
+                      "required": [
+                        "defined",
+                        "code",
+                        "status",
+                        "message"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
     "/library": {
       "get": {
         "operationId": "library.list",
@@ -2767,7 +3276,8 @@
                 "release_date",
                 "popularity",
                 "user_rating",
-                "vote_average"
+                "vote_average",
+                "last_watched"
               ],
               "type": "string",
               "default": "added_at",
@@ -3144,6 +3654,10 @@
                               {
                                 "type": "object",
                                 "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "description": "Episode ID"
+                                  },
                                   "seasonNumber": {
                                     "type": "number",
                                     "description": "Season number"
@@ -3187,6 +3701,7 @@
                                   }
                                 },
                                 "required": [
+                                  "id",
                                   "seasonNumber",
                                   "episodeNumber",
                                   "name",
@@ -3239,7 +3754,7 @@
       "get": {
         "operationId": "library.upcoming",
         "summary": "Get upcoming episodes and movies",
-        "description": "Fetch upcoming episodes and movie releases for titles in the user's library, sorted by date. Supports cursor-based pagination.",
+        "description": "Fetch upcoming episodes and movie releases for titles in the user's library, sorted by date. Supports cursor-based pagination. Pass direction: \"recent\" for unwatched episodes that aired in the past days, newest first.",
         "tags": [
           "Library"
         ],
@@ -3252,7 +3767,22 @@
               "minimum": 1,
               "maximum": 90,
               "default": 90,
-              "description": "How many days into the future to look"
+              "description": "How many days ahead (upcoming) or back (recent) to look"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "upcoming",
+                "recent"
+              ],
+              "type": "string",
+              "default": "upcoming",
+              "description": "\"upcoming\": the next `days` days. \"recent\": unwatched TV episodes that aired in the past `days` days (excluding today), newest first"
             },
             "allowEmptyValue": true,
             "allowReserved": true
@@ -6486,6 +7016,7 @@
                 "properties": {
                   "platformIds": {
                     "type": "array",
+                    "maxItems": 500,
                     "items": {
                       "type": "string"
                     },
@@ -7531,6 +8062,21 @@
                     "dayOfWeek": {
                       "type": "number",
                       "description": "Day of week for weekly backups (0 = Sunday)"
+                    },
+                    "nextRunAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "When the next scheduled backup will run (ISO 8601), or null when disabled"
+                    },
+                    "timeZone": {
+                      "type": "string",
+                      "description": "IANA time zone the schedule's times are in (the server's)"
                     }
                   },
                   "required": [
@@ -7538,7 +8084,9 @@
                     "maxRetention",
                     "frequency",
                     "time",
-                    "dayOfWeek"
+                    "dayOfWeek",
+                    "nextRunAt",
+                    "timeZone"
                   ],
                   "description": "Automated backup schedule configuration"
                 }
@@ -7702,6 +8250,77 @@
                           "properties": {
                             "code": {
                               "const": "JOB_NOT_FOUND"
+                            }
+                          },
+                          "required": [
+                            "code"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "defined",
+                        "code",
+                        "status",
+                        "message",
+                        "data"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "defined": {
+                          "const": false
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "data": {}
+                      },
+                      "required": [
+                        "defined",
+                        "code",
+                        "status",
+                        "message"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "defined": {
+                          "const": true
+                        },
+                        "code": {
+                          "const": "CONFLICT"
+                        },
+                        "status": {
+                          "const": 409
+                        },
+                        "message": {
+                          "type": "string",
+                          "default": "Job is already running"
+                        },
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "const": "JOB_ALREADY_RUNNING"
                             }
                           },
                           "required": [

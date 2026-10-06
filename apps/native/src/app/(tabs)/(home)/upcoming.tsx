@@ -1,5 +1,5 @@
 import { Trans, useLingui } from "@lingui/react/macro";
-import { IconCalendarEvent } from "@tabler/icons-react-native";
+import { IconAlertTriangle, IconCalendarEvent } from "@tabler/icons-react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -8,8 +8,12 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useCSSVariable, useResolveClassNames } from "uniwind";
 
 import { UpcomingRow } from "@/components/dashboard/upcoming-row";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadMoreFooter } from "@/components/ui/load-more-footer";
 import { ScaledIcon } from "@/components/ui/scaled-icon";
 import { Text } from "@/components/ui/text";
+import { useLocalDay } from "@/hooks/use-local-day";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { orpc } from "@/lib/orpc";
 import { queryClient } from "@/lib/query-client";
 import * as Haptics from "@/utils/haptics";
@@ -46,51 +50,66 @@ function FilterChip({
 }
 
 export default function UpcomingScreen() {
-  const { t } = useLingui();
+  const { t, i18n } = useLingui();
+  const day = useLocalDay();
   const headerTitleStyle = useResolveClassNames("font-display text-foreground text-xl");
   const tintColor = useCSSVariable("--color-primary") as string;
   const backgroundColor = useCSSVariable("--color-background") as string;
   const mutedColor = useCSSVariable("--color-muted-foreground") as string;
 
+  const [view, setView] = useState<"upcoming" | "recent">("upcoming");
+  const isRecent = view === "recent";
   const [mediaType, setMediaType] = useState<"all" | "movie" | "tv">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "watching" | "watchlist">("all");
 
-  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage, isRefetching } =
-    useInfiniteQuery(
-      orpc.library.upcoming.infiniteOptions({
-        input: (pageParam: string | undefined) => ({
-          days: 90,
-          limit: 20,
-          cursor: pageParam,
-          mediaType: mediaType !== "all" ? mediaType : undefined,
-          statusFilter: statusFilter !== "all" ? [statusFilter] : undefined,
-        }),
-        initialPageParam: undefined as string | undefined,
-        getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-        maxPages: 10,
+  const {
+    data,
+    isPending,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = useInfiniteQuery(
+    orpc.library.upcoming.infiniteOptions({
+      input: (pageParam: string | undefined) => ({
+        days: 90,
+        limit: 20,
+        cursor: pageParam,
+        direction: isRecent ? "recent" : undefined,
+        mediaType: !isRecent && mediaType !== "all" ? mediaType : undefined,
+        statusFilter: !isRecent && statusFilter !== "all" ? [statusFilter] : undefined,
       }),
-    );
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    }),
+  );
 
   const allItems = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
   const sections = useMemo(
     () =>
-      groupByDateBucket(allItems).map((b) => ({
-        key: b.key,
-        title: b.label,
-        data: b.items,
-      })),
-    [allItems],
+      groupByDateBucket(allItems, { past: view === "recent", today: day, locale: i18n.locale }).map(
+        (b) => ({
+          key: b.key,
+          title: b.label,
+          data: b.items,
+        }),
+      ),
+    [allItems, view, day, i18n.locale],
   );
 
-  const onRefresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: orpc.library.upcoming.key() });
-  }, []);
+  const refreshUpcoming = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: orpc.library.upcoming.key() }),
+    [],
+  );
+  const { refreshing, onRefresh } = usePullToRefresh(refreshUpcoming);
 
   const onEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage]);
 
   const filterChips = (
     <ScrollView
@@ -99,87 +118,121 @@ export default function UpcomingScreen() {
       contentContainerStyle={{ paddingHorizontal: 16, gap: 6, paddingTop: 10, paddingBottom: 6 }}
     >
       <FilterChip
-        label={t`All`}
-        isSelected={mediaType === "all"}
-        onPress={() => setMediaType("all")}
+        label={t`Upcoming`}
+        isSelected={view === "upcoming"}
+        onPress={() => setView("upcoming")}
       />
       <FilterChip
-        label={t`Movies`}
-        isSelected={mediaType === "movie"}
-        onPress={() => setMediaType("movie")}
-      />
-      <FilterChip
-        label={t`TV`}
-        isSelected={mediaType === "tv"}
-        onPress={() => setMediaType("tv")}
+        label={t`Recently aired`}
+        isSelected={view === "recent"}
+        onPress={() => setView("recent")}
       />
       <View className="bg-border/30 mx-1 w-px self-stretch" />
-      <FilterChip
-        label={t`Watching`}
-        isSelected={statusFilter === "watching"}
-        onPress={() => setStatusFilter(statusFilter === "watching" ? "all" : "watching")}
-      />
-      <FilterChip
-        label={t`Watchlist`}
-        isSelected={statusFilter === "watchlist"}
-        onPress={() => setStatusFilter(statusFilter === "watchlist" ? "all" : "watchlist")}
-      />
+      {!isRecent && (
+        <>
+          <FilterChip
+            label={t`All`}
+            isSelected={mediaType === "all"}
+            onPress={() => setMediaType("all")}
+          />
+          <FilterChip
+            label={t`Movies`}
+            isSelected={mediaType === "movie"}
+            onPress={() => setMediaType("movie")}
+          />
+          <FilterChip
+            label={t`TV`}
+            isSelected={mediaType === "tv"}
+            onPress={() => setMediaType("tv")}
+          />
+          <View className="bg-border/30 mx-1 w-px self-stretch" />
+          <FilterChip
+            label={t`Watching`}
+            isSelected={statusFilter === "watching"}
+            onPress={() => setStatusFilter(statusFilter === "watching" ? "all" : "watching")}
+          />
+          <FilterChip
+            label={t`Watchlist`}
+            isSelected={statusFilter === "watchlist"}
+            onPress={() => setStatusFilter(statusFilter === "watchlist" ? "all" : "watchlist")}
+          />
+        </>
+      )}
     </ScrollView>
   );
+
+  const isIOS = process.env.EXPO_OS === "ios";
 
   return (
     <>
       <Stack.Header
-        transparent
-        blurEffect="systemChromeMaterialDark"
+        transparent={isIOS}
+        blurEffect={isIOS ? "systemChromeMaterialDark" : undefined}
         style={{
           color: tintColor,
           shadowColor: "transparent",
-          backgroundColor: process.env.EXPO_OS === "ios" ? undefined : backgroundColor,
+          backgroundColor: isIOS ? undefined : backgroundColor,
         }}
       />
       <Stack.Screen.Title style={headerTitleStyle as Record<string, unknown>}>
         {t`Upcoming`}
       </Stack.Screen.Title>
       <Stack.Screen.BackButton displayMode="minimal" />
-      {!isPending && allItems.length === 0 ? (
-        <Animated.View
-          entering={FadeInDown.duration(300)}
-          className="flex-1 items-center justify-center px-4"
-        >
-          {filterChips}
-          <View className="flex-1 items-center justify-center">
-            <ScaledIcon icon={IconCalendarEvent} size={48} color={`${mutedColor}66`} />
-            <Text className="text-muted-foreground mt-4 text-center text-sm">
-              <Trans>No upcoming episodes or releases in the next 90 days.</Trans>
+      <SectionList
+        sections={sections}
+        keyExtractor={(item, i) => `${item.titleId}-${item.date}-${i}`}
+        ListHeaderComponent={filterChips}
+        renderItem={({ item }) => (
+          <View className="px-4 py-1">
+            <UpcomingRow item={item} />
+          </View>
+        )}
+        renderSectionHeader={({ section: { title } }) => (
+          <View className="bg-background px-4 pt-3 pb-1">
+            <Text className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+              {title}
             </Text>
           </View>
-        </Animated.View>
-      ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item, i) => `${item.titleId}-${item.date}-${i}`}
-          ListHeaderComponent={filterChips}
-          renderItem={({ item }) => (
-            <View className="px-4 py-1">
-              <UpcomingRow item={item} />
-            </View>
-          )}
-          renderSectionHeader={({ section: { title } }) => (
-            <View className="bg-background px-4 pt-3 pb-1">
-              <Text className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                {title}
+        )}
+        stickySectionHeadersEnabled
+        contentContainerStyle={contentContainerStyle}
+        contentInsetAdjustmentBehavior="automatic"
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          <LoadMoreFooter
+            isFetchingNextPage={isFetchingNextPage}
+            isFetchNextPageError={isFetchNextPageError}
+            onRetry={() => fetchNextPage()}
+          />
+        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        ListEmptyComponent={
+          isPending ? null : isError && allItems.length === 0 ? (
+            <EmptyState
+              icon={IconAlertTriangle}
+              title={t`Something went wrong`}
+              description={t`Couldn't load upcoming releases`}
+              actionLabel={t`Retry`}
+              onAction={() => refetch()}
+            />
+          ) : (
+            <Animated.View
+              entering={FadeInDown.duration(300)}
+              className="items-center justify-center px-4 py-16"
+            >
+              <ScaledIcon icon={IconCalendarEvent} size={48} color={`${mutedColor}66`} />
+              <Text className="text-muted-foreground mt-4 text-center text-sm">
+                {isRecent ? (
+                  <Trans>You're all caught up on the last 90 days.</Trans>
+                ) : (
+                  <Trans>No upcoming episodes or releases in the next 90 days.</Trans>
+                )}
               </Text>
-            </View>
-          )}
-          stickySectionHeadersEnabled
-          contentContainerStyle={contentContainerStyle}
-          contentInsetAdjustmentBehavior="automatic"
-          onEndReached={onEndReached}
-          onEndReachedThreshold={0.5}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />}
-        />
-      )}
+            </Animated.View>
+          )
+        }
+      />
     </>
   );
 }

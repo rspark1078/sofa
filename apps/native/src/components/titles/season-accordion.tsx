@@ -98,16 +98,31 @@ export function SeasonAccordion({
     },
   });
 
+  const [pendingEpisodeIds, setPendingEpisodeIds] = useState<ReadonlySet<string>>(() => new Set());
+
   const handleEpisodeToggle = useCallback(
     (episodeId: string) => {
-      if (watchedEpisodeIds.has(episodeId)) {
-        unwatchEpisode.mutate({ scope: "episode", ids: [episodeId] });
-      } else {
-        watchEpisode.mutate({ scope: "episode", ids: [episodeId] });
-      }
+      if (watchSeason.isPending || pendingEpisodeIds.has(episodeId)) return;
+      setPendingEpisodeIds((prev) => new Set(prev).add(episodeId));
+      const done = () =>
+        setPendingEpisodeIds((prev) => {
+          const next = new Set(prev);
+          next.delete(episodeId);
+          return next;
+        });
+      const input = { scope: "episode" as const, ids: [episodeId] };
+      const mutation = watchedEpisodeIds.has(episodeId) ? unwatchEpisode : watchEpisode;
+      void mutation
+        .mutateAsync(input)
+        .catch(() => {
+          // The mutation's own onError already toasted.
+        })
+        .finally(done);
     },
-    [watchedEpisodeIds, unwatchEpisode, watchEpisode],
+    [watchSeason.isPending, pendingEpisodeIds, watchedEpisodeIds, unwatchEpisode, watchEpisode],
   );
+
+  const anyEpisodePending = pendingEpisodeIds.size > 0;
 
   const seasonNumber = season.seasonNumber;
   const episodeCount = episodes.length;
@@ -159,6 +174,8 @@ export function SeasonAccordion({
           {watchedCount < episodes.length && (
             <Pressable
               onPress={() => watchSeason.mutate({ scope: "season", ids: [season.id] })}
+              disabled={watchSeason.isPending || anyEpisodePending}
+              accessibilityState={{ disabled: watchSeason.isPending || anyEpisodePending }}
               className="bg-secondary mx-4 mb-2 flex-row items-center justify-center rounded-lg py-2"
             >
               <Text className="text-title-accent font-sans text-xs font-medium">
@@ -175,6 +192,7 @@ export function SeasonAccordion({
               name={episode.name}
               airDate={episode.airDate}
               isWatched={watchedEpisodeIds.has(episode.id)}
+              isPending={watchSeason.isPending || pendingEpisodeIds.has(episode.id)}
               onToggle={handleEpisodeToggle}
               accentColor={titleAccentColor}
               mutedColor={mutedFgColor}

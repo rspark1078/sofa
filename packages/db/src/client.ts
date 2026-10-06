@@ -1,16 +1,16 @@
 import { Database } from "bun:sqlite";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { closeSync, openSync, readSync } from "node:fs";
+import path from "node:path";
 
 import type { Logger } from "drizzle-orm";
-import { getTableName } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import { SQLiteTable } from "drizzle-orm/sqlite-core";
+import { readMigrationFiles } from "drizzle-orm/migrator";
 
 import { DATABASE_URL } from "@sofa/config";
 import { createLogger } from "@sofa/logger";
 
-import * as schema from "./schema";
+import { findMissingBackupTables, isFromNewerVersion } from "./backup-tables";
 
 const log = createLogger("drizzle");
 
@@ -63,6 +63,9 @@ function getClient() {
     globalForDb.client.run("PRAGMA cache_size = -64000");
     globalForDb.client.run("PRAGMA temp_store = MEMORY");
     globalForDb.client.run("PRAGMA mmap_size = 268435456");
+    // Gather planner statistics now instead of waiting for the weekly optimize job
+    // (SQLite's recommendation for long-lived connections).
+    globalForDb.client.run("PRAGMA optimize=0x10002");
   }
   return globalForDb.client;
 }
@@ -119,10 +122,6 @@ export function closeDatabase() {
 
 const SQLITE_MAGIC = "SQLite format 3\0";
 
-const REQUIRED_TABLES = Object.values(schema)
-  .filter((v) => v instanceof SQLiteTable)
-  .map((t) => getTableName(t as SQLiteTable));
-
 export function validateBackupDatabase(filePath: string): void {
   // Check SQLite magic bytes before opening with Database() to avoid
   // passing arbitrary files to the SQLite parser.
@@ -154,10 +153,22 @@ export function validateBackupDatabase(filePath: string): void {
     const tableRows = validationDb
       .query("SELECT name FROM sqlite_master WHERE type='table'")
       .all() as { name: string }[];
-    const tableSet = new Set(tableRows.map((row) => row.name));
-    const missing = REQUIRED_TABLES.filter((table) => !tableSet.has(table));
+    const missing = findMissingBackupTables(tableRows.map((row) => row.name));
     if (missing.length > 0) {
       throw new Error(`Invalid backup: missing required tables (${missing.join(", ")})`);
+    }
+
+    const applied = (
+      validationDb.query("SELECT created_at FROM __drizzle_migrations").all() as {
+        created_at: number | string;
+      }[]
+    ).map((row) => Number(row.created_at));
+    // Same folder as getMigrationsFolder() in migrate.ts (not importable here: circular).
+    const local = readMigrationFiles({
+      migrationsFolder: path.join(import.meta.dir, "../drizzle"),
+    }).map((m) => m.folderMillis);
+    if (isFromNewerVersion(applied, local)) {
+      throw new Error("Backup is from a newer version of Sofa");
     }
   } finally {
     validationDb.close();

@@ -1,50 +1,13 @@
 import { ORPCError } from "@orpc/client";
 
-import type { AppErrorCode } from "@sofa/api/errors";
+export { getAppErrorCode, getAuthErrorMessage, getErrorMessage } from "@sofa/i18n/errors";
 
-export function getAppErrorCode(error: unknown): AppErrorCode | null {
-  if (
-    error instanceof ORPCError &&
-    error.data &&
-    typeof error.data === "object" &&
-    "code" in error.data &&
-    typeof error.data.code === "string"
-  ) {
-    return error.data.code as AppErrorCode;
-  }
-  return null;
+/** True when an oRPC call failed because the server no longer accepts the session. */
+export function isUnauthorizedError(error: unknown): boolean {
+  return error instanceof ORPCError && (error.code === "UNAUTHORIZED" || error.status === 401);
 }
 
-export function appErrorMessages(
-  t: (template: TemplateStringsArray, ...args: unknown[]) => string,
-): Record<AppErrorCode, string> {
-  return {
-    TITLE_NOT_FOUND: t`Title not found`,
-    PERSON_NOT_FOUND: t`Person not found`,
-    INTEGRATION_NOT_FOUND: t`Integration not found`,
-    BACKUP_NOT_FOUND: t`Backup not found`,
-    BACKUP_DELETE_FAILED: t`Failed to delete backup`,
-    BACKUP_RESTORE_FAILED: t`Backup restoration failed`,
-    JOB_NOT_FOUND: t`Job not found`,
-    TMDB_NOT_CONFIGURED: t`TMDB API key is not configured`,
-    IMPORT_INVALID_FILE: t`Invalid import file`,
-    IMPORT_PAYLOAD_TOO_LARGE: t`Import payload is too large`,
-    IMPORT_ALREADY_RUNNING: t`An import is already in progress`,
-    IMPORT_CANNOT_CANCEL: t`This import cannot be cancelled`,
-    REGISTRATION_CLOSED: t`Registration is currently closed`,
-    EXPORT_FAILED: t`Failed to export data`,
-  };
-}
-
-export function getErrorMessage(
-  error: unknown,
-  t: (template: TemplateStringsArray, ...args: unknown[]) => string,
-  fallback?: string,
-): string {
-  const code = getAppErrorCode(error);
-  if (code) {
-    const messages = appErrorMessages(t);
-    if (code in messages) return messages[code as keyof typeof messages];
-  }
-  return fallback ?? t`Something went wrong`;
+/** True for 4xx oRPC errors — retrying them can't succeed. */
+export function isClientError(error: unknown): boolean {
+  return error instanceof ORPCError && error.status >= 400 && error.status < 500;
 }

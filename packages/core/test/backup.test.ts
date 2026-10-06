@@ -1,5 +1,12 @@
 import { describe, expect, test } from "vitest";
 
+import {
+  findMissingBackupTables,
+  isFromNewerVersion,
+  REQUIRED_BACKUP_TABLES,
+} from "@sofa/db/backup-tables";
+import { testClient } from "@sofa/test/db";
+
 import { getBackupSource, isKnownBackup, isValidBackupFilename } from "../src/backup";
 
 describe("getBackupSource", () => {
@@ -77,5 +84,64 @@ describe("isValidBackupFilename", () => {
 
   test("rejects filenames with double dots", () => {
     expect(isValidBackupFilename("sofa-manual-2024..01-15-120000.db")).toBe(false);
+  });
+});
+
+function currentTableNames(): string[] {
+  return (
+    testClient.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as {
+      name: string;
+    }[]
+  ).map((r) => r.name);
+}
+
+describe("findMissingBackupTables", () => {
+  test("accepts a fully migrated database (current schema)", () => {
+    expect(findMissingBackupTables(currentTableNames())).toEqual([]);
+  });
+
+  test("accepts a database from before v0.1.3 (no platformTmdbIds)", () => {
+    const names = currentTableNames().filter((n) => n !== "platformTmdbIds");
+    expect(findMissingBackupTables(names)).toEqual([]);
+  });
+
+  test("accepts a database from v0.1.0 (no platform tables)", () => {
+    const newer = new Set(["platformTmdbIds", "platforms", "titleAvailability", "userPlatforms"]);
+    const names = currentTableNames().filter((n) => !newer.has(n));
+    expect(findMissingBackupTables(names)).toEqual([]);
+  });
+
+  test("rejects a non-Sofa SQLite file", () => {
+    const missing = findMissingBackupTables(["foo"]);
+    expect(missing).toContain("user");
+    expect(missing).toContain("titles");
+    expect(missing).toContain("__drizzle_migrations");
+  });
+
+  test("every required backup table exists in the current schema", () => {
+    const current = currentTableNames();
+    expect(REQUIRED_BACKUP_TABLES.filter((t) => !current.includes(t))).toEqual([]);
+  });
+});
+
+describe("isFromNewerVersion", () => {
+  test("older backup is accepted", () => {
+    expect(isFromNewerVersion([1000, 2000], [1000, 2000, 3000])).toBe(false);
+  });
+
+  test("same version is accepted", () => {
+    expect(isFromNewerVersion([1000, 2000, 3000], [1000, 2000, 3000])).toBe(false);
+  });
+
+  test("newer backup is rejected", () => {
+    expect(isFromNewerVersion([1000, 4000], [1000, 3000])).toBe(true);
+  });
+
+  test("empty applied list is accepted", () => {
+    expect(isFromNewerVersion([], [3000])).toBe(false);
+  });
+
+  test("numeric strings are coerced", () => {
+    expect(isFromNewerVersion(["4000"], [3000])).toBe(true);
   });
 });

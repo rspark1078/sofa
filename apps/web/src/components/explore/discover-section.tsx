@@ -125,37 +125,63 @@ export function DiscoverSection() {
   const { data: genreData } = useQuery(orpc.discover.genres.queryOptions({ input: { type } }));
   const { data: providerData } = useQuery(orpc.discover.platforms.queryOptions());
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending, isError, refetch } =
-    useInfiniteQuery(
-      orpc.discover.browse.infiniteOptions({
-        input: (pageParam: number) => ({
-          type,
-          genreId,
-          yearMin,
-          yearMax,
-          ratingMin,
-          sortBy,
-          language,
-          originCountry,
-          certification,
-          accessType,
-          platformIds: selectedPlatformIds,
-          page: pageParam,
-        }),
-        initialPageParam: 1,
-        getNextPageParam: (lastPage) =>
-          lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-        maxPages: 10,
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isPending,
+    isError,
+    refetch,
+    isFetchNextPageError,
+  } = useInfiniteQuery(
+    orpc.discover.browse.infiniteOptions({
+      input: (pageParam: number) => ({
+        type,
+        genreId,
+        yearMin,
+        yearMax,
+        ratingMin,
+        sortBy,
+        language,
+        originCountry,
+        certification,
+        accessType,
+        platformIds: selectedPlatformIds,
+        page: pageParam,
       }),
-    );
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) =>
+        lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+    }),
+  );
 
   const sentinelRef = useInfiniteScroll({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   });
 
-  const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data?.pages]);
+  const items = useMemo(() => {
+    const pages = data?.pages ?? [];
+    const statuses = Object.assign({}, ...pages.map((p) => p.userStatuses)) as Record<
+      string,
+      "in_watchlist" | "watching" | "caught_up" | "completed"
+    >;
+    const progress = Object.assign({}, ...pages.map((p) => p.episodeProgress)) as Record<
+      string,
+      { watched: number; total: number }
+    >;
+    return pages
+      .flatMap((p) => p.items)
+      .map((item) =>
+        Object.assign({}, item, {
+          userStatus: statuses[item.id] ?? null,
+          episodeProgress: progress[item.id] ?? null,
+        }),
+      );
+  }, [data?.pages]);
 
   const genres = genreData?.genres ?? [];
   const providerType = accessType === "paid" ? "paid" : accessType ? "free" : "all";
@@ -597,7 +623,7 @@ export function DiscoverSection() {
         <div className="flex items-center justify-center py-12">
           <IconLoader className="text-muted-foreground size-6 animate-spin" />
         </div>
-      ) : isError ? (
+      ) : isError && items.length === 0 ? (
         <div className="space-y-3 py-12 text-center">
           <p className="text-muted-foreground text-sm">{t`Unable to check current availability. Try again.`}</p>
           <Button variant="outline" onClick={() => void refetch()}>{t`Retry`}</Button>
@@ -624,6 +650,12 @@ export function DiscoverSection() {
       ) : (
         <>
           <TitleGrid items={items} wide />
+          {isFetchNextPageError && (
+            <div className="space-y-2 py-4 text-center">
+              <p className="text-muted-foreground text-sm">{t`Unable to load more titles.`}</p>
+              <Button variant="outline" onClick={() => void fetchNextPage()}>{t`Retry`}</Button>
+            </div>
+          )}
           <div ref={sentinelRef} />
           {isFetchingNextPage && (
             <div className="flex items-center justify-center py-4">

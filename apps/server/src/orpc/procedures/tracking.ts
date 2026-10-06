@@ -6,10 +6,13 @@ import { getWatchCount, getWatchHistory } from "@sofa/core/discovery";
 import { getOrFetchTitleByTmdbId } from "@sofa/core/metadata";
 import {
   getDisplayStatusesByTitleIds,
+  deleteWatch as deleteWatchRecord,
   getUserTitleInfo,
+  listWatchHistory,
   logEpisodeWatch,
   logEpisodeWatchBatch,
   logMovieWatch,
+  logWatchAt,
   markAllEpisodesWatched,
   quickAddTitle,
   rateTitleStars,
@@ -21,6 +24,7 @@ import {
   watchSeason,
 } from "@sofa/core/tracking";
 import { createLogger } from "@sofa/logger";
+import { tmdbImageUrl } from "@sofa/tmdb/image";
 
 import { os } from "../context";
 import { authed } from "../middleware";
@@ -86,7 +90,7 @@ export const updateStatus = os.tracking.updateStatus
   .handler(async ({ input, context }) => {
     if (input.status === null) {
       removeTitleStatus(context.user.id, input.id);
-      return;
+      return { alreadyAdded: false };
     }
 
     // Auto-import from TMDB if the title is a shell (absorbs quickAdd logic)
@@ -102,6 +106,8 @@ export const updateStatus = os.tracking.updateStatus
         log.warn(`Failed to import ${result.type} TMDB ${result.tmdbId}:`, err);
       });
     }
+
+    return { alreadyAdded: result.alreadyAdded };
   });
 
 export const rate = os.tracking.rate.use(authed).handler(({ input, context }) => {
@@ -121,4 +127,43 @@ export const stats = os.tracking.stats.use(authed).handler(({ input, context }) 
   const count = getWatchCount(context.user.id, coreType, input.period);
   const history = getWatchHistory(context.user.id, coreType, input.period);
   return { count, history };
+});
+
+export const history = os.tracking.history.use(authed).handler(({ input, context }) => {
+  const result = listWatchHistory(context.user.id, input);
+  return {
+    items: result.items.map((item) => ({
+      watchId: item.watchId,
+      kind: item.kind,
+      watchedAt: item.watchedAt.toISOString(),
+      source: item.source,
+      title: {
+        ...item.title,
+        posterPath: tmdbImageUrl(item.title.posterPath, "posters"),
+      },
+      episode: item.episode,
+    })),
+    nextCursor: result.nextCursor,
+  };
+});
+
+export const deleteWatch = os.tracking.deleteWatch.use(authed).handler(({ input, context }) => {
+  if (!deleteWatchRecord(context.user.id, input.kind, input.watchId)) {
+    throw new ORPCError("NOT_FOUND", {
+      message: "Watch not found",
+      data: { code: AppErrorCode.WATCH_NOT_FOUND },
+    });
+  }
+});
+
+export const logWatch = os.tracking.logWatch.use(authed).handler(({ input, context }) => {
+  const result = logWatchAt(context.user.id, input.kind, input.id, new Date(input.watchedAt));
+  if (result === "not_found") {
+    const code =
+      input.kind === "movie" ? AppErrorCode.TITLE_NOT_FOUND : AppErrorCode.EPISODE_NOT_FOUND;
+    throw new ORPCError("NOT_FOUND", {
+      message: code === AppErrorCode.TITLE_NOT_FOUND ? "Title not found" : "Episode not found",
+      data: { code },
+    });
+  }
 });

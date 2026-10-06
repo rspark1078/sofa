@@ -9,7 +9,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useResetUserState } from "@/hooks/use-reset-user-state";
 import { authClient, signIn, signUp } from "@/lib/auth/client";
+import { getAuthErrorMessage } from "@/lib/error-messages";
 import { useAppForm } from "@/lib/form";
 
 export interface AuthConfig {
@@ -40,6 +42,7 @@ export function AuthForm({
 }) {
   const { t } = useLingui();
   const navigate = useNavigate();
+  const resetUserState = useResetUserState();
   const [error, setError] = useState("");
   const [oidcLoading, setOidcLoading] = useState(false);
 
@@ -60,16 +63,17 @@ export function AuthForm({
             password: value.password,
           });
           if (result.error) {
-            setError(result.error.message ?? t`Registration failed`);
+            setError(getAuthErrorMessage(result.error, t`Registration failed`));
             return;
           }
         } else {
           const result = await signIn.email({ email: value.email, password: value.password });
           if (result.error) {
-            setError(result.error.message ?? t`Login failed`);
+            setError(getAuthErrorMessage(result.error, t`Login failed`));
             return;
           }
         }
+        resetUserState();
         void navigate({ to: isRegister ? "/onboarding" : "/dashboard" });
       } catch {
         setError(t`Something went wrong`);

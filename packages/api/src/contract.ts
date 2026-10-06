@@ -11,6 +11,7 @@ import {
   ContinueWatchingOutput,
   CreateImportJobInput,
   CreateIntegrationInput,
+  DeleteWatchInput,
   DiscoverInput,
   DiscoveryPreset,
   SaveDiscoveryPresetInput,
@@ -29,6 +30,7 @@ import {
   LibraryListInput,
   LibraryListOutput,
   LibraryStatsOutput,
+  LogWatchInput,
   MediaTypeParam,
   PageParam,
   PaginatedInput,
@@ -70,6 +72,8 @@ import {
   UserInfoOutput,
   UserPlatformsOutput,
   WatchHistoryInput,
+  WatchHistoryListInput,
+  WatchHistoryListOutput,
   WatchHistoryOutput,
   WatchInput,
 } from "./schemas";
@@ -150,7 +154,13 @@ export const contract = {
           "Set the user's tracking status for a title. Use null to remove the title from the library entirely.",
       })
       .input(UpdateStatusInput)
-      .output(z.void())
+      .output(
+        z.object({
+          alreadyAdded: z
+            .boolean()
+            .describe("True when the title was already in the library, so nothing changed"),
+        }),
+      )
       .errors({
         NOT_FOUND: {
           message: "Title not found",
@@ -191,6 +201,54 @@ export const contract = {
       })
       .input(WatchHistoryInput)
       .output(WatchHistoryOutput),
+    history: oc
+      .route({
+        method: "GET",
+        path: "/tracking/history",
+        tags: ["Tracking"],
+        summary: "List watch history",
+        description:
+          "List the user's watches (movies and episodes), newest first, with cursor pagination.",
+        successDescription: "A page of watch history",
+      })
+      .input(WatchHistoryListInput)
+      .output(WatchHistoryListOutput),
+    deleteWatch: oc
+      .route({
+        method: "POST",
+        path: "/tracking/history/delete",
+        tags: ["Tracking"],
+        summary: "Remove one watch",
+        description:
+          "Remove a single watch record (one play of a movie or episode) belonging to the current user.",
+      })
+      .input(DeleteWatchInput)
+      .output(z.void())
+      .errors({
+        NOT_FOUND: {
+          message: "Watch not found",
+          data: appErrorData(AppErrorCode.WATCH_NOT_FOUND),
+        },
+      }),
+    logWatch: oc
+      .route({
+        method: "POST",
+        path: "/tracking/log",
+        tags: ["Tracking"],
+        summary: "Log a watch at a date",
+        description:
+          "Log a watch of a movie (title ID) or an episode (episode ID) at a specific date and time. Dates in the future or before 1900 are rejected.",
+      })
+      .input(LogWatchInput)
+      .output(z.void())
+      .errors({
+        NOT_FOUND: {
+          message: "Title or episode not found",
+          data: z.object({
+            code: z.enum([AppErrorCode.TITLE_NOT_FOUND, AppErrorCode.EPISODE_NOT_FOUND]),
+          }),
+        },
+      }),
   },
 
   // ─── Library ────────────────────────────────────────────────
@@ -246,7 +304,7 @@ export const contract = {
         tags: ["Library"],
         summary: "Get upcoming episodes and movies",
         description:
-          "Fetch upcoming episodes and movie releases for titles in the user's library, sorted by date. Supports cursor-based pagination.",
+          'Fetch upcoming episodes and movie releases for titles in the user\'s library, sorted by date. Supports cursor-based pagination. Pass direction: "recent" for unwatched episodes that aired in the past days, newest first.',
         successDescription: "Upcoming items sorted by date with streaming info",
       })
       .input(UpcomingInput)
@@ -721,6 +779,10 @@ export const contract = {
         NOT_FOUND: {
           message: "Job not found",
           data: appErrorData(AppErrorCode.JOB_NOT_FOUND),
+        },
+        CONFLICT: {
+          message: "Job is already running",
+          data: appErrorData(AppErrorCode.JOB_ALREADY_RUNNING),
         },
       }),
     purgeMetadataCache: oc

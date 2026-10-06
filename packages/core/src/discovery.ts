@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import type { DiscoverInput } from "@sofa/api/schemas";
+import { localDateString } from "@sofa/config";
 import {
   getAllTrackedTitleIds,
   getAvailabilityByTitleIds,
@@ -20,6 +21,7 @@ import {
   getTitleByIdOrNull,
   getTitlesByIds,
   getTvTitlesByIds,
+  getRecentUnwatchedEpisodes,
   getUpcomingEpisodes,
   getUpcomingMovies,
   getUserStatusCounts,
@@ -29,30 +31,22 @@ import { tmdbImageUrl } from "@sofa/tmdb/image";
 import type { DisplayStatus } from "./display-status";
 import { getDisplayStatusesByTitleIds } from "./tracking";
 
-function formatLocalDate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 export type TimePeriod = "today" | "this_week" | "this_month" | "this_year";
 
-export function periodStartTimestamp(period: TimePeriod): number {
-  const now = new Date();
-  const start = new Date(now);
+export function periodStartTimestamp(period: TimePeriod, now: Date = new Date()): number {
+  let start: Date;
   switch (period) {
-    case "today":
-      start.setHours(now.getHours() - 24, now.getMinutes(), 0, 0);
+    case "today": // 24 hourly buckets, oldest = the hour 23 hours ago
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() - 23);
       break;
-    case "this_week":
-      start.setDate(now.getDate() - 7);
-      start.setHours(0, 0, 0, 0);
+    case "this_week": // 7 daily buckets incl. today
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
       break;
-    case "this_month":
-      start.setDate(now.getDate() - 30);
-      start.setHours(0, 0, 0, 0);
+    case "this_month": // 30 daily buckets incl. today
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
       break;
-    case "this_year":
-      start.setFullYear(now.getFullYear() - 1);
-      start.setHours(0, 0, 0, 0);
+    case "this_year": // 12 monthly buckets incl. this month
+      start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
       break;
   }
   return Math.floor(start.getTime() / 1000);
@@ -123,8 +117,7 @@ export function getWatchHistory(
     case "this_year":
       fmt = "%Y-%m";
       buckets = Array.from({ length: 12 }, (_, i) => {
-        const d = new Date(now);
-        d.setMonth(now.getMonth() - 11 + i);
+        const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
         return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}`;
       });
       break;
@@ -238,7 +231,8 @@ export function getContinueWatchingFeed(userId: string): ContinueWatchingItem[] 
   }
 
   const items: ContinueWatchingItem[] = [];
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateString();
+  const isAired = (airDate: string | null) => airDate != null && airDate <= today;
 
   for (const row of inProgress) {
     const title = titleMap.get(row.titleId);
@@ -252,27 +246,31 @@ export function getContinueWatchingFeed(userId: string): ContinueWatchingItem[] 
 
     for (const s of titleSeasonsArr) {
       const eps = episodesBySeason.get(s.id) ?? [];
-      totalEpisodes += eps.length;
 
       for (const ep of eps) {
+        const aired = isAired(ep.airDate);
         if (watchedEpisodeIds.has(ep.id)) {
-          watchedEpisodes++;
           const watchDate = watchDateMap.get(ep.id);
           if (watchDate && (!lastWatchedAt || watchDate > lastWatchedAt)) {
             lastWatchedAt = watchDate;
           }
-        } else if (!nextEpisode) {
-          // Skip episodes not yet aired
-          if (ep.airDate && ep.airDate > today) continue;
-          nextEpisode = {
-            id: ep.id,
-            seasonNumber: s.seasonNumber,
-            episodeNumber: ep.episodeNumber,
-            name: ep.name,
-            stillPath: ep.stillPath,
-            stillThumbHash: ep.stillThumbHash,
-            overview: ep.overview,
-          };
+          if (aired) {
+            totalEpisodes++;
+            watchedEpisodes++;
+          }
+        } else if (aired) {
+          totalEpisodes++;
+          if (!nextEpisode) {
+            nextEpisode = {
+              id: ep.id,
+              seasonNumber: s.seasonNumber,
+              episodeNumber: ep.episodeNumber,
+              name: ep.name,
+              stillPath: ep.stillPath,
+              stillThumbHash: ep.stillThumbHash,
+              overview: ep.overview,
+            };
+          }
         }
       }
     }
@@ -401,6 +399,62 @@ export interface UpcomingFeedResult {
   nextCursor: string | null;
 }
 
+/** Sort/cursor key for one upcoming feed item. `s`/`e` are 0 for movies. */
+interface UpcomingCursorKey {
+  d: string; // date YYYY-MM-DD
+  n: string; // title name
+  i: string; // title id
+  s: number; // season number
+  e: number; // episode number
+}
+
+function compareUpcomingKeys(a: UpcomingCursorKey, b: UpcomingCursorKey): number {
+  return (
+    a.d.localeCompare(b.d) ||
+    a.n.localeCompare(b.n) ||
+    a.i.localeCompare(b.i) ||
+    a.s - b.s ||
+    a.e - b.e
+  );
+}
+
+/** Same as compareUpcomingKeys, but dates descend (newest first). */
+function compareRecentKeys(a: UpcomingCursorKey, b: UpcomingCursorKey): number {
+  return (
+    b.d.localeCompare(a.d) ||
+    a.n.localeCompare(b.n) ||
+    a.i.localeCompare(b.i) ||
+    a.s - b.s ||
+    a.e - b.e
+  );
+}
+
+function encodeUpcomingCursor(key: UpcomingCursorKey): string {
+  return Buffer.from(JSON.stringify(key), "utf8").toString("base64url");
+}
+
+function decodeUpcomingCursor(cursor: string): UpcomingCursorKey | null {
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+    if (
+      typeof parsed?.d !== "string" ||
+      typeof parsed?.n !== "string" ||
+      typeof parsed?.i !== "string"
+    ) {
+      return null;
+    }
+    return {
+      d: parsed.d,
+      n: parsed.n,
+      i: parsed.i,
+      s: typeof parsed.s === "number" ? parsed.s : 0,
+      e: typeof parsed.e === "number" ? parsed.e : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function getUpcomingFeed(
   userId: string,
   options: {
@@ -409,42 +463,60 @@ export function getUpcomingFeed(
     cursor?: string;
     mediaType?: "movie" | "tv";
     statusFilter?: ("watching" | "watchlist")[];
+    direction?: "upcoming" | "recent";
   } = {},
 ): UpcomingFeedResult {
-  const { days = 90, limit = 20, cursor, mediaType, statusFilter } = options;
+  const {
+    days = 90,
+    limit = 20,
+    cursor,
+    mediaType,
+    statusFilter,
+    direction = "upcoming",
+  } = options;
+  const isRecent = direction === "recent";
+  const compareKeys = isRecent ? compareRecentKeys : compareUpcomingKeys;
 
   // Map display status filter to stored statuses for DB query
   const storedStatuses = statusFilter?.map((s) => (s === "watching" ? "in_progress" : s));
 
   const now = new Date();
-  const today = formatLocalDate(now);
-  const horizon = new Date();
-  horizon.setDate(horizon.getDate() + days);
-  const toDate = formatLocalDate(horizon);
+  const today = localDateString(now);
+  const cursorKey = cursor ? decodeUpcomingCursor(cursor) : null;
 
-  // Use the cursor date as the lower bound so later pages skip already-seen dates,
-  // but don't apply a DB-level LIMIT so same-day items aren't truncated.
-  let cursorDate: string | undefined;
-  let cursorName: string | undefined;
-  let cursorId: string | undefined;
-  if (cursor) {
-    try {
-      const parsed = JSON.parse(atob(cursor));
-      cursorDate = parsed.d;
-      cursorName = parsed.n;
-      cursorId = parsed.i;
-    } catch {
-      // Invalid cursor — ignore
-    }
+  let episodeRows: ReturnType<typeof getUpcomingEpisodes>;
+  let movieRows: ReturnType<typeof getUpcomingMovies>;
+  if (isRecent) {
+    // Dates go down: the cursor date is the upper bound, `days` ago the lower bound.
+    const yesterdayDate = new Date(now);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const earliest = new Date(now);
+    earliest.setDate(earliest.getDate() - days);
+    const toDate = cursorKey?.d ?? localDateString(yesterdayDate);
+    const fromDate = localDateString(earliest);
+    episodeRows = mediaType === "movie" ? [] : getRecentUnwatchedEpisodes(userId, fromDate, toDate);
+    movieRows = [];
+  } else {
+    const horizon = new Date();
+    horizon.setDate(horizon.getDate() + days);
+    const toDate = localDateString(horizon);
+
+    // Use the cursor date as the lower bound so later pages skip already-seen dates,
+    // but don't apply a DB-level LIMIT so same-day items aren't truncated.
+    const fromDate = cursorKey?.d ?? today;
+    episodeRows =
+      mediaType === "movie" ? [] : getUpcomingEpisodes(userId, fromDate, toDate, storedStatuses);
+    movieRows =
+      mediaType === "tv" ? [] : getUpcomingMovies(userId, fromDate, toDate, storedStatuses);
   }
-  const fromDate = cursorDate ?? today;
-  const episodeRows =
-    mediaType === "movie" ? [] : getUpcomingEpisodes(userId, fromDate, toDate, storedStatuses);
-  const movieRows =
-    mediaType === "tv" ? [] : getUpcomingMovies(userId, fromDate, toDate, storedStatuses);
 
   // Merge into unified items
-  type RawItem = { date: string; titleId: string; titleName: string } & (
+  type RawItem = {
+    date: string;
+    titleId: string;
+    titleName: string;
+    key: UpcomingCursorKey;
+  } & (
     | { type: "tv"; row: (typeof episodeRows)[number] }
     | { type: "movie"; row: (typeof movieRows)[number] }
   );
@@ -454,6 +526,13 @@ export function getUpcomingFeed(
       date: r.airDate!,
       titleId: r.titleId,
       titleName: r.titleName,
+      key: {
+        d: r.airDate!,
+        n: r.titleName,
+        i: r.titleId,
+        s: r.seasonNumber,
+        e: r.episodeNumber,
+      },
       type: "tv" as const,
       row: r,
     })),
@@ -461,18 +540,14 @@ export function getUpcomingFeed(
       date: r.releaseDate!,
       titleId: r.titleId,
       titleName: r.titleName,
+      key: { d: r.releaseDate!, n: r.titleName, i: r.titleId, s: 0, e: 0 },
       type: "movie" as const,
       row: r,
     })),
   ];
 
-  // Sort by date ASC, then title ASC, then titleId for deterministic tiebreak
-  merged.sort(
-    (a, b) =>
-      a.date.localeCompare(b.date) ||
-      a.titleName.localeCompare(b.titleName) ||
-      a.titleId.localeCompare(b.titleId),
-  );
+  // Sort by (date, title, titleId, season, episode) ASC — the same key the cursor uses
+  merged.sort((a, b) => compareKeys(a.key, b.key));
 
   // Collapse batch drops: group 3+ episodes from the same title on the same date into one item
   const collapsed: (RawItem & { episodeCount: number })[] = [];
@@ -509,15 +584,10 @@ export function getUpcomingFeed(
   }
 
   // Apply cursor: skip items at or before the cursor position.
-  // Cursor is base64-encoded JSON {d, n, i} matching the sort key (date, titleName, titleId).
+  // Cursor is base64url-encoded UTF-8 JSON {d, n, i, s, e} matching the sort key.
   let startIdx = 0;
-  if (cursorDate && cursorName && cursorId) {
-    startIdx = collapsed.findIndex(
-      (item) =>
-        item.date > cursorDate ||
-        (item.date === cursorDate && item.titleName > cursorName) ||
-        (item.date === cursorDate && item.titleName === cursorName && item.titleId > cursorId),
-    );
+  if (cursorKey) {
+    startIdx = collapsed.findIndex((item) => compareKeys(item.key, cursorKey) > 0);
     if (startIdx === -1) startIdx = collapsed.length;
   }
 
@@ -528,7 +598,7 @@ export function getUpcomingFeed(
   let nextCursor: string | null = null;
   if (hasMore && pageItems.length > 0) {
     const last = pageItems.at(-1)!;
-    nextCursor = btoa(JSON.stringify({ d: last.date, n: last.titleName, i: last.titleId }));
+    nextCursor = encodeUpcomingCursor(last.key);
   }
 
   // Batch-fetch display statuses and streaming providers

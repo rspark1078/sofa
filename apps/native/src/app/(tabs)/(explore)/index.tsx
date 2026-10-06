@@ -7,6 +7,8 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { FilterableTitleRow } from "@/components/explore/filterable-title-row";
 import { HeroBanner } from "@/components/explore/hero-banner";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { dedupeById } from "@/lib/dedupe-by-id";
 import { orpc } from "@/lib/orpc";
 import { queryClient } from "@/lib/query-client";
 
@@ -23,7 +25,6 @@ export default function ExploreScreen() {
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-      maxPages: 10,
     }),
   );
   const popularMovies = useQuery(orpc.discover.popular.queryOptions({ input: { type: "movie" } }));
@@ -31,17 +32,16 @@ export default function ExploreScreen() {
   const movieGenres = useQuery(orpc.discover.genres.queryOptions({ input: { type: "movie" } }));
   const tvGenres = useQuery(orpc.discover.genres.queryOptions({ input: { type: "tv" } }));
 
-  const isRefreshing =
-    trending.isRefetching || popularMovies.isRefetching || popularTv.isRefetching;
-
-  const onRefresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: orpc.discover.key() });
-  }, []);
+  const refreshDiscover = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: orpc.discover.key() }),
+    [],
+  );
+  const { refreshing, onRefresh } = usePullToRefresh(refreshDiscover);
 
   const heroItem = trending.data?.pages[0]?.hero ?? null;
 
   const trendingItems = useMemo(
-    () => trending.data?.pages.flatMap((p) => p.items) ?? [],
+    () => dedupeById(trending.data?.pages.flatMap((p) => p.items) ?? []),
     [trending.data?.pages],
   );
   const trendingStatuses = useMemo(
@@ -67,10 +67,12 @@ export default function ExploreScreen() {
       contentContainerStyle={exploreContentContainerStyle}
       contentInsetAdjustmentBehavior="automatic"
       scrollToOverflowEnabled
-      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <View className="gap-8">
-        {heroItem && <HeroBanner item={heroItem} />}
+        {heroItem && (
+          <HeroBanner item={{ ...heroItem, userStatus: trendingStatuses[heroItem.id] ?? null }} />
+        )}
 
         <Animated.View entering={FadeInDown.duration(300).delay(100)}>
           <FilterableTitleRow
@@ -81,6 +83,18 @@ export default function ExploreScreen() {
             defaultUserStatuses={trendingStatuses}
             defaultEpisodeProgress={trendingProgress}
             isLoading={trending.isPending}
+            isError={trending.isError}
+            onRetry={() => void trending.refetch()}
+            onEndReachedDefault={() => {
+              if (
+                trending.hasNextPage &&
+                !trending.isFetchingNextPage &&
+                !trending.isFetchNextPageError
+              ) {
+                void trending.fetchNextPage();
+              }
+            }}
+            isFetchingNextPageDefault={trending.isFetchingNextPage}
           />
         </Animated.View>
 
@@ -94,6 +108,8 @@ export default function ExploreScreen() {
             defaultEpisodeProgress={popularMovies.data?.episodeProgress ?? {}}
             genres={movieGenres.data?.genres}
             isLoading={popularMovies.isPending}
+            isError={popularMovies.isError}
+            onRetry={() => void popularMovies.refetch()}
           />
         </Animated.View>
 
@@ -107,6 +123,8 @@ export default function ExploreScreen() {
             defaultEpisodeProgress={popularTv.data?.episodeProgress ?? {}}
             genres={tvGenres.data?.genres}
             isLoading={popularTv.isPending}
+            isError={popularTv.isError}
+            onRetry={() => void popularTv.refetch()}
           />
         </Animated.View>
       </View>

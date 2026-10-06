@@ -72,14 +72,14 @@ export const WatchScope = z
 export const WatchInput = z
   .object({
     scope: WatchScope,
-    ids: z.array(z.string().min(1)).min(1).describe("IDs to mark as watched"),
+    ids: z.array(z.string().min(1)).min(1).max(20000).describe("IDs to mark as watched"),
   })
   .meta({ description: "Mark one or more items as watched" });
 
 export const UnwatchInput = z
   .object({
     scope: WatchScope,
-    ids: z.array(z.string().min(1)).min(1).describe("IDs to unwatch"),
+    ids: z.array(z.string().min(1)).min(1).max(20000).describe("IDs to unwatch"),
   })
   .meta({ description: "Remove watch records for one or more items" });
 
@@ -164,6 +164,78 @@ export const WatchHistoryInput = z
       .describe("Time range for the histogram"),
   })
   .meta({ description: "Filters for watch history chart data" });
+
+// ─── Watch history list ────────────────────────────────────────
+
+const watchSource = z.enum(["manual", "import", "plex", "jellyfin", "emby"]);
+
+export const WatchHistoryListInput = z
+  .object({
+    limit: z.number().int().min(1).max(50).default(30).describe("Maximum items to return"),
+    cursor: z.string().optional().describe("Opaque cursor from a previous response's nextCursor"),
+    type: z.enum(["movie", "tv"]).optional().describe("Only movies or only TV episodes"),
+    source: watchSource.optional().describe("Only watches logged by this source"),
+  })
+  .meta({ description: "Filters and pagination for watch history" });
+
+const MIN_WATCHED_AT_MS = Date.UTC(1900, 0, 1);
+const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
+
+export const DeleteWatchInput = z
+  .object({
+    kind: z.enum(["movie", "episode"]).describe("Whether the watch is a movie or an episode"),
+    watchId: z.string().min(1).describe("Watch record ID (from the history list)"),
+  })
+  .meta({ description: "Identifies a single watch record to remove" });
+
+export const LogWatchInput = z
+  .object({
+    kind: z.enum(["movie", "episode"]).describe("Whether id is a movie title ID or an episode ID"),
+    id: z.string().min(1).describe("Movie title ID or episode ID"),
+    watchedAt: z
+      .string()
+      .datetime({ offset: true })
+      .refine((value) => {
+        const ms = Date.parse(value);
+        return ms >= MIN_WATCHED_AT_MS && ms <= Date.now() + MAX_FUTURE_SKEW_MS;
+      }, "watchedAt must be between 1900-01-01 and now")
+      .describe("ISO 8601 timestamp of when it was watched"),
+  })
+  .meta({ description: "A watch to log at a specific date and time" });
+
+export const WatchHistoryItemSchema = z
+  .object({
+    watchId: z.string().describe("Watch record ID"),
+    kind: z.enum(["movie", "episode"]).describe("Whether this watch is a movie or an episode"),
+    watchedAt: z.string().describe("ISO 8601 timestamp of the watch"),
+    source: watchSource.describe("How the watch was logged"),
+    title: z
+      .object({
+        id: z.string().describe("Title ID"),
+        title: z.string().describe("Display title"),
+        type: z.enum(["movie", "tv"]).describe("Title type"),
+        posterPath: z.string().nullable().describe("Poster image URL"),
+        posterThumbHash: z.string().nullable().describe("Poster ThumbHash placeholder"),
+      })
+      .describe("The movie or show"),
+    episode: z
+      .object({
+        id: z.string().describe("Episode ID"),
+        seasonNumber: z.number().describe("Season number"),
+        episodeNumber: z.number().describe("Episode number"),
+        name: z.string().nullable().describe("Episode name"),
+      })
+      .nullable()
+      .describe("Episode details (null for movies)"),
+  })
+  .meta({ description: "A single watch event" });
+
+export const WatchHistoryListOutput = z
+  .object({
+    items: z.array(WatchHistoryItemSchema).describe("Watches, newest first"),
+    nextCursor: z.string().nullable().describe("Cursor for the next page, or null at the end"),
+  })
+  .meta({ description: "A page of watch history" });
 
 // ─── Integration inputs ────────────────────────────────────────
 
@@ -382,7 +454,7 @@ export const UserPlatformsOutput = z.object({
 });
 
 export const UpdateUserPlatformsInput = z.object({
-  platformIds: z.array(z.string()).describe("List of platform IDs the user subscribes to"),
+  platformIds: z.array(z.string()).max(500).describe("List of platform IDs the user subscribes to"),
 });
 
 export const CastMemberSchema = z
@@ -675,6 +747,7 @@ export const ContinueWatchingOutput = z
           }),
           nextEpisode: z
             .object({
+              id: z.string().describe("Episode ID"),
               seasonNumber: z.number().describe("Season number"),
               episodeNumber: z.number().describe("Episode number"),
               name: z.string().nullable().describe("Episode title"),
@@ -717,7 +790,15 @@ export const LibraryListInput = z
       .optional()
       .describe("Only show titles available on the user's streaming services"),
     sortBy: z
-      .enum(["title", "added_at", "release_date", "popularity", "user_rating", "vote_average"])
+      .enum([
+        "title",
+        "added_at",
+        "release_date",
+        "popularity",
+        "user_rating",
+        "vote_average",
+        "last_watched",
+      ])
       .default("added_at")
       .describe("Sort field"),
     sortDirection: z.enum(["asc", "desc"]).default("desc").describe("Sort direction"),
@@ -778,7 +859,13 @@ export const UpcomingInput = z
       .min(1)
       .max(90)
       .default(90)
-      .describe("How many days into the future to look"),
+      .describe("How many days ahead (upcoming) or back (recent) to look"),
+    direction: z
+      .enum(["upcoming", "recent"])
+      .default("upcoming")
+      .describe(
+        '"upcoming": the next `days` days. "recent": unwatched TV episodes that aired in the past `days` days (excluding today), newest first',
+      ),
     limit: z.number().int().min(1).max(50).default(20).describe("Maximum items per page"),
     cursor: z.string().optional().describe("Pagination cursor"),
     mediaType: z
@@ -1091,6 +1178,11 @@ export const BackupScheduleOutput = z
     frequency: backupFrequency,
     time: z.string().describe("Scheduled time (HH:MM, 24-hour format)"),
     dayOfWeek: z.number().describe("Day of week for weekly backups (0 = Sunday)"),
+    nextRunAt: z
+      .string()
+      .nullable()
+      .describe("When the next scheduled backup will run (ISO 8601), or null when disabled"),
+    timeZone: z.string().describe("IANA time zone the schedule's times are in (the server's)"),
   })
   .meta({ description: "Automated backup schedule configuration" });
 

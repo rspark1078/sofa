@@ -27,11 +27,15 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTimeAgo } from "@/hooks/use-time-ago";
+import { getErrorMessage } from "@/lib/error-messages";
 import { orpc } from "@/lib/orpc/client";
 import type { CronJobName, SystemHealthData } from "@sofa/api/schemas";
 import { i18n } from "@sofa/i18n";
 
 const DIGITS_ONLY_RE = /^\d+$/;
+
+/** Scheduled jobs the API does not allow triggering manually. */
+const NOT_TRIGGERABLE = new Set(["optimizeDb"]);
 
 /** Convert a cron pattern to a short human-readable string */
 function cronToHuman(pattern: string): string {
@@ -316,6 +320,9 @@ function BackgroundJobsCard({
     cacheImages: t`Image cache`,
     scheduledBackup: t`Backup`,
     updateCheck: t`Update check`,
+    refreshCredits: t`Cast & crew`,
+    telemetryReport: t`Telemetry`,
+    optimizeDb: t`Database maintenance`,
   };
 
   const triggerJobMutation = useMutation(
@@ -326,7 +333,7 @@ function BackgroundJobsCard({
         setTimeout(onRefresh, 1500);
       },
       onError: (err) => {
-        toast.error(err instanceof Error ? err.message : t`Failed to trigger job`);
+        toast.error(getErrorMessage(err, t`Failed to trigger job`));
       },
     }),
   );
@@ -483,36 +490,38 @@ function BackgroundJobsCard({
 
                   {/* Trigger button */}
                   <TableCell className="pe-5 text-end">
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t`Trigger job`}
-                            className="size-6"
-                            disabled={isRunning || job.disabled}
-                            onClick={() =>
-                              triggerJobMutation.mutate({
-                                name: job.jobName as CronJobName,
-                              })
-                            }
-                          />
-                        }
-                      >
-                        {isRunning ? (
-                          <Spinner className="size-3" />
-                        ) : (
-                          <IconPlayerPlay
-                            aria-hidden={true}
-                            className="text-muted-foreground/70 size-3"
-                          />
-                        )}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <Trans>Run now</Trans>
-                      </TooltipContent>
-                    </Tooltip>
+                    {!NOT_TRIGGERABLE.has(job.jobName) && (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={t`Trigger job`}
+                              className="size-6"
+                              disabled={isRunning || job.disabled}
+                              onClick={() =>
+                                triggerJobMutation.mutate({
+                                  name: job.jobName as CronJobName,
+                                })
+                              }
+                            />
+                          }
+                        >
+                          {isRunning ? (
+                            <Spinner className="size-3" />
+                          ) : (
+                            <IconPlayerPlay
+                              aria-hidden={true}
+                              className="text-muted-foreground/70 size-3"
+                            />
+                          )}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <Trans>Run now</Trans>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </TableCell>
                 </TableRow>
               );

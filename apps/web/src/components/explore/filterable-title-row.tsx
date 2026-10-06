@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 
 import { TitleCard, TitleCardSkeleton } from "@/components/title-card";
 import { Button } from "@/components/ui/button";
-import { hasReachedHorizontalEnd } from "@/hooks/use-infinite-scroll";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { orpc } from "@/lib/orpc/client";
 
 import { HorizontalTitleScroller } from "./horizontal-title-scroller";
@@ -56,6 +56,7 @@ export function FilterableTitleRow({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
   } = useInfiniteQuery(
     orpc.discover.browse.infiniteOptions({
       input:
@@ -69,7 +70,6 @@ export function FilterableTitleRow({
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-      maxPages: 10,
     }),
   );
 
@@ -93,6 +93,15 @@ export function FilterableTitleRow({
       >,
     [discoverData?.pages],
   );
+
+  const sentinelRef = useInfiniteScroll({
+    fetchNextPage,
+    hasNextPage: selectedGenre !== null && hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    rootRef: scrollRef,
+    rootMargin: "0px 400px 0px 0px",
+  });
 
   const isLoading = selectedGenre !== null && isPending;
   const items = selectedGenre === null ? defaultItems : discoverItems;
@@ -153,21 +162,6 @@ export function FilterableTitleRow({
           key={selectedGenre ?? "default"}
           heading={heading}
           scrollRef={scrollRef}
-          onScrollEnd={() => {
-            const viewport = scrollRef.current;
-
-            if (
-              selectedGenre === null ||
-              !viewport ||
-              !hasNextPage ||
-              isFetchingNextPage ||
-              !hasReachedHorizontalEnd(viewport)
-            ) {
-              return;
-            }
-
-            fetchNextPage();
-          }}
         >
           <div className="flex gap-4 px-6 py-2 sm:px-2">
             {items.map((item: TitleRowItem, i: number) => (
@@ -195,6 +189,7 @@ export function FilterableTitleRow({
                 <div className="border-primary size-5 animate-spin rounded-full border-2 border-t-transparent" />
               </div>
             )}
+            <div ref={sentinelRef} className="w-px shrink-0" aria-hidden />
           </div>
         </HorizontalTitleScroller>
       )}

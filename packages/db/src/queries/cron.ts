@@ -1,15 +1,7 @@
-import { and, eq, gte, inArray, isNotNull, lt, or } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 
 import { db } from "../client";
-import {
-  cronRuns,
-  seasons,
-  titleAvailability,
-  titleCast,
-  titleRecommendations,
-  titles,
-  userTitleStatus,
-} from "../schema";
+import { cronRuns, seasons, titles, userTitleStatus } from "../schema";
 
 export function insertCronRunReturning(jobName: string) {
   return db
@@ -33,6 +25,16 @@ export function updateCronRunError(id: string, durationMs: number, errorMessage:
     .run();
 }
 
+/** Mark runs left "running" by a previous process as errors (called once at startup). */
+export function markInterruptedCronRuns(): number {
+  return db
+    .update(cronRuns)
+    .set({ status: "error", finishedAt: new Date(), errorMessage: "Interrupted by server restart" })
+    .where(eq(cronRuns.status, "running"))
+    .returning({ id: cronRuns.id })
+    .all().length;
+}
+
 export function getLibraryTitleIds(): string[] {
   return db
     .select({ titleId: userTitleStatus.titleId })
@@ -47,7 +49,12 @@ export function getStaleTitles(titleIds: string[], staleDate: Date) {
   return db
     .select({ id: titles.id })
     .from(titles)
-    .where(and(inArray(titles.id, titleIds), lt(titles.lastFetchedAt, staleDate)))
+    .where(
+      and(
+        inArray(titles.id, titleIds),
+        or(isNull(titles.lastFetchedAt), lt(titles.lastFetchedAt, staleDate)),
+      ),
+    )
     .all();
 }
 
@@ -58,37 +65,6 @@ export function getStaleNonLibraryTitles(staleDate: Date, limit: number) {
     .where(and(isNotNull(titles.lastFetchedAt), lt(titles.lastFetchedAt, staleDate)))
     .limit(limit)
     .all();
-}
-
-export function getTitlesWithStaleOffers(titleIds: string[]) {
-  if (titleIds.length === 0) return new Set<string>();
-  return new Set(
-    db
-      .select({ titleId: titleAvailability.titleId })
-      .from(titleAvailability)
-      .where(inArray(titleAvailability.titleId, titleIds))
-      .groupBy(titleAvailability.titleId)
-      .all()
-      .map((r) => r.titleId),
-  );
-}
-
-export function getTitlesWithStaleOffersFetchedBefore(titleIds: string[], staleDate: Date) {
-  if (titleIds.length === 0) return new Set<string>();
-  return new Set(
-    db
-      .select({ titleId: titleAvailability.titleId })
-      .from(titleAvailability)
-      .where(
-        and(
-          inArray(titleAvailability.titleId, titleIds),
-          lt(titleAvailability.lastFetchedAt, staleDate),
-        ),
-      )
-      .groupBy(titleAvailability.titleId)
-      .all()
-      .map((r) => r.titleId),
-  );
 }
 
 export function getReturningTvShows() {
@@ -106,14 +82,19 @@ export function getReturningTvShows() {
     .all();
 }
 
+/**
+ * Titles whose most recent season fetch is older than `staleDate`. Uses the latest
+ * season fetch (not any season) because partial refreshes only touch the newest seasons.
+ */
 export function getTitleIdsWithStaleSeasons(titleIds: string[], staleDate: Date) {
   if (titleIds.length === 0) return new Set<string>();
   return new Set(
     db
       .select({ titleId: seasons.titleId })
       .from(seasons)
-      .where(and(inArray(seasons.titleId, titleIds), lt(seasons.lastFetchedAt, staleDate)))
+      .where(inArray(seasons.titleId, titleIds))
       .groupBy(seasons.titleId)
+      .having(sql`max(${seasons.lastFetchedAt}) < ${sql.param(staleDate, seasons.lastFetchedAt)}`)
       .all()
       .map((r) => r.titleId),
   );
@@ -121,10 +102,6 @@ export function getTitleIdsWithStaleSeasons(titleIds: string[], staleDate: Date)
 
 export function getTitleByIdForCron(titleId: string) {
   return db.select().from(titles).where(eq(titles.id, titleId)).get();
-}
-
-export function getCastEntryForTitle(titleId: string) {
-  return db.select().from(titleCast).where(eq(titleCast.titleId, titleId)).limit(1).get();
 }
 
 export function deleteOldCronRuns(beforeDate: Date): number {
@@ -135,25 +112,35 @@ export function deleteOldCronRuns(beforeDate: Date): number {
     .all().length;
 }
 
-export function getTitlesWithFreshRecommendations(
-  titleIds: string[],
-  sinceDate: Date,
-): Set<string> {
-  if (titleIds.length === 0) return new Set();
+type CheckedAtColumn = "availabilityCheckedAt" | "recommendationsCheckedAt" | "creditsCheckedAt";
 
-  return new Set(
-    db
-      .select({ titleId: titleRecommendations.titleId })
-      .from(titleRecommendations)
-      .where(
-        and(
-          inArray(titleRecommendations.titleId, titleIds),
-          // All recs for a title share the same lastFetchedAt, so any row suffices
-          gte(titleRecommendations.lastFetchedAt, sinceDate),
-        ),
-      )
-      .groupBy(titleRecommendations.titleId)
-      .all()
-      .map((r) => r.titleId),
-  );
+/** Ids (from `titleIds`) whose `column` is null or older than `staleDate`. */
+export function getTitleIdsCheckedBefore(
+  titleIds: string[],
+  column: CheckedAtColumn,
+  staleDate: Date,
+): string[] {
+  if (titleIds.length === 0) return [];
+  const col = titles[column];
+  return db
+    .select({ id: titles.id })
+    .from(titles)
+    .where(and(inArray(titles.id, titleIds), or(isNull(col), lt(col, staleDate))))
+    .all()
+    .map((r) => r.id);
+}
+
+export function getRefreshCandidates(titleIds: string[]) {
+  if (titleIds.length === 0) return [];
+  return db
+    .select({
+      id: titles.id,
+      type: titles.type,
+      status: titles.status,
+      releaseDate: titles.releaseDate,
+      lastFetchedAt: titles.lastFetchedAt,
+    })
+    .from(titles)
+    .where(inArray(titles.id, titleIds))
+    .all();
 }

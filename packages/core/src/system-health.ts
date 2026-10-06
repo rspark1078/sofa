@@ -1,12 +1,14 @@
 import { access, constants, readdir } from "node:fs/promises";
 import path from "node:path";
 
-import { CACHE_DIR, DATA_DIR, DATABASE_URL, TMDB_API_BASE_URL } from "@sofa/config";
+import { CACHE_DIR, DATA_DIR, DATABASE_URL } from "@sofa/config";
 import { getLatestCronRuns, getTableCounts } from "@sofa/db/queries/system-health";
+import { tmdbApiUrl } from "@sofa/tmdb/config";
 
 import { listBackups } from "./backup";
 import { imageCacheEnabled } from "./image-cache";
 import { getSetting } from "./settings";
+import { isTelemetryEnabled } from "./telemetry";
 import { isUpdateCheckEnabled } from "./update-check";
 
 export interface SystemHealthData {
@@ -63,6 +65,9 @@ const JOB_NAMES = [
   "cacheImages",
   "scheduledBackup",
   "updateCheck",
+  "refreshCredits",
+  "telemetryReport",
+  "optimizeDb",
 ];
 
 function getDatabaseHealth(): SystemHealthData["database"] {
@@ -98,7 +103,7 @@ async function getTmdbHealth(): Promise<SystemHealthData["tmdb"]> {
 
   try {
     const start = performance.now();
-    const res = await fetch(`${TMDB_API_BASE_URL}/configuration`, {
+    const res = await fetch(tmdbApiUrl("/configuration"), {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -167,7 +172,8 @@ function getJobsHealth(): SystemHealthData["jobs"] {
 
     const disabled =
       (jobName === "scheduledBackup" && getSetting("scheduledBackups") !== "true") ||
-      (jobName === "updateCheck" && !isUpdateCheckEnabled());
+      (jobName === "updateCheck" && !isUpdateCheckEnabled()) ||
+      (jobName === "telemetryReport" && !isTelemetryEnabled());
 
     return {
       jobName,

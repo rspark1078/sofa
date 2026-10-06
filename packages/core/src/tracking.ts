@@ -4,9 +4,12 @@ import {
   batchInsertEpisodeWatchesTransaction,
   batchInsertMissingEpisodeWatches,
   countDistinctEpisodeWatches,
+  countMovieWatches,
   deleteAllEpisodeWatchesForTitle,
   deleteEpisodeWatch,
+  deleteEpisodeWatchById,
   deleteEpisodeWatches,
+  deleteMovieWatchById,
   deleteMovieWatches,
   deleteRating,
   deleteTitleStatus,
@@ -14,7 +17,9 @@ import {
   getEpisodeProgressByTitleIds as getEpisodeProgressByTitleIdsQuery,
   getEpisodeTitleId,
   getEpisodeTitleIds,
+  getEpisodeWatchHistory,
   getExistingEpisodeWatchIds,
+  getMovieWatchHistory,
   getSeasonById,
   getSeasonEpisodeIds,
   getTitleStatus,
@@ -122,12 +127,8 @@ export function markAllEpisodesWatched(
   setTitleStatus(userId, titleId, "in_progress", source);
 }
 
-export function unwatchEpisode(userId: string, episodeId: string) {
-  deleteEpisodeWatch(userId, episodeId);
-
-  const titleId = getEpisodeTitleId(episodeId);
-  if (!titleId) return;
-
+/** After removing episode watches: an in-progress show with none left goes back to watchlist. */
+function downgradeShowIfNoEpisodeWatches(userId: string, titleId: string) {
   const existing = getTitleStatus(userId, titleId);
   if (!existing || existing.status !== "in_progress") return;
 
@@ -139,6 +140,23 @@ export function unwatchEpisode(userId: string, episodeId: string) {
   }
 }
 
+/** After removing all movie watches: a tracked movie falls back to watchlist. */
+function resetMovieToWatchlist(userId: string, titleId: string) {
+  const existing = getTitleStatus(userId, titleId);
+  if (existing && existing.status !== "watchlist") {
+    setTitleStatus(userId, titleId, "watchlist");
+  }
+}
+
+export function unwatchEpisode(userId: string, episodeId: string) {
+  deleteEpisodeWatch(userId, episodeId);
+
+  const titleId = getEpisodeTitleId(episodeId);
+  if (!titleId) return;
+
+  downgradeShowIfNoEpisodeWatches(userId, titleId);
+}
+
 export function unwatchSeason(userId: string, seasonId: string) {
   const epIds = getSeasonEpisodeIds(seasonId);
   if (epIds.length > 0) {
@@ -148,24 +166,49 @@ export function unwatchSeason(userId: string, seasonId: string) {
   const season = getSeasonById(seasonId);
   if (!season) return;
 
-  const existing = getTitleStatus(userId, season.titleId);
-  if (!existing || existing.status !== "in_progress") return;
-
-  // If no episodes remain watched, downgrade to watchlist
-  const allEpIds = getAllEpisodeIdsForTitle(season.titleId);
-  const watchCount = countDistinctEpisodeWatches(userId, allEpIds);
-  if (watchCount === 0) {
-    setTitleStatus(userId, season.titleId, "watchlist");
-  }
+  downgradeShowIfNoEpisodeWatches(userId, season.titleId);
 }
 
 export function unwatchMovie(userId: string, titleId: string) {
   deleteMovieWatches(userId, titleId);
+  resetMovieToWatchlist(userId, titleId);
+}
 
-  const existing = getTitleStatus(userId, titleId);
-  if (existing && existing.status !== "watchlist") {
-    setTitleStatus(userId, titleId, "watchlist");
+/** Remove a single watch owned by the user. Returns false if it doesn't exist or isn't theirs. */
+export function deleteWatch(userId: string, kind: "movie" | "episode", watchId: string): boolean {
+  if (kind === "movie") {
+    const deleted = deleteMovieWatchById(userId, watchId);
+    if (!deleted) return false;
+    if (countMovieWatches(userId, deleted.titleId) === 0) {
+      resetMovieToWatchlist(userId, deleted.titleId);
+    }
+    return true;
   }
+
+  const deleted = deleteEpisodeWatchById(userId, watchId);
+  if (!deleted) return false;
+  const titleId = getEpisodeTitleId(deleted.episodeId);
+  if (titleId) downgradeShowIfNoEpisodeWatches(userId, titleId);
+  return true;
+}
+
+/** Log a manual watch at a given time. `id` is a movie title id or an episode id. */
+export function logWatchAt(
+  userId: string,
+  kind: "movie" | "episode",
+  id: string,
+  watchedAt: Date,
+): "ok" | "not_found" {
+  if (kind === "movie") {
+    const title = getTitleById(id);
+    if (!title || title.type !== "movie") return "not_found";
+    logMovieWatch(userId, id, "manual", watchedAt);
+    return "ok";
+  }
+
+  if (!getEpisodeTitleId(id)) return "not_found";
+  logEpisodeWatch(userId, id, "manual", watchedAt);
+  return "ok";
 }
 
 export function unwatchSeries(userId: string, titleId: string) {
@@ -288,4 +331,134 @@ export function quickAddTitle(
 
 export function watchSeason(userId: string, seasonId: string): void {
   logEpisodeWatchBatch(userId, getSeasonEpisodeIds(seasonId));
+}
+
+// ─── Watch history timeline ─────────────────────────────────────────
+
+type WatchSource = "manual" | "import" | "plex" | "jellyfin" | "emby";
+
+interface WatchHistoryCursorKey {
+  /** watchedAt in epoch ms */
+  t: number;
+  /** watch row id */
+  i: string;
+}
+
+function encodeWatchHistoryCursor(key: WatchHistoryCursorKey): string {
+  return Buffer.from(JSON.stringify(key), "utf8").toString("base64url");
+}
+
+function decodeWatchHistoryCursor(cursor: string): WatchHistoryCursorKey | null {
+  try {
+    const parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+    if (
+      typeof parsed?.t !== "number" ||
+      !Number.isFinite(parsed.t) ||
+      typeof parsed?.i !== "string"
+    ) {
+      return null;
+    }
+    return { t: parsed.t, i: parsed.i };
+  } catch {
+    return null;
+  }
+}
+
+export interface WatchHistoryEntry {
+  watchId: string;
+  kind: "movie" | "episode";
+  watchedAt: Date;
+  source: WatchSource;
+  title: {
+    id: string;
+    title: string;
+    type: "movie" | "tv";
+    posterPath: string | null;
+    posterThumbHash: string | null;
+  };
+  episode: {
+    id: string;
+    seasonNumber: number;
+    episodeNumber: number;
+    name: string | null;
+  } | null;
+}
+
+/**
+ * One page of the user's watch history (movies + episodes merged), newest first.
+ * Keyset-paginated on (watchedAt desc, id desc). Image paths are raw DB paths.
+ */
+export function listWatchHistory(
+  userId: string,
+  input: { limit: number; cursor?: string; type?: "movie" | "tv"; source?: WatchSource },
+): { items: WatchHistoryEntry[]; nextCursor: string | null } {
+  const { limit, type, source } = input;
+  const key = input.cursor ? decodeWatchHistoryCursor(input.cursor) : null;
+  const opts = {
+    limit: limit + 1,
+    source,
+    before: key ? { watchedAt: new Date(key.t), id: key.i } : undefined,
+  };
+
+  const entries: WatchHistoryEntry[] = [];
+
+  if (type !== "tv") {
+    for (const r of getMovieWatchHistory(userId, opts)) {
+      entries.push({
+        watchId: r.watchId,
+        kind: "movie",
+        watchedAt: r.watchedAt,
+        source: r.source,
+        title: {
+          id: r.titleId,
+          title: r.title,
+          type: r.type,
+          posterPath: r.posterPath,
+          posterThumbHash: r.posterThumbHash,
+        },
+        episode: null,
+      });
+    }
+  }
+
+  if (type !== "movie") {
+    for (const r of getEpisodeWatchHistory(userId, opts)) {
+      entries.push({
+        watchId: r.watchId,
+        kind: "episode",
+        watchedAt: r.watchedAt,
+        source: r.source,
+        title: {
+          id: r.titleId,
+          title: r.title,
+          type: r.type,
+          posterPath: r.posterPath,
+          posterThumbHash: r.posterThumbHash,
+        },
+        episode: {
+          id: r.episodeId,
+          seasonNumber: r.seasonNumber,
+          episodeNumber: r.episodeNumber,
+          name: r.episodeName,
+        },
+      });
+    }
+  }
+
+  entries.sort(
+    (a, b) =>
+      b.watchedAt.getTime() - a.watchedAt.getTime() ||
+      (a.watchId < b.watchId ? 1 : a.watchId > b.watchId ? -1 : 0),
+  );
+
+  const hasMore = entries.length > limit;
+  const items = entries.slice(0, limit);
+  const last = items[items.length - 1];
+  return {
+    items,
+    nextCursor:
+      hasMore && last
+        ? encodeWatchHistoryCursor({ t: last.watchedAt.getTime(), i: last.watchId })
+        : null,
+  };
 }

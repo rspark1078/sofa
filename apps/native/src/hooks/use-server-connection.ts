@@ -1,22 +1,20 @@
 import { msg } from "@lingui/core/macro";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { clearStorageScope, hasScopedStorage, setStorageScope } from "@/lib/mmkv";
 import { queryClient } from "@/lib/query-client";
 import {
   authClient,
-  clearCachedSessionSeeded,
-  consumeServerChangeRequest,
   ensureInstanceId,
   getCurrentInstanceId,
-  hasStoredServerUrl,
   onServerReachabilityChange,
   onServerUrlChange,
   rebuildAuthClient,
   startReachabilityMonitor,
-  wasCachedSessionSeeded,
+  useHasServerUrl,
 } from "@/lib/server";
+import { consumeSessionEndReason } from "@/lib/session-end";
 import { toast } from "@/lib/toast";
 import { i18n } from "@sofa/i18n";
 
@@ -42,8 +40,8 @@ export function useServerConnection() {
     [],
   );
 
-  const { data: session, isPending, isRefetching } = authClient.useSession();
-  const hasServerUrl = !!process.env.EXPO_PUBLIC_SERVER_URL || hasStoredServerUrl();
+  const { data: session, isPending } = authClient.useSession();
+  const hasServerUrl = useHasServerUrl();
 
   // --- Instance ID resolution ---
   const [instanceId, setInstanceId] = useState(getCurrentInstanceId);
@@ -86,49 +84,38 @@ export function useServerConnection() {
       onServerReachabilityChange((reachable) => {
         if (reachable) {
           authClient.$store.atoms.session.get().refetch?.();
+          void queryClient.refetchQueries({
+            type: "active",
+            predicate: (q) => q.state.status === "error",
+          });
         }
       }),
     [],
   );
 
-  // Track whether the session was seeded from cache and hasn't yet been
-  // confirmed by the server. Once confirmed, flip to false so explicit
-  // sign-outs don't show a misleading "session expired" toast.
-  const [hadOptimisticSession, setHadOptimisticSession] = useState(wasCachedSessionSeeded);
-  const [prevSession, setPrevSession] = useState(session);
-
-  if (hadOptimisticSession && session && !isRefetching) {
-    setHadOptimisticSession(false);
-  }
-
-  // Detect session loss during render so the effect doesn't need to call
-  // setPrevSession (which triggers the set-state-in-effect lint rule).
-  let sessionLost = false;
-  if (prevSession !== session) {
-    if (prevSession && !session) {
-      sessionLost = true;
-    }
-    setPrevSession(session);
-  }
-
   const { replace } = useRouter();
+  const prevSessionRef = useRef(session);
 
   // Navigate to auth when session is lost. Stack.Protected handles screen
   // availability, but enableFreeze can prevent the navigator from
-  // transitioning on its own.
+  // transitioning on its own. The previous-session comparison lives in the
+  // effect (via a ref) because a render-phase setState discards that render's
+  // locals, so a render-local "sessionLost" flag would never be committed.
   useEffect(() => {
-    if (sessionLost) {
-      const changingServer = consumeServerChangeRequest();
-      replace(changingServer ? "/(auth)/server-url" : "/(auth)/login");
+    const hadSession = prevSessionRef.current != null;
+    prevSessionRef.current = session;
+    if (session) return;
+    if (!hadSession) return;
 
-      if (hadOptimisticSession) {
-        toast.info(i18n._(msg`Session expired`), {
-          description: i18n._(msg`Please sign in again.`),
-        });
-        clearCachedSessionSeeded();
-      }
+    const reason = consumeSessionEndReason();
+    replace(reason === "server-change" ? "/(auth)/server-url" : "/(auth)/login");
+
+    if (reason === null) {
+      toast.info(i18n._(msg`Session expired`), {
+        description: i18n._(msg`Please sign in again.`),
+      });
     }
-  }, [sessionLost, replace, hadOptimisticSession]);
+  }, [session, replace]);
 
   return { session, isPending, hasServerUrl, instanceId };
 }

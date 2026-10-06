@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
+import { useResetUserState } from "@/hooks/use-reset-user-state";
 import { commandPaletteOpenAtom } from "@/lib/atoms/command-palette";
 import { signOut } from "@/lib/auth/client";
 
@@ -115,6 +116,7 @@ export function NavBar({
 }) {
   const { t } = useLingui();
   const navigate = useNavigate();
+  const resetUserState = useResetUserState();
   const { pathname } = useLocation();
   const setCommandPaletteOpen = useSetAtom(commandPaletteOpenAtom);
 
@@ -123,6 +125,7 @@ export function NavBar({
     { href: "/library", label: t`Library` },
     { href: "/explore", label: t`Explore` },
     { href: "/upcoming", label: t`Upcoming` },
+    { href: "/history", label: t`History` },
   ] as const;
 
   const initial = userName?.charAt(0).toUpperCase() ?? "?";
@@ -249,7 +252,8 @@ export function NavBar({
                 variant="destructive"
                 onSelect={async () => {
                   await signOut();
-                  void navigate({ to: "/" });
+                  await navigate({ to: "/" });
+                  resetUserState();
                 }}
                 className="cursor-pointer text-[13px]"
               >

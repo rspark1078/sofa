@@ -63,6 +63,7 @@ export const continueWatching = os.library.continueWatching.use(authed).handler(
     },
     nextEpisode: item.nextEpisode
       ? {
+          id: item.nextEpisode.id,
           seasonNumber: item.nextEpisode.seasonNumber,
           episodeNumber: item.nextEpisode.episodeNumber,
           name: item.nextEpisode.name,
@@ -83,6 +84,7 @@ export const upcoming = os.library.upcoming.use(authed).handler(({ input, contex
     cursor: input.cursor,
     mediaType: input.mediaType,
     statusFilter: input.statusFilter,
+    direction: input.direction,
   });
   return {
     items: result.items.map((item) => ({

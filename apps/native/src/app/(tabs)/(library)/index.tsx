@@ -17,10 +17,12 @@ import { Pressable, RefreshControl, ScrollView, View, useWindowDimensions } from
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { LoadMoreFooter } from "@/components/ui/load-more-footer";
 import { PosterCard } from "@/components/ui/poster-card";
 import { SelectModal } from "@/components/ui/select-modal";
 import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { useTitleActions } from "@/hooks/use-title-actions";
 import {
   libraryActiveFilterCountAtom,
@@ -76,6 +78,7 @@ function DropdownChip({
   isActive: boolean;
   onPress: () => void;
 }) {
+  const { t } = useLingui();
   return (
     <Pressable
       onPress={() => {
@@ -83,6 +86,9 @@ function DropdownChip({
         onPress();
       }}
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: isActive }}
+      accessibilityHint={t`Opens options`}
       className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${isActive ? "bg-primary/15 border-primary/40 border" : "bg-secondary"}`}
     >
       <Text
@@ -90,7 +96,11 @@ function DropdownChip({
       >
         {label}
       </Text>
-      <Text className={`text-[10px] ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+      <Text
+        accessible={false}
+        importantForAccessibility="no"
+        className={`text-[10px] ${isActive ? "text-primary" : "text-muted-foreground"}`}
+      >
         {"\u25BE"}
       </Text>
     </Pressable>
@@ -241,7 +251,6 @@ export default function LibraryScreen() {
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-      maxPages: 10,
     }),
     enabled: true,
   });
@@ -258,10 +267,11 @@ export default function LibraryScreen() {
     [libraryQuery.data?.pages],
   );
 
-  const isRefreshing = libraryQuery.isRefetching && !libraryQuery.isFetchingNextPage;
-  const onRefresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: orpc.library.key() });
-  }, []);
+  const refreshLibrary = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: orpc.library.key() }),
+    [],
+  );
+  const { refreshing, onRefresh } = usePullToRefresh(refreshLibrary);
 
   type LibraryItem = (typeof allItems)[number];
 
@@ -378,7 +388,7 @@ export default function LibraryScreen() {
         <View className="flex-1 items-center justify-center">
           <Spinner colorClassName="accent-primary" />
         </View>
-      ) : libraryQuery.isError ? (
+      ) : libraryQuery.isError && allItems.length === 0 ? (
         <EmptyState
           icon={IconAlertTriangle}
           title={t`Something went wrong`}
@@ -417,19 +427,23 @@ export default function LibraryScreen() {
             paddingHorizontal: EDGE_PADDING - GAP / 2,
             paddingBottom: 16,
           }}
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           onEndReached={() => {
-            if (libraryQuery.hasNextPage && !libraryQuery.isFetchingNextPage) {
+            if (
+              libraryQuery.hasNextPage &&
+              !libraryQuery.isFetchingNextPage &&
+              !libraryQuery.isFetchNextPageError
+            ) {
               libraryQuery.fetchNextPage();
             }
           }}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
-            libraryQuery.isFetchingNextPage ? (
-              <View className="items-center py-4">
-                <Spinner />
-              </View>
-            ) : null
+            <LoadMoreFooter
+              isFetchingNextPage={libraryQuery.isFetchingNextPage}
+              isFetchNextPageError={libraryQuery.isFetchNextPageError}
+              onRetry={() => libraryQuery.fetchNextPage()}
+            />
           }
         />
       )}

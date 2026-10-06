@@ -1,4 +1,6 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
+
+import { localDateString } from "@sofa/config";
 
 import { db } from "../client";
 import {
@@ -93,7 +95,23 @@ export function batchInsertEpisodeWatchesTransaction(
   db.transaction((tx) => {
     const now = watchedAt ?? new Date();
 
-    for (const episodeId of episodeIds) {
+    // Bulk marking records state, not rewatches (single-episode logEpisodeWatch is the rewatch path).
+    const alreadyWatched = new Set(
+      tx
+        .select({ episodeId: userEpisodeWatches.episodeId })
+        .from(userEpisodeWatches)
+        .where(
+          and(
+            eq(userEpisodeWatches.userId, userId),
+            inArray(userEpisodeWatches.episodeId, episodeIds),
+          ),
+        )
+        .all()
+        .map((w) => w.episodeId),
+    );
+
+    for (const episodeId of new Set(episodeIds)) {
+      if (alreadyWatched.has(episodeId)) continue;
       tx.insert(userEpisodeWatches).values({ userId, episodeId, watchedAt: now, source }).run();
     }
 
@@ -226,7 +244,7 @@ export function getUserStatusesByTitleIds(userId: string, titleIds: string[]) {
 
 export function getEpisodeProgressByTitleIds(userId: string, titleIds: string[]) {
   if (titleIds.length === 0) return [];
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateString();
   return db
     .select({
       titleId: titles.id,
@@ -252,20 +270,17 @@ export function getEpisodeProgressByTitleIds(userId: string, titleIds: string[])
 }
 
 export function getUserTitleInfo(userId: string, titleId: string) {
-  const info = db
-    .select({
-      status: userTitleStatus.status,
-      ratingStars: userRatings.ratingStars,
-    })
+  const statusRow = db
+    .select({ status: userTitleStatus.status })
     .from(userTitleStatus)
-    .leftJoin(
-      userRatings,
-      and(
-        eq(userRatings.userId, userTitleStatus.userId),
-        eq(userRatings.titleId, userTitleStatus.titleId),
-      ),
-    )
     .where(and(eq(userTitleStatus.userId, userId), eq(userTitleStatus.titleId, titleId)))
+    .get();
+
+  // Ratings exist independently of library membership (rateTitleStars doesn't add a status row).
+  const ratingRow = db
+    .select({ ratingStars: userRatings.ratingStars })
+    .from(userRatings)
+    .where(and(eq(userRatings.userId, userId), eq(userRatings.titleId, titleId)))
     .get();
 
   const watchedEpisodeIds = db
@@ -278,8 +293,8 @@ export function getUserTitleInfo(userId: string, titleId: string) {
     .map((w) => w.episodeId);
 
   return {
-    status: info?.status ?? null,
-    rating: info?.ratingStars ?? null,
+    status: statusRow?.status ?? null,
+    rating: ratingRow?.ratingStars ?? null,
     episodeWatches: watchedEpisodeIds,
   };
 }
@@ -322,6 +337,36 @@ export function deleteMovieWatches(userId: string, titleId: string): void {
     .run();
 }
 
+export function deleteMovieWatchById(userId: string, watchId: string): { titleId: string } | null {
+  const row = db
+    .delete(userMovieWatches)
+    .where(and(eq(userMovieWatches.id, watchId), eq(userMovieWatches.userId, userId)))
+    .returning({ titleId: userMovieWatches.titleId })
+    .get();
+  return row ?? null;
+}
+
+export function deleteEpisodeWatchById(
+  userId: string,
+  watchId: string,
+): { episodeId: string } | null {
+  const row = db
+    .delete(userEpisodeWatches)
+    .where(and(eq(userEpisodeWatches.id, watchId), eq(userEpisodeWatches.userId, userId)))
+    .returning({ episodeId: userEpisodeWatches.episodeId })
+    .get();
+  return row ?? null;
+}
+
+export function countMovieWatches(userId: string, titleId: string): number {
+  const row = db
+    .select({ count: sql<number>`count(*)` })
+    .from(userMovieWatches)
+    .where(and(eq(userMovieWatches.userId, userId), eq(userMovieWatches.titleId, titleId)))
+    .get();
+  return row?.count ?? 0;
+}
+
 export function deleteAllEpisodeWatchesForTitle(userId: string, titleId: string): void {
   const titleEpisodeIds = db
     .select({ id: episodes.id })
@@ -333,4 +378,86 @@ export function deleteAllEpisodeWatchesForTitle(userId: string, titleId: string)
 
   if (titleEpisodeIds.length === 0) return;
   deleteEpisodeWatches(userId, titleEpisodeIds);
+}
+
+// ─── Watch history ──────────────────────────────────────────────────
+
+type WatchSource = "manual" | "import" | "plex" | "jellyfin" | "emby";
+
+export interface WatchHistoryQueryOptions {
+  limit: number;
+  source?: WatchSource;
+  before?: { watchedAt: Date; id: string };
+}
+
+export function getMovieWatchHistory(userId: string, opts: WatchHistoryQueryOptions) {
+  const conditions = [eq(userMovieWatches.userId, userId)];
+  if (opts.source) conditions.push(eq(userMovieWatches.source, opts.source));
+  if (opts.before) {
+    conditions.push(
+      or(
+        lt(userMovieWatches.watchedAt, opts.before.watchedAt),
+        and(
+          eq(userMovieWatches.watchedAt, opts.before.watchedAt),
+          lt(userMovieWatches.id, opts.before.id),
+        ),
+      )!,
+    );
+  }
+  return db
+    .select({
+      watchId: userMovieWatches.id,
+      watchedAt: userMovieWatches.watchedAt,
+      source: userMovieWatches.source,
+      titleId: titles.id,
+      title: titles.title,
+      type: titles.type,
+      posterPath: titles.posterPath,
+      posterThumbHash: titles.posterThumbHash,
+    })
+    .from(userMovieWatches)
+    .innerJoin(titles, eq(userMovieWatches.titleId, titles.id))
+    .where(and(...conditions))
+    .orderBy(desc(userMovieWatches.watchedAt), desc(userMovieWatches.id))
+    .limit(opts.limit)
+    .all();
+}
+
+export function getEpisodeWatchHistory(userId: string, opts: WatchHistoryQueryOptions) {
+  const conditions = [eq(userEpisodeWatches.userId, userId)];
+  if (opts.source) conditions.push(eq(userEpisodeWatches.source, opts.source));
+  if (opts.before) {
+    conditions.push(
+      or(
+        lt(userEpisodeWatches.watchedAt, opts.before.watchedAt),
+        and(
+          eq(userEpisodeWatches.watchedAt, opts.before.watchedAt),
+          lt(userEpisodeWatches.id, opts.before.id),
+        ),
+      )!,
+    );
+  }
+  return db
+    .select({
+      watchId: userEpisodeWatches.id,
+      watchedAt: userEpisodeWatches.watchedAt,
+      source: userEpisodeWatches.source,
+      titleId: titles.id,
+      title: titles.title,
+      type: titles.type,
+      posterPath: titles.posterPath,
+      posterThumbHash: titles.posterThumbHash,
+      episodeId: episodes.id,
+      seasonNumber: seasons.seasonNumber,
+      episodeNumber: episodes.episodeNumber,
+      episodeName: episodes.name,
+    })
+    .from(userEpisodeWatches)
+    .innerJoin(episodes, eq(userEpisodeWatches.episodeId, episodes.id))
+    .innerJoin(seasons, eq(episodes.seasonId, seasons.id))
+    .innerJoin(titles, eq(seasons.titleId, titles.id))
+    .where(and(...conditions))
+    .orderBy(desc(userEpisodeWatches.watchedAt), desc(userEpisodeWatches.id))
+    .limit(opts.limit)
+    .all();
 }

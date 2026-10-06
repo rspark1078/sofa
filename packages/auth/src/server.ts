@@ -1,8 +1,9 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { expo } from "@better-auth/expo";
 import { APIError, createAuthMiddleware } from "better-auth/api";
+import { setCookieCache } from "better-auth/cookies";
 import { type BetterAuthOptions, betterAuth } from "better-auth/minimal";
-import { admin, genericOAuth } from "better-auth/plugins";
+import { admin, genericOAuth, type UserWithRole } from "better-auth/plugins";
 
 import { claimInitialAdmin, isRegistrationOpen } from "@sofa/core/settings";
 import { db } from "@sofa/db/client";
@@ -10,6 +11,8 @@ import * as schema from "@sofa/db/schema";
 import { createLogger } from "@sofa/logger";
 
 import {
+  CLIENT_IP_HEADER,
+  getOidcDiscoveryURL,
   getOidcRedirectURI,
   isOidcAutoRegisterEnabled,
   isOidcConfigured,
@@ -66,7 +69,7 @@ export const auth = betterAuth({
                 providerId: "oidc",
                 clientId: process.env.OIDC_CLIENT_ID ?? "",
                 clientSecret: process.env.OIDC_CLIENT_SECRET ?? "",
-                discoveryUrl: `${process.env.OIDC_ISSUER_URL}/.well-known/openid-configuration`,
+                discoveryUrl: getOidcDiscoveryURL() ?? "",
                 redirectURI: getOidcRedirectURI(),
                 scopes: ["openid", "email", "profile"],
                 pkce: true,
@@ -91,6 +94,12 @@ export const auth = betterAuth({
     database: {
       generateId: () => Bun.randomUUIDv7(),
     },
+    // apps/server resolves the client IP (TCP peer + TRUSTED_PROXIES hops) and passes it in this
+    // header; see apps/server/src/client-ip.ts. Don't set `trustedProxies` here: Better Auth would
+    // then discard resolved LAN addresses, because they fall inside the trusted ranges.
+    ipAddress: {
+      ipAddressHeaders: [CLIENT_IP_HEADER],
+    },
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
@@ -102,8 +111,29 @@ export const auth = betterAuth({
         if (!open) {
           throw new APIError("FORBIDDEN", {
             message: "Registration is currently closed",
+            code: "REGISTRATION_CLOSED",
           });
         }
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      // The first user is promoted to admin by a create.after database hook, which
+      // Better Auth runs after the sign-up transaction commits — i.e. after the
+      // session cookie (including its cached user) was already written with
+      // role "user". Re-read the user and refresh the cache cookie if it changed.
+      const newSession = ctx.context.newSession;
+      if (!newSession) return;
+      try {
+        const fresh = (await ctx.context.internalAdapter.findUserById(
+          newSession.user.id,
+        )) as UserWithRole | null;
+        const cachedRole = (newSession.user as UserWithRole).role;
+        if (!fresh || fresh.role === cachedRole) return;
+        const user = { ...newSession.user, role: fresh.role };
+        await setCookieCache(ctx, { session: newSession.session, user }, false);
+      } catch (err) {
+        // Never turn a successful sign-in into an error over a cache refresh.
+        authLog.warn("Failed to refresh session cookie cache:", err);
       }
     }),
   },

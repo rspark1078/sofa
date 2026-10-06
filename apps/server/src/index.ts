@@ -1,17 +1,20 @@
 import { type Context, Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { serveStatic } from "hono/bun";
 import { cors } from "hono/cors";
 
 import { CACHE_DIR } from "@sofa/config";
 import { ensureBackupDir } from "@sofa/core/backup";
+import { recoverInterruptedCronRuns } from "@sofa/core/cron";
 import { ensureImageDirs, imageCacheEnabled } from "@sofa/core/image-cache";
 import { registerJobScheduleProvider } from "@sofa/core/system-health";
 import { closeDatabase, isDatabaseAccessBlocked } from "@sofa/db/client";
 import { runMigrations } from "@sofa/db/migrate";
-import { recoverStaleImportJobs } from "@sofa/db/queries/imports";
+import { clearFinishedImportPayloads, recoverStaleImportJobs } from "@sofa/db/queries/imports";
 import { seedPlatforms } from "@sofa/db/seed-platforms";
 import { createLogger } from "@sofa/logger";
 
+import { apiBodyLimit, UPLOAD_BODY_LIMIT } from "./body-limits";
 import { getJobSchedules, startJobs, stopJobs } from "./cron";
 import { handler as rpcHandler } from "./orpc/handler";
 import { openApiHandler } from "./orpc/openapi-handler";
@@ -46,6 +49,18 @@ if (recoveredJobs > 0) {
   log.warn(`Recovered ${recoveredJobs} stale import job(s) from previous shutdown`);
 }
 
+// Background job runs left "running" by a previous crash would otherwise look active forever
+const interruptedRuns = recoverInterruptedCronRuns();
+if (interruptedRuns > 0) {
+  log.warn(`Marked ${interruptedRuns} interrupted background job run(s) as failed`);
+}
+
+// Payloads of finished imports are never read again; reclaim the space (and keep backups small).
+const clearedPayloads = clearFinishedImportPayloads();
+if (clearedPayloads > 0) {
+  log.info(`Cleared stored payloads of ${clearedPayloads} finished import job(s)`);
+}
+
 // Wire up job schedule provider for system health
 registerJobScheduleProvider(getJobSchedules);
 
@@ -72,6 +87,12 @@ app.use("*", async (c, next) => {
   }
   await next();
 });
+
+// Request body limits (see body-limits.ts); Better Auth and webhook bodies are small.
+app.use("/rpc/*", apiBodyLimit);
+app.use("/api/v1/*", apiBodyLimit);
+app.use("/api/auth/*", bodyLimit({ maxSize: 1024 * 1024 }));
+app.use("/api/webhooks/*", bodyLimit({ maxSize: 10 * 1024 * 1024 }));
 
 // Non-RPC routes
 app.route("/api/health", healthRoutes);
@@ -160,6 +181,7 @@ const port = Number(process.env.PORT || process.env.API_PORT || 3001);
 const server = Bun.serve({
   port,
   fetch: app.fetch,
+  maxRequestBodySize: UPLOAD_BODY_LIMIT,
 });
 
 log.info(

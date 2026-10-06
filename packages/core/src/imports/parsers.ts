@@ -1,6 +1,57 @@
+import type { z } from "zod";
+
+import {
+  ImportEpisodeSchema,
+  ImportMovieSchema,
+  ImportRatingSchema,
+  ImportWatchlistItemSchema,
+} from "@sofa/api/schemas";
 import { createLogger } from "@sofa/logger";
 
 const log = createLogger("imports");
+
+// Real exports are a few MB; these bound memory if an archive is a decompression bomb.
+// adm-zip caps each entry's inflate output at its declared size, so checking declared
+// sizes before getData() is sufficient.
+export const ZIP_LIMITS = {
+  maxEntries: 2_000,
+  maxEntryBytes: 128 * 1024 * 1024,
+  maxTotalBytes: 256 * 1024 * 1024,
+};
+
+export class ZipTooLargeError extends Error {}
+
+interface ZipEntryLike {
+  entryName: string;
+  isDirectory: boolean;
+  header: { size: number };
+}
+
+/**
+ * Throws ZipTooLargeError if the archive has too many entries, or if the entries
+ * that `willRead` selects declare more uncompressed bytes than allowed.
+ */
+export function assertZipWithinLimits(
+  entries: readonly ZipEntryLike[],
+  willRead: (entry: ZipEntryLike) => boolean,
+  limits: typeof ZIP_LIMITS = ZIP_LIMITS,
+): void {
+  if (entries.length > limits.maxEntries) {
+    throw new ZipTooLargeError(`ZIP has ${entries.length} entries (max ${limits.maxEntries})`);
+  }
+  let total = 0;
+  for (const entry of entries) {
+    if (entry.isDirectory || !willRead(entry)) continue;
+    const size = entry.header.size;
+    if (size > limits.maxEntryBytes) {
+      throw new ZipTooLargeError(`ZIP entry ${entry.entryName} is too large`);
+    }
+    total += size;
+    if (total > limits.maxTotalBytes) {
+      throw new ZipTooLargeError("ZIP contents are too large");
+    }
+  }
+}
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -87,6 +138,76 @@ export function countUnresolved(data: NormalizedImport): number {
     if (!r.tmdbId && !r.imdbId && !r.tvdbId) count++;
   }
   return count;
+}
+
+/** Mirrors the `.max()` on each list in NormalizedImportSchema. */
+const MAX_ITEMS_PER_LIST = 50_000;
+
+/** Turn `null` / `NaN` field values into `undefined` (the API schemas allow optional, not null). */
+function withoutNulls<T extends object>(item: T): T {
+  const clean: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(item)) {
+    if (value === null || (typeof value === "number" && Number.isNaN(value))) continue;
+    clean[key] = value;
+  }
+  return clean as T;
+}
+
+/**
+ * Make parser output conform to NormalizedImportSchema. Real exports contain
+ * nulls (Trakt sends `"imdb": null`, `"year": null`) and occasional invalid
+ * entries (e.g. episode number 0); one bad item must not fail the whole parse,
+ * so invalid items are dropped and summarized in a warning.
+ */
+export function finalizeParseResult(
+  data: NormalizedImport,
+  warnings: string[],
+  unsupported = 0,
+): ParseResult {
+  let dropped = 0;
+
+  function clean<T extends object>(list: string, items: T[], schema: z.ZodType<T>): T[] {
+    const kept: T[] = [];
+    const examples: string[] = [];
+    let invalid = 0;
+    for (const raw of items) {
+      const result = schema.safeParse(withoutNulls(raw));
+      if (result.success) {
+        kept.push(result.data);
+      } else {
+        invalid++;
+        if (examples.length < 3) {
+          const issue = result.error.issues[0];
+          examples.push(`${issue?.path.join(".") || "item"}: ${issue?.message ?? "invalid"}`);
+        }
+      }
+    }
+    if (invalid > 0) {
+      dropped += invalid;
+      warnings.push(`Skipped ${invalid} invalid ${list} (${examples.join("; ")})`);
+    }
+    if (kept.length > MAX_ITEMS_PER_LIST) {
+      warnings.push(
+        `Only the first ${MAX_ITEMS_PER_LIST.toLocaleString("en-US")} ${list} were included (${kept.length.toLocaleString("en-US")} found)`,
+      );
+      return kept.slice(0, MAX_ITEMS_PER_LIST);
+    }
+    return kept;
+  }
+
+  const normalized: NormalizedImport = {
+    source: data.source,
+    movies: clean("movies", data.movies, ImportMovieSchema),
+    episodes: clean("episodes", data.episodes, ImportEpisodeSchema),
+    watchlist: clean("watchlist items", data.watchlist, ImportWatchlistItemSchema),
+    ratings: clean("ratings", data.ratings, ImportRatingSchema),
+  };
+
+  return {
+    data: normalized,
+    warnings,
+    diagnostics: { unresolved: countUnresolved(normalized), unsupported: unsupported + dropped },
+  };
 }
 
 // ─── Rating Conversion ──────────────────────────────────────────────
@@ -182,13 +303,13 @@ interface TraktHistoryEpisode {
 }
 
 interface TraktWatchlistItem {
-  type?: "movie" | "show";
+  type?: "movie" | "show" | "season" | "episode";
   movie?: { title?: string; year?: number; ids?: TraktIds };
   show?: { title?: string; year?: number; ids?: TraktIds };
 }
 
 interface TraktRatingItem {
-  type?: "movie" | "show";
+  type?: "movie" | "show" | "season" | "episode";
   rating?: number;
   rated_at?: string;
   movie?: { title?: string; year?: number; ids?: TraktIds };
@@ -199,8 +320,15 @@ export function parseTraktPayload(data: {
   history?: { movies?: TraktHistoryMovie[]; shows?: TraktHistoryEpisode[] };
   watchlist?: TraktWatchlistItem[];
   ratings?: TraktRatingItem[];
+  // Notes from the OAuth proxy (e.g. "history truncated"); ignored by older servers
+  warnings?: unknown;
 }): ParseResult {
   const warnings: string[] = [];
+  if (Array.isArray(data.warnings)) {
+    for (const warning of data.warnings) {
+      if (typeof warning === "string") warnings.push(warning);
+    }
+  }
   const movies: ImportMovie[] = [];
   const episodes: ImportEpisode[] = [];
   const watchlist: ImportWatchlistItem[] = [];
@@ -237,7 +365,16 @@ export function parseTraktPayload(data: {
   }
 
   // Watchlist
+  // Sofa has no season/episode watchlist: those items mean "the user wants this show".
   for (const item of data.watchlist ?? []) {
+    if (
+      item.type !== "movie" &&
+      item.type !== "show" &&
+      item.type !== "season" &&
+      item.type !== "episode"
+    ) {
+      continue;
+    }
     const entry = item.type === "movie" ? item.movie : item.show;
     if (!entry?.title) continue;
     watchlist.push({
@@ -246,12 +383,18 @@ export function parseTraktPayload(data: {
       tvdbId: entry.ids?.tvdb,
       title: entry.title,
       year: entry.year,
-      type: item.type === "show" ? "tv" : "movie",
+      type: item.type === "movie" ? "movie" : "tv",
     });
   }
 
-  // Ratings
+  // Ratings (Sofa only rates movies and shows; season/episode ratings are unsupported)
+  let unsupported = 0;
   for (const item of data.ratings ?? []) {
+    if (item.type === "season" || item.type === "episode") {
+      unsupported++;
+      continue;
+    }
+    if (item.type !== "movie" && item.type !== "show") continue;
     const entry = item.type === "movie" ? item.movie : item.show;
     if (!entry?.title || item.rating == null) continue;
     const converted = convertRating10to5(item.rating);
@@ -271,6 +414,12 @@ export function parseTraktPayload(data: {
     });
   }
 
+  if (unsupported > 0) {
+    warnings.push(
+      `Skipped ${unsupported} Trakt season/episode ratings (Sofa only rates movies and shows)`,
+    );
+  }
+
   log.info(
     `Parsed Trakt data: ${movies.length} movies, ${episodes.length} episodes, ${watchlist.length} watchlist, ${ratings.length} ratings`,
   );
@@ -283,11 +432,103 @@ export function parseTraktPayload(data: {
     ratings,
   };
 
-  return {
-    data: normalized,
-    warnings,
-    diagnostics: { unresolved: countUnresolved(normalized), unsupported: 0 },
-  };
+  return finalizeParseResult(normalized, warnings, unsupported);
+}
+
+interface TraktAggregate {
+  history: { movies: TraktHistoryMovie[]; shows: TraktHistoryEpisode[] };
+  watchlist: TraktWatchlistItem[];
+  ratings: TraktRatingItem[];
+}
+
+function pushArray<T>(target: T[], value: unknown): void {
+  if (Array.isArray(value)) target.push(...(value as T[]));
+}
+
+/** Sort one JSON document's Trakt items into the aggregate parseTraktPayload expects. */
+function addTraktDocument(agg: TraktAggregate, json: unknown): void {
+  if (json && typeof json === "object" && !Array.isArray(json)) {
+    // Already-aggregated format: { history: { movies, shows }, watchlist, ratings }
+    const obj = json as Record<string, unknown>;
+    const history = obj.history;
+    if (history && typeof history === "object" && !Array.isArray(history)) {
+      const h = history as Record<string, unknown>;
+      pushArray(agg.history.movies, h.movies);
+      pushArray(agg.history.shows, h.shows);
+    }
+    pushArray(agg.watchlist, obj.watchlist);
+    pushArray(agg.ratings, obj.ratings);
+    return;
+  }
+  if (!Array.isArray(json)) return;
+  for (const item of json as Record<string, unknown>[]) {
+    if (!item || typeof item !== "object") continue;
+    if ("watched_at" in item) {
+      if (item.episode && item.show) agg.history.shows.push(item as TraktHistoryEpisode);
+      else if (item.movie) agg.history.movies.push(item as TraktHistoryMovie);
+    } else if ("rating" in item) {
+      agg.ratings.push(item as TraktRatingItem);
+    } else if ("listed_at" in item) {
+      agg.watchlist.push(item as TraktWatchlistItem);
+    }
+  }
+}
+
+/** JSON.parse that tolerates a leading UTF-8 BOM (as Blob.json() does). */
+function parseJsonText(text: string): unknown {
+  return JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
+}
+
+/**
+ * Parse an uploaded Trakt export: Trakt's official ZIP (watched-history-*.json,
+ * ratings-*.json, lists-watchlist.json, …), any single JSON file from it, or the
+ * aggregated { history, watchlist, ratings } JSON. Items are classified by their
+ * fields rather than file names.
+ */
+export async function parseTraktExport(file: Blob): Promise<ParseResult> {
+  const agg: TraktAggregate = { history: { movies: [], shows: [] }, watchlist: [], ratings: [] };
+  const buf = Buffer.from(await file.arrayBuffer());
+
+  if (buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04) {
+    const AdmZip = (await import("adm-zip")).default;
+    let entries: ReturnType<InstanceType<typeof AdmZip>["getEntries"]>;
+    try {
+      entries = new AdmZip(buf).getEntries();
+    } catch {
+      throw new Error("Invalid export file");
+    }
+    const isTraktJson = (entry: { entryName: string }) =>
+      (entry.entryName.split("/").pop() ?? entry.entryName).toLowerCase().endsWith(".json");
+    assertZipWithinLimits(entries, isTraktJson);
+    for (const entry of entries) {
+      if (entry.isDirectory || !isTraktJson(entry)) continue;
+      try {
+        addTraktDocument(agg, parseJsonText(entry.getData().toString("utf-8")));
+      } catch {
+        log.debug(`Skipping unreadable Trakt export entry: ${entry.entryName}`);
+      }
+    }
+  } else {
+    let json: unknown;
+    try {
+      json = parseJsonText(buf.toString("utf8"));
+    } catch {
+      throw new Error("Invalid JSON file");
+    }
+    addTraktDocument(agg, json);
+  }
+
+  const empty =
+    agg.history.movies.length === 0 &&
+    agg.history.shows.length === 0 &&
+    agg.watchlist.length === 0 &&
+    agg.ratings.length === 0;
+
+  const result = parseTraktPayload(agg);
+  if (empty) {
+    result.warnings.push("No Trakt history, ratings or watchlist items were found in this file.");
+  }
+  return result;
 }
 
 // ─── Simkl Parser ───────────────────────────────────────────────────
@@ -308,6 +549,9 @@ interface SimklItem {
   status?: string; // "completed", "watching", "plantowatch", "dropped", "hold"
   user_rating?: number;
   last_watched_at?: string;
+  added_to_watchlist_at?: string;
+  movie?: { title?: string; year?: number; ids?: SimklIds };
+  show?: { title?: string; year?: number; ids?: SimklIds };
   watched_episodes_count?: number;
   total_episodes_count?: number;
   seasons?: {
@@ -331,6 +575,36 @@ function mapSimklStatus(status?: string): "watchlist" | "in_progress" | "complet
   }
 }
 
+/**
+ * Simkl's API and its SimklBackup.json nest title metadata under `movie`/`show`;
+ * Sofa's public-api flattens it first. Accept both shapes. When episodes carry
+ * `watched_at`, only those are watched (the API lists unwatched ones too);
+ * when none do, every listed episode counts as watched.
+ */
+function normalizeSimklItem(item: SimklItem): SimklItem {
+  const media = item.movie ?? item.show;
+  const anyTimestamp = item.seasons?.some((s) => s.episodes?.some((ep) => ep.watched_at));
+  const seasons = anyTimestamp
+    ? item.seasons
+        ?.map((s) => ({ ...s, episodes: s.episodes?.filter((ep) => ep.watched_at) }))
+        .filter((s) => (s.episodes?.length ?? 0) > 0)
+    : item.seasons;
+  return {
+    ...item,
+    title: item.title ?? media?.title,
+    year: item.year ?? media?.year,
+    ids: item.ids ?? media?.ids,
+    seasons,
+  };
+}
+
+/** ISO timestamp for the schema's `.datetime()`, or undefined if unparseable. */
+function simklAddedAt(value?: string): string | undefined {
+  if (!value) return undefined;
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? undefined : new Date(ms).toISOString();
+}
+
 export function parseSimklPayload(data: {
   movies?: SimklItem[];
   shows?: SimklItem[];
@@ -343,7 +617,8 @@ export function parseSimklPayload(data: {
   const ratings: ImportRating[] = [];
 
   // Movies
-  for (const item of data.movies ?? []) {
+  for (const raw of data.movies ?? []) {
+    const item = normalizeSimklItem(raw);
     if (!item.title) continue;
     const tmdbId =
       typeof item.ids?.tmdb === "number"
@@ -361,6 +636,7 @@ export function parseSimklPayload(data: {
         year: item.year,
         type: "movie",
         status: sofaStatus,
+        addedAt: simklAddedAt(item.added_to_watchlist_at),
       });
     }
 
@@ -396,7 +672,7 @@ export function parseSimklPayload(data: {
   }
 
   // Shows + Anime (both map to TV type)
-  const allShows = [...(data.shows ?? []), ...(data.anime ?? [])];
+  const allShows = [...(data.shows ?? []), ...(data.anime ?? [])].map(normalizeSimklItem);
   for (const item of allShows) {
     if (!item.title) continue;
     const tmdbId =
@@ -422,6 +698,7 @@ export function parseSimklPayload(data: {
         year: item.year,
         type: "tv",
         status: sofaStatus,
+        addedAt: simklAddedAt(item.added_to_watchlist_at),
       });
     }
 
@@ -479,11 +756,7 @@ export function parseSimklPayload(data: {
     ratings,
   };
 
-  return {
-    data: normalized,
-    warnings,
-    diagnostics: { unresolved: countUnresolved(normalized), unsupported: 0 },
-  };
+  return finalizeParseResult(normalized, warnings);
 }
 
 // ─── Letterboxd Parser ──────────────────────────────────────────────
@@ -523,6 +796,21 @@ export async function parseLetterboxdExport(zipFile: Blob): Promise<ParseResult>
   }
 
   const entries = zip.getEntries();
+  const isExpectedLetterboxdCsv = (entry: { entryName: string }) =>
+    LETTERBOXD_EXPECTED_FILES.includes(
+      (entry.entryName.split("/").pop() ??
+        entry.entryName) as (typeof LETTERBOXD_EXPECTED_FILES)[number],
+    );
+  try {
+    assertZipWithinLimits(entries, isExpectedLetterboxdCsv);
+  } catch (err) {
+    if (!(err instanceof ZipTooLargeError)) throw err;
+    warnings.push("ZIP file is too large to import. Ensure it is an unmodified Letterboxd export.");
+    return {
+      data: { source: "letterboxd", movies, episodes: [], watchlist, ratings },
+      warnings,
+    };
+  }
   const entryMap = new Map<string, string>();
   const allFilenames: string[] = [];
 
@@ -531,7 +819,7 @@ export async function parseLetterboxdExport(zipFile: Blob): Promise<ParseResult>
     // Letterboxd exports may nest files in a subdirectory — use the basename
     const name = entry.entryName.split("/").pop() ?? entry.entryName;
     allFilenames.push(name);
-    if (LETTERBOXD_EXPECTED_FILES.includes(name as (typeof LETTERBOXD_EXPECTED_FILES)[number])) {
+    if (isExpectedLetterboxdCsv(entry)) {
       entryMap.set(name, entry.getData().toString("utf-8"));
     }
   }
@@ -647,12 +935,9 @@ export async function parseLetterboxdExport(zipFile: Blob): Promise<ParseResult>
     `Parsed Letterboxd export: ${movies.length} movies, ${watchlist.length} watchlist, ${ratings.length} ratings`,
   );
 
-  // Letterboxd has no IDs — all items need title-based resolution
-  const unresolved = movies.length + watchlist.length + ratings.length;
-
-  return {
-    data: { source: "letterboxd", movies, episodes: [], watchlist, ratings },
+  // Letterboxd has no IDs — all items need title-based resolution (counted by the finalizer)
+  return finalizeParseResult(
+    { source: "letterboxd", movies, episodes: [], watchlist, ratings },
     warnings,
-    diagnostics: { unresolved, unsupported: 0 },
-  };
+  );
 }
