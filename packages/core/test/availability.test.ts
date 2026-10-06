@@ -21,9 +21,11 @@ vi.mock("@sofa/tmdb/client", () => ({
 }));
 
 import { refreshAvailability } from "../src/availability";
+import { clearVerifiedAvailabilityCache } from "../src/verified-availability";
 
 beforeEach(() => {
   clearAllTables();
+  clearVerifiedAvailabilityCache();
   getWatchProviders.mockImplementation(async () => ({ results: {} }));
 });
 

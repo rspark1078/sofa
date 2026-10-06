@@ -4,7 +4,11 @@ import { user } from "@sofa/db/schema";
 import { clearAllTables, eq, insertUser, testDb } from "@sofa/test/db";
 
 import {
+  getCriticPreferences,
+  updateCriticPreferences,
   claimInitialAdmin,
+  getExplorePreferences,
+  updateExplorePreferences,
   getSetting,
   getUserCount,
   isRegistrationOpen,
@@ -88,5 +92,57 @@ describe("claimInitialAdmin", () => {
     expect(firstUser?.role).toBe("admin");
     expect(secondUser?.role).toBe("user");
     expect(getSetting("registrationOpen")).toBe("false");
+  });
+});
+
+describe("Explore preferences", () => {
+  test("shows all optional sections by default", () => {
+    expect(getExplorePreferences("user-1")).toEqual({
+      trending: true,
+      popularMovies: true,
+      popularTv: true,
+    });
+  });
+
+  test("persists visibility separately for each account", () => {
+    const hidden = { trending: false, popularMovies: false, popularTv: false };
+    expect(updateExplorePreferences("user-1", hidden)).toEqual(hidden);
+    expect(getExplorePreferences("user-1")).toEqual(hidden);
+    expect(getExplorePreferences("user-2").trending).toBe(true);
+    updateExplorePreferences("user-1", { ...hidden, popularMovies: true });
+    expect(getExplorePreferences("user-1").popularMovies).toBe(true);
+  });
+
+  test("recovers from malformed or invalid saved preferences", () => {
+    for (const value of ["invalid JSON", '{"trending":"invalid"}']) {
+      setSetting("user:user-1:explore", value);
+      expect(getExplorePreferences("user-1").trending).toBe(true);
+    }
+  });
+});
+
+describe("Critic preferences", () => {
+  test("defaults preserve all critics and daily checks", () => {
+    expect(getCriticPreferences("user-1")).toEqual({ creatorIds: null, refreshFrequency: "daily" });
+  });
+  test("persists personal selections without changing another account", () => {
+    updateCriticPreferences("user-1", {
+      creatorIds: ["jeremy-jahns", "jeremy-jahns"],
+      refreshFrequency: "weekly",
+    });
+    expect(getCriticPreferences("user-1")).toEqual({
+      creatorIds: ["jeremy-jahns"],
+      refreshFrequency: "weekly",
+    });
+    expect(getCriticPreferences("user-2").creatorIds).toBeNull();
+    updateCriticPreferences("user-1", { creatorIds: [], refreshFrequency: "manual" });
+    expect(getCriticPreferences("user-1").creatorIds).toEqual([]);
+  });
+  test("recovers malformed data and rejects unsupported intervals", () => {
+    setSetting("user:user-1:critics", "invalid");
+    expect(getCriticPreferences("user-1").refreshFrequency).toBe("daily");
+    expect(() =>
+      updateCriticPreferences("user-1", { creatorIds: [], refreshFrequency: "seconds" as "daily" }),
+    ).toThrow(/Invalid option/);
   });
 });

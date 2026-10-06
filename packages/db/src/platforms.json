@@ -271,5 +271,12 @@
     "logoPath": "/jwRPknT20dfU1GeVqbcDXFyvtdG.jpg",
     "urlTemplate": "https://vix.com/es-es/search?q={title}",
     "isSubscription": true
+  },
+  {
+    "tmdbProviderIds": [575],
+    "name": "OnDemandKorea",
+    "logoPath": "/t4tushezwJkXCposaC73oZTwF5a.png",
+    "urlTemplate": "https://www.ondemandkorea.com/en",
+    "isSubscription": true
   }
 ]

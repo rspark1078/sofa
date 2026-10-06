@@ -1,12 +1,13 @@
 import { Trans, useLingui } from "@lingui/react/macro";
 import { IconCalendarEvent } from "@tabler/icons-react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { z } from "zod";
 
 import { UpcomingRow } from "@/components/dashboard/upcoming-item";
 import { RouteError } from "@/components/route-error";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
@@ -154,8 +155,23 @@ function UpcomingPage() {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <IconCalendarEvent className="text-muted-foreground/40 size-12" />
           <p className="text-muted-foreground mt-4 text-sm">
-            <Trans>No upcoming episodes or releases in the next 90 days.</Trans>
+            <Trans>
+              No upcoming episodes or releases for your library match these filters in the next 90
+              days. Add upcoming movies or shows to your watchlist to see them here.
+            </Trans>
           </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(typeFilter !== "all" || statusFilter !== "all") && (
+              <Button
+                variant="outline"
+                onClick={() => void navigate({ search: {}, replace: true })}
+              >{t`Reset filters`}</Button>
+            )}
+            <Button
+              variant="outline"
+              render={<Link to="/explore" />}
+            >{t`Find movies and shows`}</Button>
+          </div>
         </div>
       </div>
     );
@@ -191,7 +207,9 @@ function UpcomingHeader() {
     <div>
       <h1 className="font-display text-2xl tracking-tight">{t`Upcoming`}</h1>
       <p className="text-muted-foreground mt-1 text-sm">
-        <Trans>Episodes and movies coming up in the next 90 days.</Trans>
+        <Trans>
+          Upcoming episodes and movie releases for titles in your library over the next 90 days.
+        </Trans>
       </p>
     </div>
   );

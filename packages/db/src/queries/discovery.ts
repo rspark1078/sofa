@@ -233,6 +233,7 @@ export function getRecommendationRows(sourceIds: string[]) {
   if (sourceIds.length === 0) return [];
   return db
     .select({
+      sourceTitleId: titleRecommendations.titleId,
       recommendedTitleId: titleRecommendations.recommendedTitleId,
       rank: titleRecommendations.rank,
     })
@@ -370,5 +371,17 @@ export function getAvailabilityByTitleIds(titleIds: string[]) {
     .orderBy(
       sql`CASE ${titleAvailability.offerType} WHEN 'flatrate' THEN 0 WHEN 'free' THEN 1 ELSE 2 END`,
     )
+    .all();
+}
+
+export function getRecommendedAvailability(titleIds: string[]) {
+  if (titleIds.length === 0) return [];
+  return db
+    .select({
+      titleId: titleAvailability.titleId,
+      offerType: titleAvailability.offerType,
+    })
+    .from(titleAvailability)
+    .where(and(inArray(titleAvailability.titleId, titleIds), eq(titleAvailability.region, "US")))
     .all();
 }

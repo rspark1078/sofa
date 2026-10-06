@@ -1,8 +1,9 @@
 import { useRef } from "react";
 
 import { TitleCard } from "@/components/title-card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { hasReachedHorizontalEnd } from "@/hooks/use-infinite-scroll";
+
+import { HorizontalTitleScroller } from "./horizontal-title-scroller";
 
 interface TitleRowItem {
   id: string;
@@ -46,10 +47,8 @@ export function TitleRow({
         {icon}
         <h2 className="font-display text-xl tracking-tight text-balance">{heading}</h2>
       </div>
-      <ScrollArea
-        scrollFade
-        hideScrollbar
-        className="-mx-6 sm:-mx-2"
+      <HorizontalTitleScroller
+        heading={heading}
         scrollRef={scrollRef}
         onScrollEnd={() => {
           const viewport = scrollRef.current;
@@ -94,7 +93,7 @@ export function TitleRow({
             </div>
           )}
         </div>
-      </ScrollArea>
+      </HorizontalTitleScroller>
     </section>
   );
 }

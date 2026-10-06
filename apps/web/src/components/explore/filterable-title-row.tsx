@@ -4,9 +4,10 @@ import { useMemo, useRef, useState } from "react";
 
 import { TitleCard, TitleCardSkeleton } from "@/components/title-card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { hasReachedHorizontalEnd } from "@/hooks/use-infinite-scroll";
 import { orpc } from "@/lib/orpc/client";
+
+import { HorizontalTitleScroller } from "./horizontal-title-scroller";
 
 interface Genre {
   id: number;
@@ -110,25 +111,23 @@ export function FilterableTitleRow({
       </div>
 
       {/* Genre chips */}
-      <ScrollArea scrollFade hideScrollbar>
-        <div className="flex gap-2">
-          {genres.map((genre) => (
-            <Button
-              key={genre.id}
-              variant={selectedGenre === genre.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => toggleGenre(genre.id)}
-              className={`shrink-0 rounded-full ${
-                selectedGenre === genre.id
-                  ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
-                  : "border-border/50 bg-card/50 text-muted-foreground hover:border-primary/20 hover:text-foreground"
-              }`}
-            >
-              {genre.name}
-            </Button>
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="flex flex-wrap gap-2">
+        {genres.map((genre) => (
+          <Button
+            key={genre.id}
+            variant={selectedGenre === genre.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => toggleGenre(genre.id)}
+            className={`shrink-0 rounded-full ${
+              selectedGenre === genre.id
+                ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
+                : "border-border/50 bg-card/50 text-muted-foreground hover:border-primary/20 hover:text-foreground"
+            }`}
+          >
+            {genre.name}
+          </Button>
+        ))}
+      </div>
 
       {/* Loading skeleton */}
       {isLoading && (
@@ -150,11 +149,9 @@ export function FilterableTitleRow({
 
       {/* Title cards */}
       {!isLoading && items.length > 0 && (
-        <ScrollArea
+        <HorizontalTitleScroller
           key={selectedGenre ?? "default"}
-          scrollFade
-          hideScrollbar
-          className="-mx-6 sm:-mx-2"
+          heading={heading}
           scrollRef={scrollRef}
           onScrollEnd={() => {
             const viewport = scrollRef.current;
@@ -199,7 +196,7 @@ export function FilterableTitleRow({
               </div>
             )}
           </div>
-        </ScrollArea>
+        </HorizontalTitleScroller>
       )}
     </section>
   );

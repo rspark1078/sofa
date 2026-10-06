@@ -8,6 +8,7 @@ function ScrollArea({
   scrollFade = true,
   scrollbarGutter = false,
   hideScrollbar = false,
+  alwaysShowScrollbar = false,
   scrollRef,
   contentRef,
   ...props
@@ -18,6 +19,8 @@ function ScrollArea({
   scrollbarGutter?: boolean;
   /** Completely hide scrollbars (useful for touch/gesture-only scroll areas) */
   hideScrollbar?: boolean;
+  /** Keep scrollbars visible when the content overflows. */
+  alwaysShowScrollbar?: boolean;
   /** Ref for the outer viewport element */
   scrollRef?: React.Ref<HTMLDivElement>;
   /** Ref for the inner content element */
@@ -45,8 +48,14 @@ function ScrollArea({
       </ScrollAreaPrimitive.Viewport>
       {!hideScrollbar && (
         <>
-          <ScrollBar orientation="vertical" />
-          <ScrollBar orientation="horizontal" />
+          <ScrollBar
+            orientation="vertical"
+            className={alwaysShowScrollbar ? "opacity-100" : undefined}
+          />
+          <ScrollBar
+            orientation="horizontal"
+            className={alwaysShowScrollbar ? "h-2 opacity-100" : undefined}
+          />
         </>
       )}
       <ScrollAreaPrimitive.Corner data-slot="scroll-area-corner" />

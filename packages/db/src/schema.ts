@@ -526,3 +526,69 @@ export const appSettings = sqliteTable("appSettings", {
   key: text("key").primaryKey(),
   value: text("value"),
 });
+
+// ─── Creator recommendations ─────────────────────────────────────────
+export const recommendationCreators = sqliteTable("recommendationCreators", {
+  id: uuidPk(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  channelUrl: text("channelUrl").notNull(),
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: int("updatedAt", { mode: "timestamp" }).notNull(),
+});
+export const creatorVideos = sqliteTable(
+  "creatorVideos",
+  {
+    id: uuidPk(),
+    creatorId: text("creatorId")
+      .notNull()
+      .references(() => recommendationCreators.id, { onDelete: "cascade" }),
+    videoUrl: text("videoUrl").notNull(),
+    videoTitle: text("videoTitle").notNull(),
+    publishedAt: text("publishedAt").notNull(),
+    evidenceUrl: text("evidenceUrl").notNull(),
+    createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
+    updatedAt: int("updatedAt", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [uniqueIndex("creatorVideos_creatorId_videoUrl").on(table.creatorId, table.videoUrl)],
+);
+export const creatorPicks = sqliteTable(
+  "creatorPicks",
+  {
+    id: uuidPk(),
+    videoId: text("videoId")
+      .notNull()
+      .references(() => creatorVideos.id, { onDelete: "cascade" }),
+    tmdbId: int("tmdbId").notNull(),
+    type: text("type", { enum: ["movie", "tv"] })
+      .notNull()
+      .default("movie"),
+    movieTitle: text("movieTitle").notNull(),
+    startSeconds: int("startSeconds"),
+    sortOrder: int("sortOrder").notNull().default(0),
+    createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
+    updatedAt: int("updatedAt", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("creatorPicks_videoId_tmdbId_type").on(table.videoId, table.tmdbId, table.type),
+    index("creatorPicks_tmdbId_type").on(table.tmdbId, table.type),
+  ],
+);
+
+export const creatorFeedEntries = sqliteTable(
+  "creatorFeedEntries",
+  {
+    id: uuidPk(),
+    creatorId: text("creatorId")
+      .notNull()
+      .references(() => recommendationCreators.id, { onDelete: "cascade" }),
+    videoId: text("videoId").notNull(),
+    videoTitle: text("videoTitle").notNull(),
+    publishedAt: text("publishedAt").notNull(),
+    discoveredAt: int("discoveredAt", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("creatorFeedEntries_creatorId_videoId").on(table.creatorId, table.videoId),
+  ],
+);

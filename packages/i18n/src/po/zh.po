@@ -229,6 +229,22 @@ msgstr "{watchedEpisodes}/{totalEpisodes, plural, other {# 集}}"
 msgid "{watchlistCount} items"
 msgstr "{watchlistCount} 个项目"
 
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr 15 min"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr 30 min"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 90 min"
+#~ msgstr ""
+
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 msgid "1★+"
 msgstr ""
@@ -283,6 +299,14 @@ msgstr "80年代"
 #: apps/native/src/components/library/filter-sheet.tsx
 msgid "90s"
 msgstr "90年代"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Access"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Access type"
+#~ msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/routes/_app/settings.tsx
@@ -377,6 +401,8 @@ msgstr "{age} 岁"
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/explore/filterable-title-row.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
 #: apps/web/src/routes/_app/upcoming.tsx
@@ -391,8 +417,16 @@ msgid "All genres"
 msgstr "所有类型"
 
 #: apps/web/src/components/explore/discover-section.tsx
+msgid "All provider types"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
 msgid "All providers"
 msgstr "所有平台"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "All sources"
+msgstr ""
 
 #: apps/web/src/components/settings/registration-section.tsx
 msgid "Allow new users to create accounts"
@@ -425,12 +459,32 @@ msgid "Any"
 msgstr "任意"
 
 #: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Any access"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any content rating"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any country"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
 msgid "Any language"
 msgstr "任意语言"
 
 #: apps/web/src/components/explore/discover-section.tsx
-msgid "Any rating"
-msgstr "任意评分"
+#~ msgid "Any rating"
+#~ msgstr "任意评分"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Any runtime"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any TMDB score"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/web/src/components/explore/discover-section.tsx
@@ -487,6 +541,10 @@ msgstr "按计划自动备份数据库"
 msgid "Availability"
 msgstr "可用性"
 
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Availability could not be refreshed. Try again later."
+msgstr ""
+
 #: apps/native/src/components/library/filter-sheet.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Available to stream"
@@ -525,9 +583,14 @@ msgstr "备份"
 msgid "backups."
 msgstr "个备份。"
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "Based on {basedOn}"
+msgstr ""
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Buy"
-#~ msgstr ""
+msgid "Buy"
+msgstr ""
 
 #: apps/native/src/app/title/[id].tsx
 #: apps/web/src/components/titles/title-availability.tsx
@@ -608,21 +671,49 @@ msgstr "更换照片"
 msgid "Change Server"
 msgstr "更换服务器"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Channels have not been checked yet."
+msgstr ""
+
 #: apps/web/src/components/setup/refresh-button.tsx
 msgid "Check configuration"
 msgstr "检查配置"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Check for new videos"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Check for updates"
 msgstr "检查更新"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Check more results"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Check now"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Checked <0/>"
 msgstr "已检查 <0/>"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Checking channels…"
+msgstr ""
+
 #: apps/web/src/components/setup/refresh-button.tsx
 msgid "Checking…"
 msgstr "检查中…"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "China"
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Chinese"
@@ -635,6 +726,14 @@ msgstr "中文"
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Choose how to import your {sourceLabel} data."
 msgstr "选择导入 {sourceLabel} 数据的方式。"
+
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Choose which sections appear on Explore. Discover is always shown."
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Choose whose movie picks appear in your recommendations. Your watch-history recommendations remain available."
+msgstr ""
 
 #: apps/web/src/components/settings/language-section.tsx
 #~ msgid "Choose your preferred display language"
@@ -776,6 +875,7 @@ msgstr "连接中..."
 msgid "Connecting…"
 msgstr "连接中…"
 
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 msgid "Content rating"
 msgstr "内容分级"
@@ -825,6 +925,14 @@ msgstr "无法加载标题详情"
 msgid "Could not load your library"
 msgstr "无法加载您的媒体库"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Country"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Country of origin"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Crash reporting"
 msgstr "崩溃报告"
@@ -854,6 +962,22 @@ msgstr "创建您的账户"
 msgid "Creating…"
 msgstr "创建中…"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Creator channels"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden."
+msgstr ""
+
+#: apps/web/src/components/settings/system-health-section.tsx
+msgid "Critic channel checks"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Critics and creators"
+msgstr ""
+
 #: apps/native/src/app/change-password.tsx
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Current password"
@@ -867,6 +991,10 @@ msgstr "请输入当前密码"
 #: apps/web/src/components/command-palette.tsx
 msgid "Cycle status"
 msgstr "切换状态"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Daily"
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Daily at {time}"
@@ -921,6 +1049,10 @@ msgstr "默认"
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Delete"
 msgstr "删除"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Delete {presetName}"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Delete backup"
@@ -1133,8 +1265,8 @@ msgid "Episodes {select}"
 msgstr "剧集 {select}"
 
 #: apps/web/src/routes/_app/upcoming.tsx
-msgid "Episodes and movies coming up in the next 90 days."
-msgstr "未来 90 天内即将播出的剧集和电影。"
+#~ msgid "Episodes and movies coming up in the next 90 days."
+#~ msgstr "未来 90 天内即将播出的剧集和电影。"
 
 #: apps/native/src/app/(tabs)/(home)/index.tsx
 #~ msgid "Episodes this week"
@@ -1164,10 +1296,18 @@ msgstr "每 {n} 小时"
 msgid "Explore"
 msgstr "探索"
 
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Explore sections"
+msgstr ""
+
 #: apps/web/src/routes/_app/people.$id.tsx
 #: apps/web/src/routes/_app/titles.$id.tsx
 msgid "Explore titles"
 msgstr "浏览影视"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Explore titles to watch or rate"
+msgstr ""
 
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Export"
@@ -1293,6 +1433,14 @@ msgstr "从媒体库移除失败"
 msgid "Failed to remove profile picture"
 msgstr "移除头像失败"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Failed to save critic preferences"
+msgstr ""
+
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Failed to save Explore preferences"
+msgstr ""
+
 #: apps/native/src/app/(auth)/login.tsx
 msgid "Failed to sign in"
 msgstr "登录失败"
@@ -1377,6 +1525,18 @@ msgstr "作品列表"
 msgid "Filters"
 msgstr "筛选"
 
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Filters saved"
+msgstr ""
+
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Find movies and shows"
+msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Find title-specific US watch links on TMDB / JustWatch"
+msgstr ""
+
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Finished importing from {source}."
 msgstr "已完成从 {source} 导入。"
@@ -1385,13 +1545,36 @@ msgstr "已完成从 {source} 导入。"
 msgid "Finished importing your Sofa export."
 msgstr "已完成导入您的 Sofa 导出文件。"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Follow all critics, including new additions"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "France"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Free"
+msgid "Free"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Free / with ads"
 #~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Free providers"
+msgstr ""
 
 #: apps/web/src/components/settings/danger-section.tsx
 msgid "Free up disk space by clearing cached metadata and images"
 msgstr "通过清除缓存的元数据和图片来释放磁盘空间"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Free with ads"
+#~ msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "French"
@@ -1508,6 +1691,14 @@ msgstr "印地语"
 msgid "Home"
 msgstr "首页"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Hong Kong"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Hourly"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Image cache"
@@ -1611,6 +1802,10 @@ msgstr "媒体库中"
 msgid "In Your Library"
 msgstr "您的媒体库"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "India"
+msgstr ""
+
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Install the <0>Webhook plugin<1/></0> from Jellyfin's plugin catalog"
 msgstr "从 Jellyfin 的插件目录安装 <0>Webhook 插件<1/></0>"
@@ -1631,6 +1826,10 @@ msgstr "无效令牌"
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Italian"
 msgstr "意大利语"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Japan"
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Japanese"
@@ -1714,6 +1913,15 @@ msgstr "上次运行失败"
 msgid "Last run succeeded"
 msgstr "上次运行成功"
 
+#. placeholder {0}: formatDate(status.lastCheckedAt)
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Last successful check: {0}"
+#~ msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Last successful check: {lastCheckedLabel}"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(library)/_layout.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/nav-bar.tsx
@@ -1751,6 +1959,10 @@ msgstr "导入连接已断开，请在设置中查看状态。"
 #: apps/web/src/components/settings/settings-shell.tsx
 msgid "Manage your account and preferences"
 msgstr "管理您的账户和偏好设置"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Manual"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Manual backup"
@@ -1866,6 +2078,14 @@ msgstr "最大"
 #~ msgid "Maximum rating"
 #~ msgstr "Maximum rating"
 
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Maximum runtime"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Maximum US content rating"
+msgstr ""
+
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Member since {memberSince}"
 msgstr "注册于 {memberSince}"
@@ -1881,6 +2101,10 @@ msgstr "至少 8 个字符…"
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Minimum rating"
 #~ msgstr "Minimum rating"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Minimum TMDB score"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Monday"
@@ -2053,6 +2277,14 @@ msgstr "无网络连接"
 msgid "No matching titles"
 msgstr "没有匹配的标题"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#~ msgid "No recommendations match this availability filter in the cached US offers."
+#~ msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "No recommendations match this US availability filter."
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(search)/index.tsx
 msgid "No results for \"{debouncedQuery}\""
 msgstr "未找到\"{debouncedQuery}\"的相关结果"
@@ -2071,17 +2303,40 @@ msgid "No titles found for this genre."
 msgstr "此类型下未找到任何内容。"
 
 #: apps/web/src/components/explore/discover-section.tsx
-msgid "No titles found. Try adjusting your filters."
-msgstr "未找到任何标题。请尝试调整筛选条件。"
+#~ msgid "No titles found. Try adjusting your filters."
+#~ msgstr "未找到任何标题。请尝试调整筛选条件。"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "No titles match these filters. Broaden your filters or reset them to start again."
+msgstr ""
 
 #: apps/web/src/routes/_app/library.tsx
 msgid "No titles match your filters"
 msgstr "没有标题符合您的筛选条件"
 
-#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "No unseen creator picks remain. Try another recommendation source."
+msgstr ""
+
 #: apps/web/src/routes/_app/upcoming.tsx
+msgid "No upcoming episodes or releases for your library match these filters in the next 90 days. Add upcoming movies or shows to your watchlist to see them here."
+msgstr ""
+
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
 msgid "No upcoming episodes or releases in the next 90 days."
 msgstr "未来 90 天内没有即将播出的剧集或上映的影片。"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "No US offers are currently listed for this title."
+msgstr ""
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "No US offers listed"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "No verified matches on these pages. Check more results or broaden your filters."
+msgstr ""
 
 #: apps/native/src/components/settings/integration-card.tsx
 #: apps/web/src/components/settings/integration-card.tsx
@@ -2117,6 +2372,10 @@ msgstr "在待看列表中"
 msgid "On your services"
 msgstr "在您的服务中"
 
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Open {name} title page"
+msgstr ""
+
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Open {source} to enter code"
 msgstr "打开 {source} 以输入代码"
@@ -2144,6 +2403,10 @@ msgstr "打开 Plex，前往 <0>Settings > Webhooks<1/></0>"
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Open Plex, go to Settings > Webhooks"
 msgstr "打开 Plex，前往 Settings > Webhooks"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Open provider links in Firefox"
+msgstr ""
 
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Open Radarr, go to <0>Settings > Import Lists</0>"
@@ -2190,6 +2453,15 @@ msgstr "或"
 #: apps/native/src/app/+not-found.tsx
 msgid "Page Not Found"
 msgstr "页面未找到"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Paid"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Paid providers"
+msgstr ""
 
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Parsing file..."
@@ -2252,6 +2524,10 @@ msgstr "人物"
 msgid "Person not found"
 msgstr "未找到该人物"
 
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Picked by"
+msgstr ""
+
 #: apps/web/src/components/titles/trailer-dialog.tsx
 msgid "Play trailer"
 msgstr "播放预告片"
@@ -2270,11 +2546,13 @@ msgid "Please sign in again."
 msgstr "请重新登录。"
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Popular Movies"
 msgstr "热门电影"
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Popular TV Shows"
 msgstr "热门电视剧"
@@ -2300,6 +2578,10 @@ msgstr "1980 年前"
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Pre-restore backup"
 msgstr "还原前备份"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Preset name"
+msgstr ""
 
 #: apps/web/src/components/ui/pagination.tsx
 msgid "Previous"
@@ -2328,6 +2610,27 @@ msgstr "头像已更新"
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Provider"
 msgstr "服务提供商"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Provider icons open a title page when available, otherwise a provider search or home page. Availability and account requirements can change."
+msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+#~ msgid "Provider icons open provider search or home pages. Availability and account requirements can change."
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Provider type"
+msgstr ""
+
+#. placeholder {0}: selectedPlatformIds.length
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Providers ({0})"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Providers ({providerCount})"
+msgstr ""
 
 #: apps/web/src/components/settings/danger-section.tsx
 msgid "Purge all"
@@ -2425,7 +2728,6 @@ msgstr "已评 {stars, plural, other {# 星}}"
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
-#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
 #: apps/web/src/components/titles/star-rating.tsx
@@ -2465,10 +2767,22 @@ msgstr "就绪 — 尚未收到任何事件"
 msgid "Recent Searches"
 msgstr "最近搜索"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Recent videos — recommendation review required"
+msgstr ""
+
 #: apps/native/src/components/search/recently-viewed-list.ios.tsx
 #: apps/native/src/components/search/recently-viewed-list.tsx
 msgid "Recently Viewed"
 msgstr "最近浏览"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Recommendation availability"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Recommendation source"
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Recommendations"
@@ -2490,6 +2804,10 @@ msgstr "正在跳转…"
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Refresh"
 msgstr "刷新"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Refresh recommendations"
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Refresh system health"
@@ -2583,9 +2901,10 @@ msgstr "删除头像"
 msgid "Removed from library"
 msgstr "已从媒体库中移除"
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Rent"
-#~ msgstr ""
+msgid "Rent"
+msgstr ""
 
 #: apps/web/src/routes/setup.tsx
 msgid "Request an API key"
@@ -2606,6 +2925,11 @@ msgstr "需要有效的 Plex Pass 订阅。"
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Requires Emby Server 4.7.9+ and an active Emby Premiere license."
 msgstr "需要 Emby Server 4.7.9+ 以及有效的 Emby Premiere 授权。"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Reset filters"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Restart"
@@ -2647,9 +2971,15 @@ msgstr "正在获取您的观看记录、观看列表和评分..."
 #: apps/native/src/components/settings/integrations-section.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.ios.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/lib/orpc/client.ts
 msgid "Retry"
 msgstr "重试"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Retry loading saved filters"
+msgstr ""
 
 #: apps/web/src/routes/__root.tsx
 msgid "Return home"
@@ -2663,6 +2993,10 @@ msgstr "查看已发现的内容，选择要导入的项目。"
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Run now"
 msgstr "立即运行"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Runtime"
+#~ msgstr ""
 
 #: apps/native/src/components/dashboard/upcoming-row.tsx
 #: apps/web/src/components/dashboard/upcoming-item.tsx
@@ -2686,9 +3020,29 @@ msgstr "保存"
 msgid "Save name"
 msgstr "保存名称"
 
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Save new preset"
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Save your current filters to use them again later."
+msgstr ""
+
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "Saved"
 msgstr "已保存"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved Discover filters"
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved filters"
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved filters deleted"
+msgstr ""
 
 #: apps/web/src/routes/_app/onboarding.tsx
 msgid "Saving…"
@@ -2718,11 +3072,23 @@ msgstr "定时备份已禁用"
 msgid "Scheduled backups enabled"
 msgstr "定时备份已启用"
 
+#: apps/web/src/components/explore/horizontal-title-scroller.tsx
+msgid "Scroll left"
+msgstr ""
+
+#: apps/web/src/components/explore/horizontal-title-scroller.tsx
+msgid "Scroll right"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(search)/_layout.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/command-palette.tsx
 msgid "Search"
 msgstr "搜索"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Search {name}"
+msgstr ""
 
 #: apps/web/src/components/dashboard/stats-section.tsx
 msgid "Search for movies and TV shows to start tracking"
@@ -2849,6 +3215,10 @@ msgstr "设置说明"
 msgid "Setup required"
 msgstr "需要初始设置"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Show all recommendations"
+msgstr ""
+
 #: apps/native/src/components/ui/expandable-text.tsx
 #: apps/web/src/components/expandable-text.tsx
 msgid "Show less"
@@ -2942,6 +3312,10 @@ msgstr "Sofa v{latestVersion} 已发布"
 msgid "Sofa will automatically log movies and episodes when you finish watching them"
 msgstr "当您看完电影或剧集时，Sofa 将自动记录"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Some critic channels could not be checked. Try again later."
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/app/change-password.tsx
 #: apps/native/src/app/person/[id].tsx
@@ -2975,6 +3349,10 @@ msgstr "排序"
 #: apps/web/src/components/people/filmography-grid.tsx
 msgid "Sort filmography"
 msgstr "排序作品列表"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "South Korea"
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Spanish"
@@ -3029,9 +3407,18 @@ msgstr "流媒体"
 msgid "Streaming data provided by <0/><1>JustWatch</1>"
 msgstr ""
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Streaming providers"
+msgstr ""
+
 #: apps/web/src/components/settings/streaming-services-section.tsx
 #~ msgid "Streaming Services"
 #~ msgstr "Streaming Services"
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Subscription"
+msgstr ""
 
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "Subscriptions"
@@ -3052,6 +3439,10 @@ msgstr "切换到 {name}"
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Takes effect after restarting the app"
 msgstr "重启应用后生效"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
+msgstr ""
 
 #: apps/native/src/app/+not-found.tsx
 msgid "The page you're looking for doesn't exist."
@@ -3195,6 +3586,10 @@ msgstr "您 Sofa 待看列表中的内容将在 Sonarr 轮询此列表时自动�
 msgid "TMDB Rating"
 msgstr "TMDB 评分"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "TMDB score"
+msgstr ""
+
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "To"
 #~ msgstr "To"
@@ -3242,6 +3637,7 @@ msgstr "预告片"
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
 #: apps/web/src/components/explore/hero-banner.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Trending Today"
 msgstr "今日热门"
@@ -3298,6 +3694,42 @@ msgstr "电视剧"
 msgid "Type"
 msgstr "类型"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to check critic channels"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Unable to check current availability. Try again."
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Unable to delete saved filters"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to load critics. Retry"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#~ msgid "Unable to load recommendations."
+#~ msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Unable to refresh recommendation availability."
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Unable to save filters. You can save up to 50 presets."
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "United Kingdom"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "United States"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "unknown"
 msgstr "未知"
@@ -3343,6 +3775,14 @@ msgstr "已将 S{sNum} E{eNum} 标记为未看"
 msgid "Up next"
 msgstr "接下来"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Up to {rating}"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Up to {value}"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(home)/upcoming.tsx
 #: apps/native/src/components/dashboard/upcoming-section.tsx
 #: apps/web/src/components/dashboard/upcoming-section.tsx
@@ -3350,6 +3790,10 @@ msgstr "接下来"
 #: apps/web/src/routes/_app/upcoming.tsx
 msgid "Upcoming"
 msgstr "即将播出"
+
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Upcoming episodes and movie releases for titles in your library over the next 90 days."
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #~ msgid "Update available: {0}"
@@ -3385,6 +3829,10 @@ msgstr "修改密码"
 #: apps/native/src/app/change-password.tsx
 #~ msgid "Update Password"
 #~ msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Update preset"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-restore-section.tsx
 #: apps/web/src/components/settings/imports-section.tsx
@@ -3423,6 +3871,22 @@ msgstr "上传头像"
 msgid "URL copied to clipboard"
 msgstr "URL 已复制到剪贴板"
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "US"
+msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "US availability checked {checked}"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "US availability checked per title. Free includes ad-supported offers; library services may require a library card."
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "US content rating"
+#~ msgstr ""
+
 #: apps/native/src/app/(auth)/register.tsx
 msgid "Use at least 8 characters"
 msgstr "请使用至少 8 个字符"
@@ -3443,6 +3907,19 @@ msgstr "在 TMDB 上查看"
 #: apps/web/src/components/update-toast.tsx
 msgid "View release"
 msgstr "查看发布说明"
+
+#. placeholder {0}: creator.name
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Visit {0}'s channel"
+#~ msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Visit {name}"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Visit channel"
+msgstr ""
 
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Waiting for authorization..."
@@ -3474,6 +3951,14 @@ msgstr "观看历史"
 #: apps/web/src/components/titles/title-availability.tsx
 #~ msgid "Watch on {name}"
 #~ msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Watch or rate titles to build your recommendations."
+msgstr ""
+
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Watch the recommendation"
+msgstr ""
 
 #: apps/native/src/components/titles/season-accordion.tsx
 #: apps/native/src/lib/title-actions.ts
@@ -3528,6 +4013,10 @@ msgstr ""
 msgid "Wednesday"
 msgstr "星期三"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Weekly"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Weekly on {dayName}"
 msgstr "每周{dayName}"
@@ -3549,6 +4038,11 @@ msgstr "您在哪里观看？"
 #: apps/web/src/components/titles/title-availability.tsx
 msgid "Where to Watch"
 msgstr "观看渠道"
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "With ads"
+msgstr ""
 
 #: apps/web/src/components/titles/title-availability.tsx
 #~ msgid "With Ads"
@@ -3604,3 +4098,7 @@ msgstr "您的姓名"
 #: apps/web/src/components/auth-form.tsx
 msgid "Your name…"
 msgstr "您的名字…"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Your watch history"
+msgstr ""

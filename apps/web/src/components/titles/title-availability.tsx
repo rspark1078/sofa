@@ -1,8 +1,15 @@
 import { Trans, useLingui } from "@lingui/react/macro";
+import { useAtom, useAtomValue } from "jotai";
+import type { z } from "zod";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { providerFirefoxAtom } from "@/lib/atoms/provider-browser";
+import { providerFirefoxUrl } from "@/lib/provider-link";
+import type { UsAvailabilitySummary } from "@sofa/api/schemas";
 import type { AvailabilityOffer } from "@sofa/api/schemas";
+import { formatRelativeTime } from "@sofa/i18n/format";
 
 const MAX_VISIBLE = 4;
 
@@ -12,18 +19,34 @@ function ProviderBadge({
   name,
   logoPath,
   watchUrl,
+  linkType,
 }: {
   name: string;
   logoPath: string | null;
   watchUrl: string | null;
+  linkType?: AvailabilityOffer["linkType"];
 }) {
+  const { t } = useLingui();
+  const action =
+    linkType === "title"
+      ? t`Open ${name} title page`
+      : linkType === "search"
+        ? t`Search ${name}`
+        : t`Visit ${name}`;
+  const firefox = useAtomValue(providerFirefoxAtom);
+  const href = watchUrl && firefox ? providerFirefoxUrl(watchUrl) : watchUrl;
   return (
     <Tooltip>
       <TooltipTrigger
         {...(watchUrl
           ? {
               render: (
-                <a href={watchUrl} target="_blank" rel="noopener noreferrer" aria-label={name} />
+                <a
+                  href={href ?? undefined}
+                  target={firefox ? undefined : "_blank"}
+                  rel="noopener noreferrer"
+                  aria-label={action}
+                />
               ),
             }
           : {})}
@@ -44,7 +67,7 @@ function ProviderBadge({
         )}
       </TooltipTrigger>
       <TooltipContent className="bg-popover text-popover-foreground px-2 py-1 text-[10px] font-medium shadow-md [&>:last-child]:hidden">
-        {name}
+        {action}
       </TooltipContent>
     </Tooltip>
   );
@@ -73,6 +96,7 @@ function OverflowProviderIcon({ offer }: { offer: AvailabilityOffer }) {
 }
 
 function OverflowBadge({ offers }: { offers: AvailabilityOffer[] }) {
+  const firefox = useAtomValue(providerFirefoxAtom);
   return (
     <Popover>
       <PopoverTrigger
@@ -88,8 +112,8 @@ function OverflowBadge({ offers }: { offers: AvailabilityOffer[] }) {
           offer.watchUrl ? (
             <a
               key={offer.platformId}
-              href={offer.watchUrl}
-              target="_blank"
+              href={firefox ? (providerFirefoxUrl(offer.watchUrl) ?? undefined) : offer.watchUrl}
+              target={firefox ? undefined : "_blank"}
               rel="noopener noreferrer"
               className="hover:bg-muted/50 flex items-center gap-2.5 px-2 py-1.5"
             >
@@ -116,7 +140,11 @@ function OffersByType({
   offerLabels: Record<string, string>;
 }) {
   const byType: Record<string, AvailabilityOffer[]> = {};
-  for (const offer of offers) {
+  for (const offer of offers.flatMap((entry) =>
+    entry.accessTypes?.length
+      ? entry.accessTypes.map((offerType) => ({ ...entry, offerType }))
+      : [entry],
+  )) {
     if (!byType[offer.offerType]) byType[offer.offerType] = [];
     byType[offer.offerType].push(offer);
   }
@@ -139,6 +167,7 @@ function OffersByType({
                   name={offer.providerName}
                   logoPath={offer.logoPath}
                   watchUrl={offer.watchUrl}
+                  linkType={offer.linkType}
                 />
               ))}
               {overflow.length > 0 && <OverflowBadge offers={overflow} />}
@@ -150,11 +179,16 @@ function OffersByType({
   );
 }
 
-export function TitleAvailability({ availability }: { availability: AvailabilityOffer[] }) {
+function AvailabilityDetails({ availability }: { availability: AvailabilityOffer[] }) {
   const { t } = useLingui();
   const offerLabels: Record<string, string> = {
     stream: t`Stream`,
     purchase: t`Buy or Rent`,
+    free: t`Free`,
+    ads: t`With ads`,
+    flatrate: t`Subscription`,
+    rent: t`Rent`,
+    buy: t`Buy`,
   };
 
   if (availability.length === 0) return null;
@@ -194,6 +228,50 @@ export function TitleAvailability({ availability }: { availability: Availability
         <Trans>Where to Watch</Trans>
       </h2>
       <OffersByType offers={availability} offerLabels={offerLabels} />
+    </div>
+  );
+}
+
+export function TitleAvailability({
+  availability,
+  usAvailability,
+}: {
+  availability: AvailabilityOffer[];
+  usAvailability?: z.infer<typeof UsAvailabilitySummary>;
+}) {
+  const { t } = useLingui();
+  const [firefox, setFirefox] = useAtom(providerFirefoxAtom);
+  const checked = usAvailability ? formatRelativeTime(usAvailability.checkedAt) : null;
+  return (
+    <div className="space-y-3">
+      <AvailabilityDetails availability={availability} />
+      {availability.length === 0 && (
+        <p className="text-muted-foreground text-xs">
+          {usAvailability
+            ? t`No US offers are currently listed for this title.`
+            : t`Availability could not be refreshed. Try again later.`}
+        </p>
+      )}
+      {checked && (
+        <p className="text-muted-foreground text-xs">{t`US availability checked ${checked}`}</p>
+      )}
+      {availability.length > 0 && (
+        <p className="text-muted-foreground text-xs">{t`Provider icons open a title page when available, otherwise a provider search or home page. Availability and account requirements can change.`}</p>
+      )}
+      {usAvailability?.watchPageUrl && (
+        <a
+          className="text-primary text-xs hover:underline"
+          href={usAvailability.watchPageUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >{t`Find title-specific US watch links on TMDB / JustWatch`}</a>
+      )}
+      {availability.length > 0 && (
+        <label className="text-muted-foreground flex cursor-pointer items-center gap-2 text-xs">
+          <Checkbox checked={firefox} onCheckedChange={setFirefox} />
+          {t`Open provider links in Firefox`}
+        </label>
+      )}
     </div>
   );
 }

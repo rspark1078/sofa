@@ -952,6 +952,104 @@
               }
             ],
             "description": "Average rating (0-10)"
+          },
+          "usAvailability": {
+            "type": "object",
+            "properties": {
+              "offers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "providerId": {
+                      "type": "number"
+                    },
+                    "providerName": {
+                      "type": "string"
+                    },
+                    "offerType": {
+                      "enum": [
+                        "free",
+                        "ads",
+                        "flatrate",
+                        "rent",
+                        "buy"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "providerId",
+                    "providerName",
+                    "offerType"
+                  ]
+                }
+              },
+              "watchPageUrl": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "checkedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "offers",
+              "watchPageUrl",
+              "checkedAt"
+            ]
+          },
+          "recommendationSources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "creatorCredits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "channelUrl": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "videoUrl": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "videoTitle": {
+                  "type": "string"
+                },
+                "publishedAt": {
+                  "type": "string",
+                  "format": "date"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "channelUrl",
+                "videoUrl",
+                "videoTitle",
+                "publishedAt"
+              ]
+            }
           }
         },
         "required": [
@@ -1044,6 +1142,104 @@
               }
             ],
             "description": "Average rating (0-10)"
+          },
+          "usAvailability": {
+            "type": "object",
+            "properties": {
+              "offers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "providerId": {
+                      "type": "number"
+                    },
+                    "providerName": {
+                      "type": "string"
+                    },
+                    "offerType": {
+                      "enum": [
+                        "free",
+                        "ads",
+                        "flatrate",
+                        "rent",
+                        "buy"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "providerId",
+                    "providerName",
+                    "offerType"
+                  ]
+                }
+              },
+              "watchPageUrl": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "checkedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "offers",
+              "watchPageUrl",
+              "checkedAt"
+            ]
+          },
+          "recommendationSources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "creatorCredits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "channelUrl": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "videoUrl": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "videoTitle": {
+                  "type": "string"
+                },
+                "publishedAt": {
+                  "type": "string",
+                  "format": "date"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "channelUrl",
+                "videoUrl",
+                "videoTitle",
+                "publishedAt"
+              ]
+            }
           }
         },
         "required": [
@@ -1623,6 +1819,27 @@
                             "type": "string",
                             "description": "Offer category: stream or purchase"
                           },
+                          "accessTypes": {
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "free",
+                                "ads",
+                                "flatrate",
+                                "rent",
+                                "buy"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "linkType": {
+                            "enum": [
+                              "search",
+                              "landing",
+                              "title"
+                            ],
+                            "type": "string"
+                          },
                           "watchUrl": {
                             "anyOf": [
                               {
@@ -1632,7 +1849,7 @@
                                 "type": "null"
                               }
                             ],
-                            "description": "Direct link to watch on this provider"
+                            "description": "Provider link; may open a search or landing page"
                           },
                           "isUserSubscribed": {
                             "type": "boolean",
@@ -1651,12 +1868,104 @@
                       },
                       "description": "Streaming availability offers"
                     },
+                    "usAvailability": {
+                      "type": "object",
+                      "properties": {
+                        "offers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "providerId": {
+                                "type": "number"
+                              },
+                              "providerName": {
+                                "type": "string"
+                              },
+                              "offerType": {
+                                "enum": [
+                                  "free",
+                                  "ads",
+                                  "flatrate",
+                                  "rent",
+                                  "buy"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "providerId",
+                              "providerName",
+                              "offerType"
+                            ]
+                          }
+                        },
+                        "watchPageUrl": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "checkedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "offers",
+                        "watchPageUrl",
+                        "checkedAt"
+                      ]
+                    },
                     "cast": {
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/CastMember"
                       },
                       "description": "Cast and crew credits"
+                    },
+                    "creatorCredits": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "channelUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "videoUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "videoTitle": {
+                            "type": "string"
+                          },
+                          "publishedAt": {
+                            "type": "string",
+                            "format": "date"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "channelUrl",
+                          "videoUrl",
+                          "videoTitle",
+                          "publishedAt"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -3580,7 +3889,7 @@
                     "totalPages",
                     "totalResults"
                   ],
-                  "description": "Browse results with user tracking statuses and episode progress"
+                  "description": "Browse results with source pagination, tracking statuses and episode progress. US availability verification may remove source candidates."
                 }
               }
             }
@@ -4070,6 +4379,68 @@
             "allowReserved": true
           },
           {
+            "name": "originCountry",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "pattern": "^[A-Z]{2}$",
+              "description": "ISO 3166-1 country of origin code"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "certification",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "G",
+                "PG",
+                "PG-13",
+                "R",
+                "NC-17"
+              ],
+              "type": "string",
+              "description": "Maximum US movie content rating (inclusive; excludes unrated titles)"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "runtimeMax",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 600,
+              "description": "Maximum runtime in minutes"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "accessType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "free",
+                "ads",
+                "free_or_ads",
+                "paid"
+              ],
+              "type": "string",
+              "description": "Filter US streaming offers by free, ad-supported, or paid access"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
             "name": "platformId",
             "in": "query",
             "required": false,
@@ -4077,6 +4448,24 @@
               "type": "string",
               "description": "Platform ID to filter by"
             },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "platformIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "maxItems": 100,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Match any selected streaming platform"
+            },
+            "style": "deepObject",
+            "explode": true,
             "allowEmptyValue": true,
             "allowReserved": true
           },
@@ -4168,7 +4557,7 @@
                     "totalPages",
                     "totalResults"
                   ],
-                  "description": "Browse results with user tracking statuses and episode progress"
+                  "description": "Browse results with source pagination, tracking statuses and episode progress. US availability verification may remove source candidates."
                 }
               }
             }
@@ -4443,6 +4832,17 @@
                           "isSubscription": {
                             "type": "boolean",
                             "description": "True for subscription services, false for purchase/rental stores"
+                          },
+                          "accessTypes": {
+                            "type": "array",
+                            "items": {
+                              "enum": [
+                                "free",
+                                "paid"
+                              ],
+                              "type": "string"
+                            },
+                            "description": "US provider access categories; mixed providers can have both"
                           }
                         },
                         "required": [
@@ -4450,9 +4850,9 @@
                           "name",
                           "tmdbProviderIds",
                           "logoPath",
-                          "isSubscription"
-                        ],
-                        "description": "A streaming platform"
+                          "isSubscription",
+                          "accessTypes"
+                        ]
                       }
                     }
                   },
@@ -4475,9 +4875,37 @@
       "get": {
         "operationId": "discover.recommendations",
         "summary": "Get personalized recommendations",
-        "description": "Fetch personalized title recommendations based on the user's library and watch history.",
+        "description": "Fetch recommendations from the user's library and attributed creator picks, with verified US availability.",
         "tags": [
           "Discover"
+        ],
+        "parameters": [
+          {
+            "name": "accessType",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "all",
+                "free",
+                "paid"
+              ],
+              "type": "string"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "allowEmptyValue": true,
+            "allowReserved": true
+          }
         ],
         "responses": {
           "200": {
@@ -4492,10 +4920,37 @@
                       "items": {
                         "$ref": "#/components/schemas/Recommendation"
                       }
+                    },
+                    "creators": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "channelUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "channelUrl"
+                        ]
+                      }
                     }
                   },
                   "required": [
-                    "items"
+                    "items",
+                    "creators"
                   ],
                   "description": "Personalized title recommendations based on the user's library"
                 }
@@ -4683,6 +5138,1003 @@
                       ]
                     }
                   ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/account/discovery-presets": {
+      "get": {
+        "operationId": "account.discoveryPresets",
+        "summary": "Get saved Discover filters",
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "filters": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "movie",
+                              "tv"
+                            ],
+                            "type": "string",
+                            "description": "Media type to discover"
+                          },
+                          "genreId": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "TMDB genre ID to filter by"
+                          },
+                          "yearMin": {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 2100,
+                            "description": "Minimum release year"
+                          },
+                          "yearMax": {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 2100,
+                            "description": "Maximum release year"
+                          },
+                          "ratingMin": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 10,
+                            "description": "Minimum TMDB vote average"
+                          },
+                          "sortBy": {
+                            "enum": [
+                              "popularity.desc",
+                              "vote_average.desc",
+                              "primary_release_date.desc",
+                              "primary_release_date.asc"
+                            ],
+                            "type": "string",
+                            "description": "Sort order for results"
+                          },
+                          "language": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "pattern": "^[a-z]{2}$",
+                            "description": "ISO 639-1 original language code"
+                          },
+                          "originCountry": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "pattern": "^[A-Z]{2}$",
+                            "description": "ISO 3166-1 country of origin code"
+                          },
+                          "certification": {
+                            "enum": [
+                              "G",
+                              "PG",
+                              "PG-13",
+                              "R",
+                              "NC-17"
+                            ],
+                            "type": "string",
+                            "description": "Maximum US movie content rating (inclusive; excludes unrated titles)"
+                          },
+                          "accessType": {
+                            "enum": [
+                              "free",
+                              "ads",
+                              "free_or_ads",
+                              "paid"
+                            ],
+                            "type": "string",
+                            "description": "Filter US streaming offers by free, ad-supported, or paid access"
+                          },
+                          "platformId": {
+                            "type": "string",
+                            "description": "Platform ID to filter by"
+                          },
+                          "platformIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "description": "Match any selected streaming platform"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "filters"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "account.saveDiscoveryPreset",
+        "summary": "Save or update Discover filters",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "filters": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "enum": [
+                          "movie",
+                          "tv"
+                        ],
+                        "type": "string",
+                        "description": "Media type to discover"
+                      },
+                      "genreId": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991,
+                        "description": "TMDB genre ID to filter by"
+                      },
+                      "yearMin": {
+                        "type": "integer",
+                        "minimum": 1900,
+                        "maximum": 2100,
+                        "description": "Minimum release year"
+                      },
+                      "yearMax": {
+                        "type": "integer",
+                        "minimum": 1900,
+                        "maximum": 2100,
+                        "description": "Maximum release year"
+                      },
+                      "ratingMin": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 10,
+                        "description": "Minimum TMDB vote average"
+                      },
+                      "sortBy": {
+                        "enum": [
+                          "popularity.desc",
+                          "vote_average.desc",
+                          "primary_release_date.desc",
+                          "primary_release_date.asc"
+                        ],
+                        "type": "string",
+                        "description": "Sort order for results"
+                      },
+                      "language": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "pattern": "^[a-z]{2}$",
+                        "description": "ISO 639-1 original language code"
+                      },
+                      "originCountry": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2,
+                        "pattern": "^[A-Z]{2}$",
+                        "description": "ISO 3166-1 country of origin code"
+                      },
+                      "certification": {
+                        "enum": [
+                          "G",
+                          "PG",
+                          "PG-13",
+                          "R",
+                          "NC-17"
+                        ],
+                        "type": "string",
+                        "description": "Maximum US movie content rating (inclusive; excludes unrated titles)"
+                      },
+                      "accessType": {
+                        "enum": [
+                          "free",
+                          "ads",
+                          "free_or_ads",
+                          "paid"
+                        ],
+                        "type": "string",
+                        "description": "Filter US streaming offers by free, ad-supported, or paid access"
+                      },
+                      "platformId": {
+                        "type": "string",
+                        "description": "Platform ID to filter by"
+                      },
+                      "platformIds": {
+                        "type": "array",
+                        "maxItems": 100,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "description": "Match any selected streaming platform"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "filters"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "filters": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "movie",
+                              "tv"
+                            ],
+                            "type": "string",
+                            "description": "Media type to discover"
+                          },
+                          "genreId": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "TMDB genre ID to filter by"
+                          },
+                          "yearMin": {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 2100,
+                            "description": "Minimum release year"
+                          },
+                          "yearMax": {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 2100,
+                            "description": "Maximum release year"
+                          },
+                          "ratingMin": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 10,
+                            "description": "Minimum TMDB vote average"
+                          },
+                          "sortBy": {
+                            "enum": [
+                              "popularity.desc",
+                              "vote_average.desc",
+                              "primary_release_date.desc",
+                              "primary_release_date.asc"
+                            ],
+                            "type": "string",
+                            "description": "Sort order for results"
+                          },
+                          "language": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "pattern": "^[a-z]{2}$",
+                            "description": "ISO 639-1 original language code"
+                          },
+                          "originCountry": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "pattern": "^[A-Z]{2}$",
+                            "description": "ISO 3166-1 country of origin code"
+                          },
+                          "certification": {
+                            "enum": [
+                              "G",
+                              "PG",
+                              "PG-13",
+                              "R",
+                              "NC-17"
+                            ],
+                            "type": "string",
+                            "description": "Maximum US movie content rating (inclusive; excludes unrated titles)"
+                          },
+                          "accessType": {
+                            "enum": [
+                              "free",
+                              "ads",
+                              "free_or_ads",
+                              "paid"
+                            ],
+                            "type": "string",
+                            "description": "Filter US streaming offers by free, ad-supported, or paid access"
+                          },
+                          "platformId": {
+                            "type": "string",
+                            "description": "Platform ID to filter by"
+                          },
+                          "platformIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "description": "Match any selected streaming platform"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "filters"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/account/discovery-presets/{id}": {
+      "delete": {
+        "operationId": "account.deleteDiscoveryPreset",
+        "summary": "Delete saved Discover filters",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Internal UUIDv7 identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "filters": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "movie",
+                              "tv"
+                            ],
+                            "type": "string",
+                            "description": "Media type to discover"
+                          },
+                          "genreId": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "TMDB genre ID to filter by"
+                          },
+                          "yearMin": {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 2100,
+                            "description": "Minimum release year"
+                          },
+                          "yearMax": {
+                            "type": "integer",
+                            "minimum": 1900,
+                            "maximum": 2100,
+                            "description": "Maximum release year"
+                          },
+                          "ratingMin": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 10,
+                            "description": "Minimum TMDB vote average"
+                          },
+                          "sortBy": {
+                            "enum": [
+                              "popularity.desc",
+                              "vote_average.desc",
+                              "primary_release_date.desc",
+                              "primary_release_date.asc"
+                            ],
+                            "type": "string",
+                            "description": "Sort order for results"
+                          },
+                          "language": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "pattern": "^[a-z]{2}$",
+                            "description": "ISO 639-1 original language code"
+                          },
+                          "originCountry": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 2,
+                            "pattern": "^[A-Z]{2}$",
+                            "description": "ISO 3166-1 country of origin code"
+                          },
+                          "certification": {
+                            "enum": [
+                              "G",
+                              "PG",
+                              "PG-13",
+                              "R",
+                              "NC-17"
+                            ],
+                            "type": "string",
+                            "description": "Maximum US movie content rating (inclusive; excludes unrated titles)"
+                          },
+                          "accessType": {
+                            "enum": [
+                              "free",
+                              "ads",
+                              "free_or_ads",
+                              "paid"
+                            ],
+                            "type": "string",
+                            "description": "Filter US streaming offers by free, ad-supported, or paid access"
+                          },
+                          "platformId": {
+                            "type": "string",
+                            "description": "Platform ID to filter by"
+                          },
+                          "platformIds": {
+                            "type": "array",
+                            "maxItems": 100,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "description": "Match any selected streaming platform"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "filters"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/account/critic-refresh": {
+      "get": {
+        "operationId": "account.creatorRefreshStatus",
+        "summary": "Get critic feed check status and recent videos",
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lastCheckedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "failed": {
+                      "type": "boolean"
+                    },
+                    "videos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "videoId": {
+                            "type": "string"
+                          },
+                          "videoTitle": {
+                            "type": "string"
+                          },
+                          "publishedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "creatorSlug": {
+                            "type": "string"
+                          },
+                          "creatorName": {
+                            "type": "string"
+                          },
+                          "videoUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        },
+                        "required": [
+                          "videoId",
+                          "videoTitle",
+                          "publishedAt",
+                          "creatorSlug",
+                          "creatorName",
+                          "videoUrl"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "lastCheckedAt",
+                    "failed",
+                    "videos"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "account.refreshCreators",
+        "summary": "Check selected critics for recent videos",
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lastCheckedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "failed": {
+                      "type": "boolean"
+                    },
+                    "videos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "videoId": {
+                            "type": "string"
+                          },
+                          "videoTitle": {
+                            "type": "string"
+                          },
+                          "publishedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "creatorSlug": {
+                            "type": "string"
+                          },
+                          "creatorName": {
+                            "type": "string"
+                          },
+                          "videoUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        },
+                        "required": [
+                          "videoId",
+                          "videoTitle",
+                          "publishedAt",
+                          "creatorSlug",
+                          "creatorName",
+                          "videoUrl"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "lastCheckedAt",
+                    "failed",
+                    "videos"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/account/critic-preferences": {
+      "get": {
+        "operationId": "account.criticPreferences",
+        "summary": "Get personal critic preferences",
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "preferences": {
+                      "type": "object",
+                      "properties": {
+                        "creatorIds": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "maxItems": 100,
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 80,
+                                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "default": null
+                        },
+                        "refreshFrequency": {
+                          "enum": [
+                            "manual",
+                            "hourly",
+                            "daily",
+                            "weekly"
+                          ],
+                          "type": "string",
+                          "default": "daily"
+                        }
+                      }
+                    },
+                    "creators": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "channelUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "channelUrl"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "preferences",
+                    "creators"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "account.updateCriticPreferences",
+        "summary": "Update personal critic preferences",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "creatorIds": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "maxItems": 100,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null
+                  },
+                  "refreshFrequency": {
+                    "enum": [
+                      "manual",
+                      "hourly",
+                      "daily",
+                      "weekly"
+                    ],
+                    "type": "string",
+                    "default": "daily"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "creatorIds": {
+                      "anyOf": [
+                        {
+                          "type": "array",
+                          "maxItems": 100,
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "default": null
+                    },
+                    "refreshFrequency": {
+                      "enum": [
+                        "manual",
+                        "hourly",
+                        "daily",
+                        "weekly"
+                      ],
+                      "type": "string",
+                      "default": "daily"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/account/explore-preferences": {
+      "get": {
+        "operationId": "account.explorePreferences",
+        "summary": "Get Explore section preferences",
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "trending": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "popularMovies": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "popularTv": {
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "account.updateExplorePreferences",
+        "summary": "Update Explore section preferences",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "trending": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "popularMovies": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "popularTv": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "trending": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "popularMovies": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "popularTv": {
+                      "type": "boolean",
+                      "default": true
+                    }
+                  }
                 }
               }
             }
@@ -6012,6 +7464,7 @@
                       "nightlyRefreshLibrary",
                       "refreshAvailability",
                       "refreshRecommendations",
+                      "refreshCreatorFeeds",
                       "refreshTvChildren",
                       "cacheImages",
                       "refreshCredits",

@@ -2,6 +2,7 @@ import { Cron } from "croner";
 
 import { refreshAvailability } from "@sofa/core/availability";
 import { createBackup, ensureBackupDir, pruneBackups } from "@sofa/core/backup";
+import { refreshDueCreators } from "@sofa/core/creator-refresh";
 import { refreshCredits, syncCastProfileThumbHashes } from "@sofa/core/credits";
 import {
   completeCronRun,
@@ -295,6 +296,7 @@ export function startJobs() {
   schedule("scheduledBackup", getBackupCronFromSettings(), scheduledBackupJob);
   schedule("nightlyRefreshLibrary", "0 3 * * *", nightlyRefreshLibrary);
   schedule("refreshAvailability", "0 */6 * * *", refreshAvailabilityJob);
+  schedule("refreshCreatorFeeds", "*/15 * * * *", refreshDueCreators);
   schedule("refreshRecommendations", "0 */12 * * *", refreshRecommendationsJob);
   schedule("refreshTvChildren", "30 */12 * * *", refreshTvChildrenJob);
   schedule("cacheImages", "0 1,13 * * *", cacheImagesJob);

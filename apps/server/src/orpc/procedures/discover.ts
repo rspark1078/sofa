@@ -2,11 +2,25 @@ import { ORPCError } from "@orpc/server";
 
 import { AppErrorCode } from "@sofa/api/errors";
 import { WATCH_REGION } from "@sofa/config";
-import { getRecommendationsFeed } from "@sofa/core/discovery";
+import {
+  getCreatorCredits,
+  getRecommendationCandidates,
+  getRecommendationCreators,
+} from "@sofa/core/creator-recommendations";
+import { getDiscoverParams, getRecommendationSources } from "@sofa/core/discovery";
 import { ensureBrowseTitlesExist } from "@sofa/core/metadata";
 import { ensureBrowsePersonsExist } from "@sofa/core/person";
-import { getPlatformTmdbIdMap, getPlatformTmdbIds, listPlatforms } from "@sofa/core/platforms";
+import {
+  getDiscoveryProviderIds,
+  getDiscoveryProviderTypes,
+  getPlatformTmdbIdMap,
+  listPlatforms,
+} from "@sofa/core/platforms";
 import { getDisplayStatusesByTitleIds, getEpisodeProgressByTitleIds } from "@sofa/core/tracking";
+import {
+  verifyRecommendationCandidates,
+  verifyUsCandidates,
+} from "@sofa/core/verified-availability";
 import {
   discover as discoverTmdb,
   getGenres,
@@ -317,35 +331,13 @@ export const search = os.discover.search.use(authed).handler(async ({ input }) =
 export const browse = os.discover.browse.use(authed).handler(async ({ input, context }) => {
   requireTmdb();
 
-  const params: Record<string, string> = {
-    sort_by: input.sortBy ?? "popularity.desc",
-    "vote_count.gte": "50",
-  };
-  if (input.genreId) params.with_genres = String(input.genreId);
-  if (input.yearMin) {
-    const key = input.type === "movie" ? "primary_release_date.gte" : "first_air_date.gte";
-    params[key] = `${input.yearMin}-01-01`;
-  }
-  if (input.yearMax) {
-    const key = input.type === "movie" ? "primary_release_date.lte" : "first_air_date.lte";
-    params[key] = `${input.yearMax}-12-31`;
-  }
-  if (input.ratingMin != null) params["vote_average.gte"] = String(input.ratingMin);
-  if (input.language) params.with_original_language = input.language;
-  if (input.originCountry) params.with_origin_country = input.originCountry;
-  if (input.runtimeMax != null) params["with_runtime.lte"] = String(input.runtimeMax);
-  if (input.accessType) {
-    params.with_watch_monetization_types =
-      input.accessType === "free_or_ads" ? "free|ads" : input.accessType;
-    params.watch_region = WATCH_REGION;
-  }
-  if (input.platformId) {
-    const tmdbIds = getPlatformTmdbIds(input.platformId);
-    if (tmdbIds.length > 0) {
-      params.with_watch_providers = tmdbIds.join("|");
-      params.watch_region = WATCH_REGION;
-    }
-  }
+  const selectedPlatformIds = input.platformIds ?? (input.platformId ? [input.platformId] : []);
+  const mappings = getPlatformTmdbIdMap(selectedPlatformIds);
+  const params = getDiscoverParams(
+    input,
+    getDiscoveryProviderIds([...new Set([...mappings.values()].flat())], input.accessType),
+    WATCH_REGION,
+  );
 
   const results = await discoverTmdb(input.type, params, input.page);
 
@@ -356,7 +348,7 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
     first_air_date?: string;
   };
 
-  const baseItems = ((results.results ?? []) as DiscoverResult[])
+  const candidates = ((results.results ?? []) as DiscoverResult[])
     .filter((r) => r.poster_path)
     .map((r) => ({
       tmdbId: r.id,
@@ -367,6 +359,12 @@ export const browse = os.discover.browse.use(authed).handler(async ({ input, con
       firstAirDate: (r.first_air_date as string | undefined) ?? null,
       voteAverage: r.vote_average ?? null,
     }));
+
+  const baseItems = await verifyUsCandidates(
+    candidates,
+    input.accessType,
+    selectedPlatformIds.length > 0 ? [...new Set([...mappings.values()].flat())] : undefined,
+  );
 
   const titleMap = ensureBrowseTitlesExist(baseItems);
   const items = baseItems.map((item) => {
@@ -422,27 +420,40 @@ export const platforms = os.discover.platforms.use(authed).handler(async () => {
       tmdbProviderIds: tmdbIdsMap.get(p.id) ?? [],
       logoPath: tmdbImageUrl(p.logoPath, "logos"),
       isSubscription: p.isSubscription,
+      accessTypes: getDiscoveryProviderTypes(tmdbIdsMap.get(p.id) ?? []),
     })),
   };
 });
 
 // ─── Recommendations ──────────────────────────────────────────
 
-export const recommendations = os.discover.recommendations.use(authed).handler(({ context }) => {
-  const feed = getRecommendationsFeed(context.user.id);
-  const items = feed
-    .filter((t): t is NonNullable<typeof t> => t != null)
-    .slice(0, 10)
-    .map((t) => ({
-      id: t.id,
-      tmdbId: t.tmdbId,
-      type: t.type,
-      title: t.title,
-      posterPath: tmdbImageUrl(t.posterPath, "posters"),
-      posterThumbHash: t.posterThumbHash ?? null,
-      releaseDate: t.releaseDate ?? null,
-      firstAirDate: t.firstAirDate ?? null,
-      voteAverage: t.voteAverage,
+export const recommendations = os.discover.recommendations
+  .use(authed)
+  .handler(async ({ context, input }) => {
+    requireTmdb();
+    const candidates = await getRecommendationCandidates(context.user.id, input?.source);
+    if (candidates.length === 0) return { items: [], creators: getRecommendationCreators() };
+    const verified = await verifyRecommendationCandidates(
+      candidates.map((title) => Object.assign({}, title, { type: title.type as "movie" | "tv" })),
+      input?.accessType,
+    );
+    const sources = getRecommendationSources(
+      context.user.id,
+      verified.map((title) => title.id),
+    );
+    const items = verified.slice(0, 10).map((title) => ({
+      id: title.id,
+      tmdbId: title.tmdbId,
+      type: title.type,
+      title: title.title,
+      posterPath: tmdbImageUrl(title.posterPath, "posters"),
+      posterThumbHash: title.posterThumbHash ?? null,
+      releaseDate: title.releaseDate ?? null,
+      firstAirDate: title.firstAirDate ?? null,
+      voteAverage: title.voteAverage ?? null,
+      usAvailability: title.usAvailability,
+      recommendationSources: sources.get(title.id) ?? [],
+      creatorCredits: getCreatorCredits(title.tmdbId, title.type),
     }));
-  return { items };
-});
+    return { items, creators: getRecommendationCreators() };
+  });

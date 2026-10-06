@@ -18,6 +18,7 @@ import {
   getContinueWatchingFeed,
   getNewAvailableFeed,
   getRecommendationsFeed,
+  getRecommendationSources,
   getRecommendationsForTitle,
   getUserStats,
   getWatchCount,
@@ -374,4 +375,63 @@ describe("getRecommendationsForTitle", () => {
     expect(recs).toHaveLength(2);
     expect(recs.map((rec) => rec.id)).toEqual(["rec1", "rec2"]);
   });
+});
+
+describe("recommendation availability filtering", () => {
+  test("uses US offer types, keeps ranking, and includes mixed offers in both views", () => {
+    insertUser();
+    insertPlatform({ id: "provider" });
+    insertTitle({ id: "source", tmdbId: 900 });
+    insertStatus("user-1", "source", "completed");
+    const offers = [
+      ["free-title", "free", "US"],
+      ["ads-title", "ads", "US"],
+      ["paid-title", "rent", "US"],
+      ["mixed-title", "free", "US"],
+      ["foreign-title", "free", "KR"],
+    ] as const;
+    offers.forEach(([id, offerType, region], index) => {
+      insertTitle({ id, tmdbId: 901 + index });
+      insertRecommendation("source", id, { rank: index + 1 });
+      insertTitleAvailability(id, "provider", { offerType, region });
+    });
+    insertTitleAvailability("mixed-title", "provider", { offerType: "flatrate" });
+    expect(getRecommendationsFeed("user-1", "free").map((t) => t?.id)).toEqual([
+      "free-title",
+      "ads-title",
+      "mixed-title",
+    ]);
+    expect(getRecommendationsFeed("user-1", "paid").map((t) => t?.id)).toEqual([
+      "paid-title",
+      "mixed-title",
+    ]);
+    expect(getRecommendationsFeed("user-1", "all")).toHaveLength(5);
+  });
+
+  test("filters before applying the recommendation limit", () => {
+    insertUser();
+    insertPlatform({ id: "provider" });
+    insertTitle({ id: "source", tmdbId: 900 });
+    insertStatus("user-1", "source", "completed");
+    for (let index = 0; index < 21; index++) {
+      const id = "rec-" + index;
+      insertTitle({ id, tmdbId: 1000 + index });
+      insertRecommendation("source", id, { rank: index });
+    }
+    insertTitleAvailability("rec-20", "provider", { offerType: "ads" });
+    expect(getRecommendationsFeed("user-1", "free").map((t) => t?.id)).toEqual(["rec-20"]);
+  });
+});
+
+test("recommendation explanations use only this account's engaged or highly rated sources", () => {
+  insertUser("user-1");
+  insertUser("user-2");
+  insertTitle({ id: "source", tmdbId: 9100, title: "Watched Source" });
+  insertTitle({ id: "private-source", tmdbId: 9101, title: "Other Account Source" });
+  insertTitle({ id: "rec", tmdbId: 9102, title: "Recommended" });
+  insertStatus("user-1", "source", "completed");
+  insertRating("user-2", "private-source", 5);
+  insertRecommendation("source", "rec");
+  insertRecommendation("private-source", "rec");
+  expect(getRecommendationSources("user-1", ["rec"]).get("rec")).toEqual(["Watched Source"]);
 });

@@ -1,3 +1,6 @@
+import type { z } from "zod";
+
+import type { DiscoverInput } from "@sofa/api/schemas";
 import {
   getAllTrackedTitleIds,
   getAvailabilityByTitleIds,
@@ -10,6 +13,7 @@ import {
   getInProgressTitleIds,
   getMovieWatchCountSince,
   getMovieWatchHistoryBuckets,
+  getRecommendedAvailability,
   getRecommendationRows,
   getRecommendationRowsForTitle,
   getSeasonsByTitleIds,
@@ -303,7 +307,11 @@ export function getContinueWatchingFeed(userId: string): ContinueWatchingItem[] 
 
 export { getNewAvailableFeed } from "@sofa/db/queries/discovery";
 
-export function getRecommendationsFeed(userId: string) {
+export function getRecommendationsFeed(
+  userId: string,
+  accessType: "all" | "free" | "paid" = "all",
+  limit = 20,
+) {
   // Get recommendations from user's highly-rated or completed titles
   const userCompletedOrRated = getEngagedTitleIds(userId);
 
@@ -334,11 +342,24 @@ export function getRecommendationsFeed(userId: string) {
     }
   }
 
-  const sorted = recs
+  const ranked = recs
     .values()
     .toArray()
-    .toSorted((a, b) => b.score - a.score)
-    .slice(0, 20);
+    .toSorted((a, b) => b.score - a.score);
+
+  const matchingIds =
+    accessType === "all"
+      ? null
+      : new Set(
+          getRecommendedAvailability(ranked.map((r) => r.titleId))
+            .filter((offer) =>
+              (accessType === "free" ? ["free", "ads"] : ["flatrate", "rent", "buy"]).includes(
+                offer.offerType,
+              ),
+            )
+            .map((offer) => offer.titleId),
+        );
+  const sorted = ranked.filter((r) => !matchingIds || matchingIds.has(r.titleId)).slice(0, limit);
 
   if (sorted.length === 0) return [];
 
@@ -625,4 +646,67 @@ export function getRecommendationsForTitle(titleId: string) {
       };
     })
     .filter((r): r is NonNullable<typeof r> => r !== null);
+}
+
+export function getDiscoverParams(
+  input: z.infer<typeof DiscoverInput>,
+  providerIds: number[] = [],
+  watchRegion = "US",
+): Record<string, string> {
+  const params: Record<string, string> = {
+    sort_by: input.sortBy ?? "popularity.desc",
+    "vote_count.gte": "50",
+  };
+  if (input.genreId) params.with_genres = String(input.genreId);
+  if (input.yearMin) {
+    const key = input.type === "movie" ? "primary_release_date.gte" : "first_air_date.gte";
+    params[key] = `${input.yearMin}-01-01`;
+  }
+  if (input.yearMax) {
+    const key = input.type === "movie" ? "primary_release_date.lte" : "first_air_date.lte";
+    params[key] = `${input.yearMax}-12-31`;
+  }
+  if (input.ratingMin != null) params["vote_average.gte"] = String(input.ratingMin);
+  if (input.language) params.with_original_language = input.language;
+  if (input.originCountry) params.with_origin_country = input.originCountry;
+  if (input.type === "movie" && input.certification) {
+    params["certification.gte"] = "G";
+    params["certification.lte"] = input.certification;
+    params.certification_country = "US";
+    params.region = "US";
+  }
+  if (input.runtimeMax != null) params["with_runtime.lte"] = String(input.runtimeMax);
+  if (input.accessType) {
+    params.with_watch_monetization_types =
+      input.accessType === "free_or_ads"
+        ? "free|ads"
+        : input.accessType === "paid"
+          ? "flatrate|rent|buy"
+          : input.accessType;
+    params.watch_region = "US";
+  }
+  if ((input.platformIds?.length ?? 0) > 0 || (!input.platformIds && input.platformId)) {
+    // A selection with no matching IDs must not broaden the search to all providers.
+    params.with_watch_providers = [...new Set(providerIds)].join("|") || "0";
+    params.watch_region = input.accessType ? "US" : watchRegion;
+  }
+
+  return params;
+}
+
+export function getRecommendationSources(userId: string, recommendedIds: string[]) {
+  const sourceIds = [
+    ...new Set([...getEngagedTitleIds(userId), ...getHighlyRatedTitleIds(userId)]),
+  ];
+  const rows = getRecommendationRows(sourceIds);
+  const names = new Map(getTitlesByIds(sourceIds).map((title) => [title.id, title.title]));
+  const result = new Map<string, string[]>();
+  for (const row of rows) {
+    if (!recommendedIds.includes(row.recommendedTitleId)) continue;
+    const name = names.get(row.sourceTitleId);
+    const sources = result.get(row.recommendedTitleId) ?? [];
+    if (name && !sources.includes(name) && sources.length < 2) sources.push(name);
+    result.set(row.recommendedTitleId, sources);
+  }
+  return result;
 }

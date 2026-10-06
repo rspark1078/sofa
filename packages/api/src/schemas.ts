@@ -124,15 +124,35 @@ export const DiscoverInput = z
       .regex(/^[A-Z]{2}$/)
       .optional()
       .describe("ISO 3166-1 country of origin code"),
+    certification: z
+      .enum(["G", "PG", "PG-13", "R", "NC-17"])
+      .optional()
+      .describe("Maximum US movie content rating (inclusive; excludes unrated titles)"),
     runtimeMax: z.number().int().min(1).max(600).optional().describe("Maximum runtime in minutes"),
     accessType: z
-      .enum(["free", "ads", "free_or_ads"])
+      .enum(["free", "ads", "free_or_ads", "paid"])
       .optional()
-      .describe("Limit results to free or ad-supported streaming in the US"),
+      .describe("Filter US streaming offers by free, ad-supported, or paid access"),
     platformId: z.string().optional().describe("Platform ID to filter by"),
+    platformIds: z
+      .array(z.string().min(1))
+      .max(100)
+      .optional()
+      .describe("Match any selected streaming platform"),
   })
   .merge(PageParam)
   .meta({ description: "Genre-based discovery filters" });
+
+export const DiscoveryPresetFilters = DiscoverInput.omit({
+  page: true,
+  runtimeMax: true,
+}).partial();
+export const DiscoveryPreset = z.object({
+  id: z.string(),
+  name: z.string().trim().min(1).max(100),
+  filters: DiscoveryPresetFilters,
+});
+export const SaveDiscoveryPresetInput = DiscoveryPreset.extend({ id: z.string().optional() });
 
 // ─── Watch history input ──────────────────────────────────────
 
@@ -203,6 +223,7 @@ const cronJobName = z.enum([
   "nightlyRefreshLibrary",
   "refreshAvailability",
   "refreshRecommendations",
+  "refreshCreatorFeeds",
   "refreshTvChildren",
   "cacheImages",
   "refreshCredits",
@@ -325,7 +346,9 @@ export const AvailabilityOfferSchema = z
     providerName: z.string().describe("Display name (e.g. Netflix, Hulu)"),
     logoPath: z.string().nullable().describe("Provider logo image path"),
     offerType: z.string().describe("Offer category: stream or purchase"),
-    watchUrl: z.string().nullable().describe("Direct link to watch on this provider"),
+    accessTypes: z.array(z.enum(["free", "ads", "flatrate", "rent", "buy"])).optional(),
+    linkType: z.enum(["search", "landing", "title"]).optional(),
+    watchUrl: z.string().nullable().describe("Provider link; may open a search or landing page"),
     isUserSubscribed: z.boolean().describe("Whether the user subscribes to this platform"),
   })
   .meta({ description: "A streaming availability offer from a provider" });
@@ -345,7 +368,13 @@ export const PlatformSchema = z
 export type Platform = z.infer<typeof PlatformSchema>;
 
 export const PlatformsListOutput = z.object({
-  platforms: z.array(PlatformSchema),
+  platforms: z.array(
+    PlatformSchema.extend({
+      accessTypes: z
+        .array(z.enum(["free", "paid"]))
+        .describe("US provider access categories; mixed providers can have both"),
+    }),
+  ),
 });
 
 export const UserPlatformsOutput = z.object({
@@ -447,6 +476,54 @@ export const PersonCreditSchema = z
   .meta({ description: "A person's credit in a movie or TV show" });
 
 /** Reusable TMDB browse result (trending / popular / discover items) */
+export const UsAvailabilitySummary = z.object({
+  offers: z.array(
+    z.object({
+      providerId: z.number(),
+      providerName: z.string(),
+      offerType: z.enum(["free", "ads", "flatrate", "rent", "buy"]),
+    }),
+  ),
+  watchPageUrl: z.string().nullable(),
+  checkedAt: z.string(),
+});
+
+export const RecommendationSource = z
+  .string()
+  .min(1)
+  .max(80)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+export const CriticPreferences = z.object({
+  creatorIds: z.array(RecommendationSource).max(100).nullable().default(null),
+  refreshFrequency: z.enum(["manual", "hourly", "daily", "weekly"]).default("daily"),
+});
+
+export const CreatorRefreshStatus = z.object({
+  lastCheckedAt: z.string().datetime().nullable(),
+  failed: z.boolean(),
+  videos: z.array(
+    z.object({
+      videoId: z.string(),
+      videoTitle: z.string(),
+      publishedAt: z.string().datetime(),
+      creatorSlug: z.string(),
+      creatorName: z.string(),
+      videoUrl: z.string().url(),
+    }),
+  ),
+});
+
+export const RecommendationCreator = z.object({
+  id: RecommendationSource,
+  name: z.string(),
+  channelUrl: z.string().url(),
+});
+export const CreatorCredit = RecommendationCreator.extend({
+  videoUrl: z.string().url(),
+  videoTitle: z.string(),
+  publishedAt: z.string().date(),
+});
+
 export const TmdbBrowseItem = z
   .object({
     id: z.string().describe("Internal title ID"),
@@ -458,6 +535,9 @@ export const TmdbBrowseItem = z
     releaseDate: z.string().nullable().describe("Release date (ISO 8601)"),
     firstAirDate: z.string().nullable().describe("First air date (ISO 8601)"),
     voteAverage: z.number().nullable().describe("Average rating (0-10)"),
+    usAvailability: UsAvailabilitySummary.optional(),
+    recommendationSources: z.array(z.string()).optional(),
+    creatorCredits: z.array(CreatorCredit).optional(),
   })
   .meta({
     description: "A TMDB title card used in browse/trending/popular lists",
@@ -475,6 +555,9 @@ export const RecommendationItemSchema = z
     releaseDate: z.string().nullable().describe("Release date (ISO 8601)"),
     firstAirDate: z.string().nullable().describe("First air date (ISO 8601)"),
     voteAverage: z.number().nullable().describe("Average rating (0-10)"),
+    usAvailability: UsAvailabilitySummary.optional(),
+    recommendationSources: z.array(z.string()).optional(),
+    creatorCredits: z.array(CreatorCredit).optional(),
   })
   .meta({ description: "A recommended title" });
 
@@ -496,7 +579,8 @@ const BrowseOutput = z
   })
   .merge(PaginationMeta)
   .meta({
-    description: "Browse results with user tracking statuses and episode progress",
+    description:
+      "Browse results with source pagination, tracking statuses and episode progress. US availability verification may remove source candidates.",
   });
 
 // ─── Title outputs ─────────────────────────────────────────────
@@ -506,7 +590,9 @@ export const TitleDetailOutput = z
     title: ResolvedTitleSchema,
     seasons: z.array(SeasonSchema).describe("TV seasons (empty for movies)"),
     availability: z.array(AvailabilityOfferSchema).describe("Streaming availability offers"),
+    usAvailability: UsAvailabilitySummary.optional(),
     cast: z.array(CastMemberSchema).describe("Cast and crew credits"),
+    creatorCredits: z.array(CreatorCredit).optional(),
   })
   .meta({
     description: "Full title details with seasons, cast, and streaming availability",
@@ -658,6 +744,7 @@ export const LibraryGenresOutput = z
 export const DiscoverRecommendationsOutput = z
   .object({
     items: z.array(RecommendationItemSchema),
+    creators: z.array(RecommendationCreator),
   })
   .meta({
     description: "Personalized title recommendations based on the user's library",
@@ -1239,3 +1326,9 @@ export type NormalizedImport = z.infer<typeof NormalizedImportSchema>;
 export type UpcomingItem = z.infer<typeof UpcomingItemSchema>;
 export type AdminSettings = z.infer<typeof AdminSettingsOutput>;
 export type WatchScopeType = z.infer<typeof WatchScope>;
+
+export const ExplorePreferences = z.object({
+  trending: z.boolean().default(true),
+  popularMovies: z.boolean().default(true),
+  popularTv: z.boolean().default(true),
+});

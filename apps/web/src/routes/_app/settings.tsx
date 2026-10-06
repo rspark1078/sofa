@@ -15,7 +15,9 @@ import { AccountSection } from "@/components/settings/account-section";
 import { BackupRestoreSection } from "@/components/settings/backup-restore-section";
 import { BackupScheduleSection } from "@/components/settings/backup-schedule-section";
 import { BackupSection } from "@/components/settings/backup-section";
+import { CriticsSection } from "@/components/settings/critics-section";
 import { CacheSection } from "@/components/settings/danger-section";
+import { ExploreSection } from "@/components/settings/explore-section";
 import { ImportsSection } from "@/components/settings/imports-section";
 import { IntegrationsSection } from "@/components/settings/integrations-section";
 import { LanguageSection } from "@/components/settings/language-section";
@@ -99,6 +101,8 @@ function SettingsPage() {
           />
           <StreamingServicesSection />
           <LanguageSection />
+          <ExploreSection />
+          <CriticsSection />
         </div>
       </div>
 

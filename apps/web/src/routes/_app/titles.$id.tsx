@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
+import { CreatorCredits } from "@/components/titles/creator-credits";
 import { TitleActions } from "@/components/titles/title-actions";
 import { TitleAvailability } from "@/components/titles/title-availability";
 import { TitleCast } from "@/components/titles/title-cast";
@@ -50,7 +51,8 @@ export const Route = createFileRoute("/_app/titles/$id")({
 });
 
 function TitleDetailPage() {
-  const { title, seasons, availability, cast } = Route.useLoaderData();
+  const { title, seasons, availability, cast, usAvailability, creatorCredits } =
+    Route.useLoaderData();
 
   const themeStyle = getThemeCssProperties(title.colorPalette);
 
@@ -65,8 +67,10 @@ function TitleDetailPage() {
         seasons={seasons}
       >
         <TitleHero title={title} trailerVideoKey={title.trailerVideoKey} actions={<TitleActions />}>
-          <TitleAvailability availability={availability} />
+          <TitleAvailability availability={availability} usAvailability={usAvailability} />
         </TitleHero>
+
+        <CreatorCredits credits={creatorCredits} />
 
         {title.type === "tv" && seasons.length > 0 && <TitleSeasons />}
 

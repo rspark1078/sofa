@@ -6,6 +6,13 @@ import { ORPCError } from "@orpc/server";
 import { AppErrorCode } from "@sofa/api/errors";
 import { auth } from "@sofa/auth/server";
 import { AVATAR_DIR } from "@sofa/config";
+import { getRecommendationCreators } from "@sofa/core/creator-recommendations";
+import { getCreatorRefreshStatus, refreshUserCreators } from "@sofa/core/creator-refresh";
+import {
+  getDiscoveryPresets,
+  saveDiscoveryPreset as coreSaveDiscoveryPreset,
+  deleteDiscoveryPreset as coreDeleteDiscoveryPreset,
+} from "@sofa/core/discovery-presets";
 import {
   createOrUpdateIntegration,
   deleteIntegration as coreDeleteIntegration,
@@ -14,6 +21,12 @@ import {
   serializeIntegration,
 } from "@sofa/core/integrations";
 import { getUserPlatformIdList, updateUserPlatforms } from "@sofa/core/platforms";
+import {
+  getCriticPreferences,
+  updateCriticPreferences,
+  getExplorePreferences,
+  updateExplorePreferences,
+} from "@sofa/core/settings";
 
 import { os } from "../context";
 import { authed } from "../middleware";
@@ -115,3 +128,37 @@ export const integrationsRegenerateToken = os.account.integrations.regenerateTok
 
     return serializeIntegration(row);
   });
+
+export const explorePreferences = os.account.explorePreferences
+  .use(authed)
+  .handler(async ({ context }) => getExplorePreferences(context.user.id));
+export const updateExplorePreferencesHandler = os.account.updateExplorePreferences
+  .use(authed)
+  .handler(async ({ context, input }) => updateExplorePreferences(context.user.id, input));
+
+export const discoveryPresets = os.account.discoveryPresets
+  .use(authed)
+  .handler(({ context }) => getDiscoveryPresets(context.user.id));
+export const saveDiscoveryPreset = os.account.saveDiscoveryPreset
+  .use(authed)
+  .handler(({ context, input }) => coreSaveDiscoveryPreset(context.user.id, input));
+export const deleteDiscoveryPreset = os.account.deleteDiscoveryPreset
+  .use(authed)
+  .handler(({ context, input }) => coreDeleteDiscoveryPreset(context.user.id, input.id));
+
+export const criticPreferences = os.account.criticPreferences
+  .use(authed)
+  .handler(({ context }) => ({
+    preferences: getCriticPreferences(context.user.id),
+    creators: getRecommendationCreators(),
+  }));
+export const updateCriticPreferencesHandler = os.account.updateCriticPreferences
+  .use(authed)
+  .handler(({ context, input }) => updateCriticPreferences(context.user.id, input));
+
+export const creatorRefreshStatus = os.account.creatorRefreshStatus
+  .use(authed)
+  .handler(({ context }) => getCreatorRefreshStatus(context.user.id));
+export const refreshCreators = os.account.refreshCreators
+  .use(authed)
+  .handler(({ context }) => refreshUserCreators(context.user.id));

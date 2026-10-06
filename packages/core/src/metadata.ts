@@ -54,13 +54,15 @@ import {
   imageCacheEnabled,
   loadImageBuffer,
 } from "./image-cache";
-import { generateProviderUrl } from "./providers";
+import { getPlatformTmdbIdMap } from "./platforms";
+import { getProviderWatchLink } from "./providers";
 import {
   generateEpisodeThumbHash,
   generateSeasonThumbHash,
   generateTitleBackdropThumbHash,
   generateTitlePosterThumbHash,
 } from "./thumbhash";
+import type { VerifiedUsAvailability } from "./verified-availability";
 
 const log = createLogger("metadata");
 
@@ -691,6 +693,8 @@ const PURCHASE_PRIORITY: Record<string, number> = { rent: 0, buy: 1 };
 function readAvailability(
   titleId: string,
   titleName: string,
+  tmdbId: number,
+  type: "movie" | "tv",
   userPlatformIds?: Set<string>,
 ): AvailabilityOffer[] {
   const raw = getAvailabilityOffersForTitle(titleId);
@@ -706,6 +710,7 @@ function readAvailability(
     list.push(offer);
   }
 
+  const providerIdsByPlatform = getPlatformTmdbIdMap([...byPlatform.keys()]);
   const result: AvailabilityOffer[] = [];
 
   for (const [platformId, offers] of byPlatform) {
@@ -722,7 +727,16 @@ function readAvailability(
         providerName: best.providerName,
         logoPath: tmdbImageUrl(best.logoPath, "logos"),
         offerType: "stream",
-        watchUrl: generateProviderUrl(best.urlTemplate, titleName),
+        accessTypes: [
+          ...new Set(streamOffers.map((o) => o.offerType)),
+        ] as AvailabilityOffer["accessTypes"],
+        ...getProviderWatchLink({
+          tmdbId,
+          type,
+          providerIds: providerIdsByPlatform.get(platformId) ?? [],
+          urlTemplate: best.urlTemplate,
+          titleName,
+        }),
         isUserSubscribed: userPlatformIds ? userPlatformIds.has(platformId) : false,
       });
     }
@@ -737,7 +751,16 @@ function readAvailability(
         providerName: best.providerName,
         logoPath: tmdbImageUrl(best.logoPath, "logos"),
         offerType: "purchase",
-        watchUrl: generateProviderUrl(best.urlTemplate, titleName),
+        accessTypes: [
+          ...new Set(purchaseOffers.map((o) => o.offerType)),
+        ] as AvailabilityOffer["accessTypes"],
+        ...getProviderWatchLink({
+          tmdbId,
+          type,
+          providerIds: providerIdsByPlatform.get(platformId) ?? [],
+          urlTemplate: best.urlTemplate,
+          titleName,
+        }),
         isUserSubscribed: userPlatformIds ? userPlatformIds.has(platformId) : false,
       });
     }
@@ -753,6 +776,7 @@ export async function getOrFetchTitle(
   title: ResolvedTitle;
   seasons: Season[];
   availability: AvailabilityOffer[];
+  usAvailability?: VerifiedUsAvailability;
   cast: CastMember[];
 } | null> {
   let title = getTitleById(id);
@@ -795,9 +819,20 @@ export async function getOrFetchTitle(
     }
   }
 
+  const usAvailability = await refreshAvailability(title.id).catch((err) => {
+    log.debug("Availability refresh failed:", err);
+    return undefined;
+  });
+
   // Read enrichment data, then backfill anything missing
   const userPlatformIdSet = userId ? new Set(getUserPlatformIds(userId)) : undefined;
-  let availability = readAvailability(title.id, title.title, userPlatformIdSet);
+  let availability = readAvailability(
+    title.id,
+    title.title,
+    title.tmdbId,
+    title.type,
+    userPlatformIdSet,
+  );
   let cast = getCastForTitle(id);
 
   if (title.lastFetchedAt) {
@@ -809,7 +844,13 @@ export async function getOrFetchTitle(
       // Re-read only what was missing
       if (cast.length === 0) cast = getCastForTitle(id);
       if (availability.length === 0)
-        availability = readAvailability(title.id, title.title, userPlatformIdSet);
+        availability = readAvailability(
+          title.id,
+          title.title,
+          title.tmdbId,
+          title.type,
+          userPlatformIdSet,
+        );
       title = getTitleById(id) ?? title;
     }
   }
@@ -849,6 +890,7 @@ export async function getOrFetchTitle(
     title: resolvedTitle,
     seasons: titleSeasons,
     availability,
+    usAvailability,
     cast,
   };
 }

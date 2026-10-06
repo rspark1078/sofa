@@ -2,8 +2,10 @@ import { useLingui } from "@lingui/react/macro";
 import { IconDeviceTv, IconFlame, IconMovie } from "@tabler/icons-react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { useMemo } from "react";
 
+import { discoverSearchSchema } from "@/components/explore/discover-search";
 import { DiscoverSection } from "@/components/explore/discover-section";
 import { FilterableTitleRow } from "@/components/explore/filterable-title-row";
 import { HeroBanner } from "@/components/explore/hero-banner";
@@ -13,24 +15,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { orpc } from "@/lib/orpc/client";
 
 export const Route = createFileRoute("/_app/explore")({
+  validateSearch: zodValidator(discoverSearchSchema),
   staleTime: 60_000,
   loader: async ({ context }) => {
+    const preferences = await context.queryClient.ensureQueryData(
+      orpc.account.explorePreferences.queryOptions(),
+    );
     await Promise.all([
-      context.queryClient.ensureInfiniteQueryData(
-        orpc.discover.trending.infiniteOptions({
-          input: (pageParam: number) => ({ type: "all" as const, page: pageParam }),
-          initialPageParam: 1,
-          getNextPageParam: (lastPage) =>
-            lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
-          maxPages: 10,
-        }),
-      ),
-      context.queryClient.ensureQueryData(
-        orpc.discover.popular.queryOptions({ input: { type: "movie" } }),
-      ),
-      context.queryClient.ensureQueryData(
-        orpc.discover.popular.queryOptions({ input: { type: "tv" } }),
-      ),
+      preferences.trending &&
+        context.queryClient.ensureInfiniteQueryData(
+          orpc.discover.trending.infiniteOptions({
+            input: (pageParam: number) => ({ type: "all" as const, page: pageParam }),
+            initialPageParam: 1,
+            getNextPageParam: (lastPage) =>
+              lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+            maxPages: 10,
+          }),
+        ),
+      preferences.popularMovies &&
+        context.queryClient.ensureQueryData(
+          orpc.discover.popular.queryOptions({ input: { type: "movie" } }),
+        ),
+      preferences.popularTv &&
+        context.queryClient.ensureQueryData(
+          orpc.discover.popular.queryOptions({ input: { type: "tv" } }),
+        ),
       context.queryClient.ensureQueryData(
         orpc.discover.genres.queryOptions({ input: { type: "movie" } }),
       ),
@@ -74,28 +83,34 @@ function mergeMaps<T>(...maps: (Record<string, T> | undefined)[]): Record<string
 
 function ExplorePage() {
   const { t } = useLingui();
+  const { data: preferences = { trending: true, popularMovies: true, popularTv: true } } = useQuery(
+    orpc.account.explorePreferences.queryOptions(),
+  );
   const {
     data: trendingData,
     isPending: trendingPending,
     fetchNextPage: fetchNextTrending,
     hasNextPage: hasNextTrending,
     isFetchingNextPage: isFetchingNextTrending,
-  } = useInfiniteQuery(
-    orpc.discover.trending.infiniteOptions({
+  } = useInfiniteQuery({
+    ...orpc.discover.trending.infiniteOptions({
       input: (pageParam: number) => ({ type: "all" as const, page: pageParam }),
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
       maxPages: 10,
     }),
-  );
+    enabled: preferences.trending,
+  });
 
-  const { data: popularMoviesData, isPending: moviesPending } = useQuery(
-    orpc.discover.popular.queryOptions({ input: { type: "movie" } }),
-  );
-  const { data: popularTvData, isPending: tvPending } = useQuery(
-    orpc.discover.popular.queryOptions({ input: { type: "tv" } }),
-  );
+  const { data: popularMoviesData, isPending: moviesPending } = useQuery({
+    ...orpc.discover.popular.queryOptions({ input: { type: "movie" } }),
+    enabled: preferences.popularMovies,
+  });
+  const { data: popularTvData, isPending: tvPending } = useQuery({
+    ...orpc.discover.popular.queryOptions({ input: { type: "tv" } }),
+    enabled: preferences.popularTv,
+  });
   const { data: movieGenreData } = useQuery(
     orpc.discover.genres.queryOptions({ input: { type: "movie" } }),
   );
@@ -103,7 +118,10 @@ function ExplorePage() {
     orpc.discover.genres.queryOptions({ input: { type: "tv" } }),
   );
 
-  const isPending = trendingPending || moviesPending || tvPending;
+  const isPending =
+    (preferences.trending && trendingPending) ||
+    (preferences.popularMovies && moviesPending) ||
+    (preferences.popularTv && tvPending);
 
   const trendingItems = useMemo(
     () => trendingData?.pages.flatMap((p) => p.items) ?? [],
@@ -128,7 +146,7 @@ function ExplorePage() {
 
   return (
     <div className="space-y-6">
-      {hero && (
+      {preferences.trending && hero && (
         <HeroBanner
           id={hero.id}
           type={hero.type}
@@ -139,38 +157,44 @@ function ExplorePage() {
         />
       )}
 
-      <div>
-        <TitleRow
-          heading={t`Trending Today`}
-          icon={<IconFlame aria-hidden={true} className="text-primary size-5" />}
-          items={trendingItems}
+      {preferences.trending && (
+        <div>
+          <TitleRow
+            heading={t`Trending Today`}
+            icon={<IconFlame aria-hidden={true} className="text-primary size-5" />}
+            items={trendingItems}
+            userStatuses={userStatuses}
+            episodeProgress={episodeProgress}
+            onEndReached={fetchNextTrending}
+            hasNextPage={hasNextTrending}
+            isFetchingNextPage={isFetchingNextTrending}
+          />
+        </div>
+      )}
+
+      {preferences.popularMovies && (
+        <FilterableTitleRow
+          heading={t`Popular Movies`}
+          icon={<IconMovie aria-hidden={true} className="text-primary size-5" />}
+          mediaType="movie"
+          defaultItems={(popularMoviesData?.items ?? []).slice(0, 20)}
+          genres={movieGenreData?.genres ?? []}
           userStatuses={userStatuses}
           episodeProgress={episodeProgress}
-          onEndReached={fetchNextTrending}
-          hasNextPage={hasNextTrending}
-          isFetchingNextPage={isFetchingNextTrending}
         />
-      </div>
+      )}
 
-      <FilterableTitleRow
-        heading={t`Popular Movies`}
-        icon={<IconMovie aria-hidden={true} className="text-primary size-5" />}
-        mediaType="movie"
-        defaultItems={(popularMoviesData?.items ?? []).slice(0, 20)}
-        genres={movieGenreData?.genres ?? []}
-        userStatuses={userStatuses}
-        episodeProgress={episodeProgress}
-      />
-
-      <FilterableTitleRow
-        heading={t`Popular TV Shows`}
-        icon={<IconDeviceTv aria-hidden={true} className="text-primary size-5" />}
-        mediaType="tv"
-        defaultItems={(popularTvData?.items ?? []).slice(0, 20)}
-        genres={tvGenreData?.genres ?? []}
-        userStatuses={userStatuses}
-        episodeProgress={episodeProgress}
-      />
+      {preferences.popularTv && (
+        <FilterableTitleRow
+          heading={t`Popular TV Shows`}
+          icon={<IconDeviceTv aria-hidden={true} className="text-primary size-5" />}
+          mediaType="tv"
+          defaultItems={(popularTvData?.items ?? []).slice(0, 20)}
+          genres={tvGenreData?.genres ?? []}
+          userStatuses={userStatuses}
+          episodeProgress={episodeProgress}
+        />
+      )}
 
       <DiscoverSection />
     </div>

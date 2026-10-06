@@ -1,6 +1,7 @@
 import { ORPCError } from "@orpc/server";
 
 import { AppErrorCode } from "@sofa/api/errors";
+import { getCreatorCredits } from "@sofa/core/creator-recommendations";
 import { getRecommendationsForTitle } from "@sofa/core/discovery";
 import { getOrFetchTitle } from "@sofa/core/metadata";
 import { getDisplayStatusesByTitleIds } from "@sofa/core/tracking";
@@ -15,7 +16,7 @@ export const get = os.titles.get.use(authed).handler(async ({ input, context }) 
       message: "Title not found",
       data: { code: AppErrorCode.TITLE_NOT_FOUND },
     });
-  return result;
+  return { ...result, creatorCredits: getCreatorCredits(result.title.tmdbId, result.title.type) };
 });
 
 export const similar = os.titles.similar.use(authed).handler(({ input, context }) => {

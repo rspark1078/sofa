@@ -229,6 +229,22 @@ msgstr "{watchedEpisodes}/{totalEpisodes, plural, one {# episode} other {# episo
 msgid "{watchlistCount} items"
 msgstr "{watchlistCount} items"
 
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr"
+#~ msgstr "≤ 2 hr"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr 15 min"
+#~ msgstr "≤ 2 hr 15 min"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr 30 min"
+#~ msgstr "≤ 2 hr 30 min"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 90 min"
+#~ msgstr "≤ 90 min"
+
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 msgid "1★+"
 msgstr "1★+"
@@ -283,6 +299,14 @@ msgstr "80s"
 #: apps/native/src/components/library/filter-sheet.tsx
 msgid "90s"
 msgstr "90s"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Access"
+#~ msgstr "Access"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Access type"
+#~ msgstr "Access type"
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/routes/_app/settings.tsx
@@ -377,6 +401,8 @@ msgstr ""
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/explore/filterable-title-row.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
 #: apps/web/src/routes/_app/upcoming.tsx
@@ -391,8 +417,16 @@ msgid "All genres"
 msgstr "All genres"
 
 #: apps/web/src/components/explore/discover-section.tsx
+msgid "All provider types"
+msgstr "All provider types"
+
+#: apps/web/src/components/explore/discover-section.tsx
 msgid "All providers"
 msgstr "All providers"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "All sources"
+msgstr "All sources"
 
 #: apps/web/src/components/settings/registration-section.tsx
 msgid "Allow new users to create accounts"
@@ -425,12 +459,32 @@ msgid "Any"
 msgstr "Any"
 
 #: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Any access"
+#~ msgstr "Any access"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any content rating"
+msgstr "Any content rating"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any country"
+msgstr "Any country"
+
+#: apps/web/src/components/explore/discover-section.tsx
 msgid "Any language"
 msgstr "Any language"
 
 #: apps/web/src/components/explore/discover-section.tsx
-msgid "Any rating"
-msgstr "Any rating"
+#~ msgid "Any rating"
+#~ msgstr "Any rating"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Any runtime"
+#~ msgstr "Any runtime"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any TMDB score"
+msgstr "Any TMDB score"
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/web/src/components/explore/discover-section.tsx
@@ -487,6 +541,10 @@ msgstr ""
 msgid "Availability"
 msgstr ""
 
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Availability could not be refreshed. Try again later."
+msgstr "Availability could not be refreshed. Try again later."
+
 #: apps/native/src/components/library/filter-sheet.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Available to stream"
@@ -525,9 +583,14 @@ msgstr ""
 msgid "backups."
 msgstr "backups."
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "Based on {basedOn}"
+msgstr "Based on {basedOn}"
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Buy"
-#~ msgstr ""
+msgid "Buy"
+msgstr ""
 
 #: apps/native/src/app/title/[id].tsx
 #: apps/web/src/components/titles/title-availability.tsx
@@ -608,21 +671,49 @@ msgstr ""
 msgid "Change Server"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Channels have not been checked yet."
+msgstr "Channels have not been checked yet."
+
 #: apps/web/src/components/setup/refresh-button.tsx
 msgid "Check configuration"
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Check for new videos"
+msgstr "Check for new videos"
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Check for updates"
 msgstr ""
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Check more results"
+msgstr "Check more results"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Check now"
+msgstr "Check now"
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Checked <0/>"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Checking channels…"
+msgstr "Checking channels…"
+
 #: apps/web/src/components/setup/refresh-button.tsx
 msgid "Checking…"
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+msgstr "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "China"
+msgstr "China"
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Chinese"
@@ -635,6 +726,14 @@ msgstr "Chinese"
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Choose how to import your {sourceLabel} data."
 msgstr "Choose how to import your {sourceLabel} data."
+
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Choose which sections appear on Explore. Discover is always shown."
+msgstr "Choose which sections appear on Explore. Discover is always shown."
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Choose whose movie picks appear in your recommendations. Your watch-history recommendations remain available."
+msgstr "Choose whose movie picks appear in your recommendations. Your watch-history recommendations remain available."
 
 #: apps/web/src/components/settings/language-section.tsx
 #~ msgid "Choose your preferred display language"
@@ -776,6 +875,7 @@ msgstr ""
 msgid "Connecting…"
 msgstr ""
 
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 msgid "Content rating"
 msgstr "Content rating"
@@ -825,6 +925,14 @@ msgstr "Could not load title details"
 msgid "Could not load your library"
 msgstr "Could not load your library"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Country"
+msgstr "Country"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Country of origin"
+msgstr "Country of origin"
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Crash reporting"
 msgstr "Crash reporting"
@@ -854,6 +962,22 @@ msgstr ""
 msgid "Creating…"
 msgstr ""
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Creator channels"
+msgstr "Creator channels"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden."
+msgstr "Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden."
+
+#: apps/web/src/components/settings/system-health-section.tsx
+msgid "Critic channel checks"
+msgstr "Critic channel checks"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Critics and creators"
+msgstr "Critics and creators"
+
 #: apps/native/src/app/change-password.tsx
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Current password"
@@ -867,6 +991,10 @@ msgstr ""
 #: apps/web/src/components/command-palette.tsx
 msgid "Cycle status"
 msgstr "Cycle status"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Daily"
+msgstr "Daily"
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Daily at {time}"
@@ -921,6 +1049,10 @@ msgstr "Default"
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Delete"
 msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Delete {presetName}"
+msgstr "Delete {presetName}"
 
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Delete backup"
@@ -1133,8 +1265,8 @@ msgid "Episodes {select}"
 msgstr ""
 
 #: apps/web/src/routes/_app/upcoming.tsx
-msgid "Episodes and movies coming up in the next 90 days."
-msgstr "Episodes and movies coming up in the next 90 days."
+#~ msgid "Episodes and movies coming up in the next 90 days."
+#~ msgstr "Episodes and movies coming up in the next 90 days."
 
 #: apps/native/src/app/(tabs)/(home)/index.tsx
 #~ msgid "Episodes this week"
@@ -1164,10 +1296,18 @@ msgstr "Every {n}h"
 msgid "Explore"
 msgstr ""
 
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Explore sections"
+msgstr "Explore sections"
+
 #: apps/web/src/routes/_app/people.$id.tsx
 #: apps/web/src/routes/_app/titles.$id.tsx
 msgid "Explore titles"
 msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Explore titles to watch or rate"
+msgstr "Explore titles to watch or rate"
 
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Export"
@@ -1293,6 +1433,14 @@ msgstr ""
 msgid "Failed to remove profile picture"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Failed to save critic preferences"
+msgstr "Failed to save critic preferences"
+
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Failed to save Explore preferences"
+msgstr "Failed to save Explore preferences"
+
 #: apps/native/src/app/(auth)/login.tsx
 msgid "Failed to sign in"
 msgstr ""
@@ -1377,6 +1525,18 @@ msgstr ""
 msgid "Filters"
 msgstr "Filters"
 
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Filters saved"
+msgstr "Filters saved"
+
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Find movies and shows"
+msgstr "Find movies and shows"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Find title-specific US watch links on TMDB / JustWatch"
+msgstr "Find title-specific US watch links on TMDB / JustWatch"
+
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Finished importing from {source}."
 msgstr ""
@@ -1385,13 +1545,36 @@ msgstr ""
 msgid "Finished importing your Sofa export."
 msgstr "Finished importing your Sofa export."
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Follow all critics, including new additions"
+msgstr "Follow all critics, including new additions"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "France"
+msgstr "France"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Free"
-#~ msgstr ""
+msgid "Free"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Free / with ads"
+#~ msgstr "Free / with ads"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Free providers"
+msgstr "Free providers"
 
 #: apps/web/src/components/settings/danger-section.tsx
 msgid "Free up disk space by clearing cached metadata and images"
 msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Free with ads"
+#~ msgstr "Free with ads"
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "French"
@@ -1508,6 +1691,14 @@ msgstr "Hindi"
 msgid "Home"
 msgstr ""
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Hong Kong"
+msgstr "Hong Kong"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Hourly"
+msgstr "Hourly"
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Image cache"
@@ -1611,6 +1802,10 @@ msgstr ""
 msgid "In Your Library"
 msgstr ""
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "India"
+msgstr "India"
+
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Install the <0>Webhook plugin<1/></0> from Jellyfin's plugin catalog"
 msgstr ""
@@ -1631,6 +1826,10 @@ msgstr ""
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Italian"
 msgstr "Italian"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Japan"
+msgstr "Japan"
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Japanese"
@@ -1714,6 +1913,15 @@ msgstr ""
 msgid "Last run succeeded"
 msgstr ""
 
+#. placeholder {0}: formatDate(status.lastCheckedAt)
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Last successful check: {0}"
+#~ msgstr "Last successful check: {0}"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Last successful check: {lastCheckedLabel}"
+msgstr "Last successful check: {lastCheckedLabel}"
+
 #: apps/native/src/app/(tabs)/(library)/_layout.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/nav-bar.tsx
@@ -1751,6 +1959,10 @@ msgstr ""
 #: apps/web/src/components/settings/settings-shell.tsx
 msgid "Manage your account and preferences"
 msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Manual"
+msgstr "Manual"
 
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Manual backup"
@@ -1866,6 +2078,14 @@ msgstr "Max"
 #~ msgid "Maximum rating"
 #~ msgstr "Maximum rating"
 
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Maximum runtime"
+#~ msgstr "Maximum runtime"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Maximum US content rating"
+msgstr "Maximum US content rating"
+
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Member since {memberSince}"
 msgstr ""
@@ -1881,6 +2101,10 @@ msgstr "Min 8 characters…"
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Minimum rating"
 #~ msgstr "Minimum rating"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Minimum TMDB score"
+msgstr "Minimum TMDB score"
 
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Monday"
@@ -2053,6 +2277,14 @@ msgstr ""
 msgid "No matching titles"
 msgstr "No matching titles"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#~ msgid "No recommendations match this availability filter in the cached US offers."
+#~ msgstr "No recommendations match this availability filter in the cached US offers."
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "No recommendations match this US availability filter."
+msgstr "No recommendations match this US availability filter."
+
 #: apps/native/src/app/(tabs)/(search)/index.tsx
 msgid "No results for \"{debouncedQuery}\""
 msgstr ""
@@ -2071,17 +2303,40 @@ msgid "No titles found for this genre."
 msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
-msgid "No titles found. Try adjusting your filters."
-msgstr "No titles found. Try adjusting your filters."
+#~ msgid "No titles found. Try adjusting your filters."
+#~ msgstr "No titles found. Try adjusting your filters."
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "No titles match these filters. Broaden your filters or reset them to start again."
+msgstr "No titles match these filters. Broaden your filters or reset them to start again."
 
 #: apps/web/src/routes/_app/library.tsx
 msgid "No titles match your filters"
 msgstr "No titles match your filters"
 
-#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "No unseen creator picks remain. Try another recommendation source."
+msgstr "No unseen creator picks remain. Try another recommendation source."
+
 #: apps/web/src/routes/_app/upcoming.tsx
+msgid "No upcoming episodes or releases for your library match these filters in the next 90 days. Add upcoming movies or shows to your watchlist to see them here."
+msgstr "No upcoming episodes or releases for your library match these filters in the next 90 days. Add upcoming movies or shows to your watchlist to see them here."
+
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
 msgid "No upcoming episodes or releases in the next 90 days."
 msgstr "No upcoming episodes or releases in the next 90 days."
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "No US offers are currently listed for this title."
+msgstr "No US offers are currently listed for this title."
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "No US offers listed"
+msgstr "No US offers listed"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "No verified matches on these pages. Check more results or broaden your filters."
+msgstr "No verified matches on these pages. Check more results or broaden your filters."
 
 #: apps/native/src/components/settings/integration-card.tsx
 #: apps/web/src/components/settings/integration-card.tsx
@@ -2117,6 +2372,10 @@ msgstr ""
 msgid "On your services"
 msgstr "On your services"
 
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Open {name} title page"
+msgstr "Open {name} title page"
+
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Open {source} to enter code"
 msgstr ""
@@ -2144,6 +2403,10 @@ msgstr ""
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Open Plex, go to Settings > Webhooks"
 msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Open provider links in Firefox"
+msgstr "Open provider links in Firefox"
 
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Open Radarr, go to <0>Settings > Import Lists</0>"
@@ -2190,6 +2453,15 @@ msgstr ""
 #: apps/native/src/app/+not-found.tsx
 msgid "Page Not Found"
 msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Paid"
+msgstr "Paid"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Paid providers"
+msgstr "Paid providers"
 
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Parsing file..."
@@ -2252,6 +2524,10 @@ msgstr ""
 msgid "Person not found"
 msgstr ""
 
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Picked by"
+msgstr "Picked by"
+
 #: apps/web/src/components/titles/trailer-dialog.tsx
 msgid "Play trailer"
 msgstr ""
@@ -2270,11 +2546,13 @@ msgid "Please sign in again."
 msgstr "Please sign in again."
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Popular Movies"
 msgstr ""
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Popular TV Shows"
 msgstr ""
@@ -2300,6 +2578,10 @@ msgstr "Pre-1980"
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Pre-restore backup"
 msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Preset name"
+msgstr "Preset name"
 
 #: apps/web/src/components/ui/pagination.tsx
 msgid "Previous"
@@ -2328,6 +2610,27 @@ msgstr ""
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Provider"
 msgstr "Provider"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Provider icons open a title page when available, otherwise a provider search or home page. Availability and account requirements can change."
+msgstr "Provider icons open a title page when available, otherwise a provider search or home page. Availability and account requirements can change."
+
+#: apps/web/src/components/titles/title-availability.tsx
+#~ msgid "Provider icons open provider search or home pages. Availability and account requirements can change."
+#~ msgstr "Provider icons open provider search or home pages. Availability and account requirements can change."
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Provider type"
+msgstr "Provider type"
+
+#. placeholder {0}: selectedPlatformIds.length
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Providers ({0})"
+#~ msgstr "Providers ({0})"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Providers ({providerCount})"
+msgstr "Providers ({providerCount})"
 
 #: apps/web/src/components/settings/danger-section.tsx
 msgid "Purge all"
@@ -2425,7 +2728,6 @@ msgstr ""
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
-#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
 #: apps/web/src/components/titles/star-rating.tsx
@@ -2465,10 +2767,22 @@ msgstr ""
 msgid "Recent Searches"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Recent videos — recommendation review required"
+msgstr "Recent videos — recommendation review required"
+
 #: apps/native/src/components/search/recently-viewed-list.ios.tsx
 #: apps/native/src/components/search/recently-viewed-list.tsx
 msgid "Recently Viewed"
 msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Recommendation availability"
+msgstr "Recommendation availability"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Recommendation source"
+msgstr "Recommendation source"
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Recommendations"
@@ -2490,6 +2804,10 @@ msgstr ""
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Refresh"
 msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Refresh recommendations"
+msgstr "Refresh recommendations"
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Refresh system health"
@@ -2583,9 +2901,10 @@ msgstr ""
 msgid "Removed from library"
 msgstr ""
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Rent"
-#~ msgstr ""
+msgid "Rent"
+msgstr ""
 
 #: apps/web/src/routes/setup.tsx
 msgid "Request an API key"
@@ -2606,6 +2925,11 @@ msgstr ""
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Requires Emby Server 4.7.9+ and an active Emby Premiere license."
 msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Reset filters"
+msgstr "Reset filters"
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Restart"
@@ -2647,9 +2971,15 @@ msgstr ""
 #: apps/native/src/components/settings/integrations-section.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.ios.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/lib/orpc/client.ts
 msgid "Retry"
 msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Retry loading saved filters"
+msgstr "Retry loading saved filters"
 
 #: apps/web/src/routes/__root.tsx
 msgid "Return home"
@@ -2663,6 +2993,10 @@ msgstr ""
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Run now"
 msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Runtime"
+#~ msgstr "Runtime"
 
 #: apps/native/src/components/dashboard/upcoming-row.tsx
 #: apps/web/src/components/dashboard/upcoming-item.tsx
@@ -2686,9 +3020,29 @@ msgstr ""
 msgid "Save name"
 msgstr ""
 
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Save new preset"
+msgstr "Save new preset"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Save your current filters to use them again later."
+msgstr "Save your current filters to use them again later."
+
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "Saved"
 msgstr "Saved"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved Discover filters"
+msgstr "Saved Discover filters"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved filters"
+msgstr "Saved filters"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved filters deleted"
+msgstr "Saved filters deleted"
 
 #: apps/web/src/routes/_app/onboarding.tsx
 msgid "Saving…"
@@ -2718,11 +3072,23 @@ msgstr ""
 msgid "Scheduled backups enabled"
 msgstr ""
 
+#: apps/web/src/components/explore/horizontal-title-scroller.tsx
+msgid "Scroll left"
+msgstr "Scroll left"
+
+#: apps/web/src/components/explore/horizontal-title-scroller.tsx
+msgid "Scroll right"
+msgstr "Scroll right"
+
 #: apps/native/src/app/(tabs)/(search)/_layout.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/command-palette.tsx
 msgid "Search"
 msgstr "Search"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Search {name}"
+msgstr "Search {name}"
 
 #: apps/web/src/components/dashboard/stats-section.tsx
 msgid "Search for movies and TV shows to start tracking"
@@ -2849,6 +3215,10 @@ msgstr ""
 msgid "Setup required"
 msgstr ""
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Show all recommendations"
+msgstr "Show all recommendations"
+
 #: apps/native/src/components/ui/expandable-text.tsx
 #: apps/web/src/components/expandable-text.tsx
 msgid "Show less"
@@ -2942,6 +3312,10 @@ msgstr "Sofa v{latestVersion} is available"
 msgid "Sofa will automatically log movies and episodes when you finish watching them"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Some critic channels could not be checked. Try again later."
+msgstr "Some critic channels could not be checked. Try again later."
+
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/app/change-password.tsx
 #: apps/native/src/app/person/[id].tsx
@@ -2975,6 +3349,10 @@ msgstr "Sort"
 #: apps/web/src/components/people/filmography-grid.tsx
 msgid "Sort filmography"
 msgstr "Sort filmography"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "South Korea"
+msgstr "South Korea"
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Spanish"
@@ -3029,9 +3407,18 @@ msgstr "Streaming"
 msgid "Streaming data provided by <0/><1>JustWatch</1>"
 msgstr "Streaming data provided by <0/><1>JustWatch</1>"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Streaming providers"
+msgstr "Streaming providers"
+
 #: apps/web/src/components/settings/streaming-services-section.tsx
 #~ msgid "Streaming Services"
 #~ msgstr "Streaming Services"
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Subscription"
+msgstr "Subscription"
 
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "Subscriptions"
@@ -3052,6 +3439,10 @@ msgstr "Switch to {name}"
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Takes effect after restarting the app"
 msgstr "Takes effect after restarting the app"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
+msgstr "The last check could not reach every selected channel. Existing recommendations are preserved."
 
 #: apps/native/src/app/+not-found.tsx
 msgid "The page you're looking for doesn't exist."
@@ -3195,6 +3586,10 @@ msgstr ""
 msgid "TMDB Rating"
 msgstr "TMDB Rating"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "TMDB score"
+msgstr "TMDB score"
+
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "To"
 #~ msgstr "To"
@@ -3242,6 +3637,7 @@ msgstr ""
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
 #: apps/web/src/components/explore/hero-banner.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Trending Today"
 msgstr ""
@@ -3298,6 +3694,42 @@ msgstr "TV Shows"
 msgid "Type"
 msgstr "Type"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to check critic channels"
+msgstr "Unable to check critic channels"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Unable to check current availability. Try again."
+msgstr "Unable to check current availability. Try again."
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Unable to delete saved filters"
+msgstr "Unable to delete saved filters"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to load critics. Retry"
+msgstr "Unable to load critics. Retry"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#~ msgid "Unable to load recommendations."
+#~ msgstr "Unable to load recommendations."
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Unable to refresh recommendation availability."
+msgstr "Unable to refresh recommendation availability."
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Unable to save filters. You can save up to 50 presets."
+msgstr "Unable to save filters. You can save up to 50 presets."
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "United Kingdom"
+msgstr "United Kingdom"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "United States"
+msgstr "United States"
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "unknown"
 msgstr ""
@@ -3343,6 +3775,14 @@ msgstr "Unwatched S{sNum} E{eNum}"
 msgid "Up next"
 msgstr ""
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Up to {rating}"
+msgstr "Up to {rating}"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Up to {value}"
+msgstr "Up to {value}"
+
 #: apps/native/src/app/(tabs)/(home)/upcoming.tsx
 #: apps/native/src/components/dashboard/upcoming-section.tsx
 #: apps/web/src/components/dashboard/upcoming-section.tsx
@@ -3350,6 +3790,10 @@ msgstr ""
 #: apps/web/src/routes/_app/upcoming.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
+
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Upcoming episodes and movie releases for titles in your library over the next 90 days."
+msgstr "Upcoming episodes and movie releases for titles in your library over the next 90 days."
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #~ msgid "Update available: {0}"
@@ -3385,6 +3829,10 @@ msgstr ""
 #: apps/native/src/app/change-password.tsx
 #~ msgid "Update Password"
 #~ msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Update preset"
+msgstr "Update preset"
 
 #: apps/web/src/components/settings/backup-restore-section.tsx
 #: apps/web/src/components/settings/imports-section.tsx
@@ -3423,6 +3871,22 @@ msgstr ""
 msgid "URL copied to clipboard"
 msgstr ""
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "US"
+msgstr "US"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "US availability checked {checked}"
+msgstr "US availability checked {checked}"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "US availability checked per title. Free includes ad-supported offers; library services may require a library card."
+msgstr "US availability checked per title. Free includes ad-supported offers; library services may require a library card."
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "US content rating"
+#~ msgstr "US content rating"
+
 #: apps/native/src/app/(auth)/register.tsx
 msgid "Use at least 8 characters"
 msgstr "Use at least 8 characters"
@@ -3443,6 +3907,19 @@ msgstr "View on TMDB"
 #: apps/web/src/components/update-toast.tsx
 msgid "View release"
 msgstr ""
+
+#. placeholder {0}: creator.name
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Visit {0}'s channel"
+#~ msgstr "Visit {0}'s channel"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Visit {name}"
+msgstr "Visit {name}"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Visit channel"
+msgstr "Visit channel"
 
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Waiting for authorization..."
@@ -3474,6 +3951,14 @@ msgstr ""
 #: apps/web/src/components/titles/title-availability.tsx
 #~ msgid "Watch on {name}"
 #~ msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Watch or rate titles to build your recommendations."
+msgstr "Watch or rate titles to build your recommendations."
+
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Watch the recommendation"
+msgstr "Watch the recommendation"
 
 #: apps/native/src/components/titles/season-accordion.tsx
 #: apps/native/src/lib/title-actions.ts
@@ -3528,6 +4013,10 @@ msgstr ""
 msgid "Wednesday"
 msgstr ""
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Weekly"
+msgstr "Weekly"
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Weekly on {dayName}"
 msgstr "Weekly on {dayName}"
@@ -3549,6 +4038,11 @@ msgstr "What do you watch on?"
 #: apps/web/src/components/titles/title-availability.tsx
 msgid "Where to Watch"
 msgstr ""
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "With ads"
+msgstr "With ads"
 
 #: apps/web/src/components/titles/title-availability.tsx
 #~ msgid "With Ads"
@@ -3604,3 +4098,7 @@ msgstr ""
 #: apps/web/src/components/auth-form.tsx
 msgid "Your name…"
 msgstr "Your name…"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Your watch history"
+msgstr "Your watch history"

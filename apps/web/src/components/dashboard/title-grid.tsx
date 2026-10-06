@@ -1,7 +1,16 @@
+import type { z } from "zod";
+
 import { TitleCard, TitleCardSkeleton } from "@/components/title-card";
+import { CreatorCredits } from "@/components/titles/creator-credits";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { CreatorCredit, UsAvailabilitySummary } from "@sofa/api/schemas";
+
+import { TitleDiscoveryContext } from "./title-discovery-context";
 
 interface TitleGridItem {
+  usAvailability?: z.infer<typeof UsAvailabilitySummary>;
+  recommendationSources?: string[];
+  creatorCredits?: z.infer<typeof CreatorCredit>[];
   id: string;
   type: string;
   title: string;
@@ -31,9 +40,15 @@ export function TitleGridSectionSkeleton() {
   );
 }
 
-export function TitleGrid({ items }: { items: TitleGridItem[] }) {
+export function TitleGrid({ items, wide = false }: { items: TitleGridItem[]; wide?: boolean }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    <div
+      className={
+        wide
+          ? "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8"
+          : "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+      }
+    >
       {items.map((t, i) => (
         <div
           key={t.id}
@@ -50,6 +65,15 @@ export function TitleGrid({ items }: { items: TitleGridItem[] }) {
             voteAverage={t.voteAverage}
             userStatus={t.userStatus}
           />
+          {(t.usAvailability || t.recommendationSources?.length) && (
+            <TitleDiscoveryContext
+              availability={t.usAvailability}
+              sources={t.recommendationSources}
+            />
+          )}
+          <div className="mt-2">
+            <CreatorCredits credits={t.creatorCredits} />
+          </div>
         </div>
       ))}
     </div>

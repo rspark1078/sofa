@@ -311,6 +311,7 @@ function BackgroundJobsCard({
     nightlyRefreshLibrary: t`Library refresh`,
     refreshAvailability: t`Availability`,
     refreshRecommendations: t`Recommendations`,
+    refreshCreatorFeeds: t`Critic channel checks`,
     refreshTvChildren: t`TV episodes`,
     cacheImages: t`Image cache`,
     scheduledBackup: t`Backup`,

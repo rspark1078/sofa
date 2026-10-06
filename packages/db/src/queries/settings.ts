@@ -60,3 +60,11 @@ export function claimInitialAdmin(userId: string): boolean {
 
   return claimed;
 }
+
+export function listCreatorRefreshUserIds() {
+  return db
+    .select({ id: user.id })
+    .from(user)
+    .all()
+    .map(({ id }) => id);
+}

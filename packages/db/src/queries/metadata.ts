@@ -271,7 +271,7 @@ export function getAvailabilityOffersForTitle(titleId: string) {
     })
     .from(titleAvailability)
     .innerJoin(platforms, eq(titleAvailability.platformId, platforms.id))
-    .where(eq(titleAvailability.titleId, titleId))
+    .where(and(eq(titleAvailability.titleId, titleId), eq(titleAvailability.region, "US")))
     .all();
 }
 

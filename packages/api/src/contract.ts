@@ -12,8 +12,11 @@ import {
   CreateImportJobInput,
   CreateIntegrationInput,
   DiscoverInput,
+  DiscoveryPreset,
+  SaveDiscoveryPresetInput,
   DiscoverOutput,
   DiscoverRecommendationsOutput,
+  RecommendationSource,
   FilenameParam,
   GenresOutput,
   IdParam,
@@ -33,6 +36,10 @@ import {
   ParsePayloadInput,
   PersonDetailOutput,
   PlatformsListOutput,
+  ExplorePreferences,
+  CriticPreferences,
+  CreatorRefreshStatus,
+  RecommendationCreator,
   PopularOutput,
   ProviderParam,
   PublicInfoOutput,
@@ -330,9 +337,17 @@ export const contract = {
         tags: ["Discover"],
         summary: "Get personalized recommendations",
         description:
-          "Fetch personalized title recommendations based on the user's library and watch history.",
+          "Fetch recommendations from the user's library and attributed creator picks, with verified US availability.",
         successDescription: "Recommended titles",
       })
+      .input(
+        z
+          .object({
+            accessType: z.enum(["all", "free", "paid"]).optional(),
+            source: RecommendationSource.optional(),
+          })
+          .optional(),
+      )
       .output(DiscoverRecommendationsOutput),
   },
 
@@ -361,6 +376,86 @@ export const contract = {
 
   // ─── Account ────────────────────────────────────────────────
   account: {
+    discoveryPresets: oc
+      .route({
+        method: "GET",
+        path: "/account/discovery-presets",
+        tags: ["Account"],
+        summary: "Get saved Discover filters",
+      })
+      .output(z.array(DiscoveryPreset)),
+    saveDiscoveryPreset: oc
+      .route({
+        method: "PUT",
+        path: "/account/discovery-presets",
+        tags: ["Account"],
+        summary: "Save or update Discover filters",
+      })
+      .input(SaveDiscoveryPresetInput)
+      .output(z.array(DiscoveryPreset)),
+    deleteDiscoveryPreset: oc
+      .route({
+        method: "DELETE",
+        path: "/account/discovery-presets/{id}",
+        tags: ["Account"],
+        summary: "Delete saved Discover filters",
+      })
+      .input(IdParam)
+      .output(z.array(DiscoveryPreset)),
+
+    creatorRefreshStatus: oc
+      .route({
+        method: "GET",
+        path: "/account/critic-refresh",
+        tags: ["Account"],
+        summary: "Get critic feed check status and recent videos",
+      })
+      .output(CreatorRefreshStatus),
+    refreshCreators: oc
+      .route({
+        method: "POST",
+        path: "/account/critic-refresh",
+        tags: ["Account"],
+        summary: "Check selected critics for recent videos",
+      })
+      .output(CreatorRefreshStatus),
+    criticPreferences: oc
+      .route({
+        method: "GET",
+        path: "/account/critic-preferences",
+        tags: ["Account"],
+        summary: "Get personal critic preferences",
+      })
+      .output(
+        z.object({ preferences: CriticPreferences, creators: z.array(RecommendationCreator) }),
+      ),
+    updateCriticPreferences: oc
+      .route({
+        method: "PUT",
+        path: "/account/critic-preferences",
+        tags: ["Account"],
+        summary: "Update personal critic preferences",
+      })
+      .input(CriticPreferences)
+      .output(CriticPreferences),
+
+    explorePreferences: oc
+      .route({
+        method: "GET",
+        path: "/account/explore-preferences",
+        tags: ["Account"],
+        summary: "Get Explore section preferences",
+      })
+      .output(ExplorePreferences),
+    updateExplorePreferences: oc
+      .route({
+        method: "PUT",
+        path: "/account/explore-preferences",
+        tags: ["Account"],
+        summary: "Update Explore section preferences",
+      })
+      .input(ExplorePreferences)
+      .output(ExplorePreferences),
     updateName: oc
       .route({
         method: "PUT",

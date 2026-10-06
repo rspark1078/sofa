@@ -7,19 +7,22 @@ export function FeedSection({
   icon,
   children,
   seeAllLink,
+  controls,
 }: {
   title: string;
   icon: ReactNode;
   children: ReactNode;
   seeAllLink?: string;
+  controls?: ReactNode;
 }) {
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span aria-hidden={true}>{icon}</span>
           <h2 className="font-display text-xl tracking-tight text-balance">{title}</h2>
         </div>
+        {controls}
         {seeAllLink && (
           <Link to={seeAllLink} className="text-primary text-sm hover:underline">
             <Trans>See all</Trans>

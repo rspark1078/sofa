@@ -229,6 +229,22 @@ msgstr "{watchedEpisodes}/{totalEpisodes, plural, other {# 에피소드}}"
 msgid "{watchlistCount} items"
 msgstr "{watchlistCount}개 항목"
 
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr 15 min"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 2 hr 30 min"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "≤ 90 min"
+#~ msgstr ""
+
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 msgid "1★+"
 msgstr ""
@@ -283,6 +299,14 @@ msgstr "80년대"
 #: apps/native/src/components/library/filter-sheet.tsx
 msgid "90s"
 msgstr "90년대"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Access"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Access type"
+#~ msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/routes/_app/settings.tsx
@@ -377,6 +401,8 @@ msgstr "나이 {age}"
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/explore/filterable-title-row.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
 #: apps/web/src/routes/_app/upcoming.tsx
@@ -391,8 +417,16 @@ msgid "All genres"
 msgstr "모든 장르"
 
 #: apps/web/src/components/explore/discover-section.tsx
+msgid "All provider types"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
 msgid "All providers"
 msgstr "모든 제공업체"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "All sources"
+msgstr ""
 
 #: apps/web/src/components/settings/registration-section.tsx
 msgid "Allow new users to create accounts"
@@ -425,12 +459,32 @@ msgid "Any"
 msgstr "전체"
 
 #: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Any access"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any content rating"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any country"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
 msgid "Any language"
 msgstr "모든 언어"
 
 #: apps/web/src/components/explore/discover-section.tsx
-msgid "Any rating"
-msgstr "모든 평점"
+#~ msgid "Any rating"
+#~ msgstr "모든 평점"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Any runtime"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Any TMDB score"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/web/src/components/explore/discover-section.tsx
@@ -487,6 +541,10 @@ msgstr "데이터베이스를 일정에 따라 자동으로 백업합니다"
 msgid "Availability"
 msgstr "이용 가능 여부"
 
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Availability could not be refreshed. Try again later."
+msgstr ""
+
 #: apps/native/src/components/library/filter-sheet.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Available to stream"
@@ -525,9 +583,14 @@ msgstr "백업"
 msgid "backups."
 msgstr "백업."
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "Based on {basedOn}"
+msgstr ""
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Buy"
-#~ msgstr ""
+msgid "Buy"
+msgstr ""
 
 #: apps/native/src/app/title/[id].tsx
 #: apps/web/src/components/titles/title-availability.tsx
@@ -608,21 +671,49 @@ msgstr "사진 변경"
 msgid "Change Server"
 msgstr "서버 변경"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Channels have not been checked yet."
+msgstr ""
+
 #: apps/web/src/components/setup/refresh-button.tsx
 msgid "Check configuration"
 msgstr "설정 확인"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Check for new videos"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Check for updates"
 msgstr "업데이트 확인"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Check more results"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Check now"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Checked <0/>"
 msgstr "확인됨 <0/>"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Checking channels…"
+msgstr ""
+
 #: apps/web/src/components/setup/refresh-button.tsx
 msgid "Checking…"
 msgstr "확인 중…"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Checks your selected channels while the server is running. New videos need verified recommendation evidence before movies are added to the feed."
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "China"
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Chinese"
@@ -635,6 +726,14 @@ msgstr "중국어"
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Choose how to import your {sourceLabel} data."
 msgstr "{sourceLabel} 데이터 가져오기 방법을 선택하세요."
+
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Choose which sections appear on Explore. Discover is always shown."
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Choose whose movie picks appear in your recommendations. Your watch-history recommendations remain available."
+msgstr ""
 
 #: apps/web/src/components/settings/language-section.tsx
 #~ msgid "Choose your preferred display language"
@@ -776,6 +875,7 @@ msgstr "연결 중..."
 msgid "Connecting…"
 msgstr "연결 중…"
 
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 msgid "Content rating"
 msgstr "콘텐츠 등급"
@@ -825,6 +925,14 @@ msgstr "제목 정보를 불러올 수 없습니다"
 msgid "Could not load your library"
 msgstr "라이브러리를 불러올 수 없습니다"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Country"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Country of origin"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Crash reporting"
 msgstr "충돌 보고"
@@ -854,6 +962,22 @@ msgstr "계정을 만드세요"
 msgid "Creating…"
 msgstr "생성 중…"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Creator channels"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden."
+msgstr ""
+
+#: apps/web/src/components/settings/system-health-section.tsx
+msgid "Critic channel checks"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Critics and creators"
+msgstr ""
+
 #: apps/native/src/app/change-password.tsx
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Current password"
@@ -867,6 +991,10 @@ msgstr "현재 비밀번호를 입력해주세요"
 #: apps/web/src/components/command-palette.tsx
 msgid "Cycle status"
 msgstr "상태 순환"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Daily"
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Daily at {time}"
@@ -921,6 +1049,10 @@ msgstr "기본값"
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Delete"
 msgstr "삭제"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Delete {presetName}"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Delete backup"
@@ -1133,8 +1265,8 @@ msgid "Episodes {select}"
 msgstr "에피소드 {select}"
 
 #: apps/web/src/routes/_app/upcoming.tsx
-msgid "Episodes and movies coming up in the next 90 days."
-msgstr "향후 90일 이내 방영 예정인 에피소드와 영화입니다."
+#~ msgid "Episodes and movies coming up in the next 90 days."
+#~ msgstr "향후 90일 이내 방영 예정인 에피소드와 영화입니다."
 
 #: apps/native/src/app/(tabs)/(home)/index.tsx
 #~ msgid "Episodes this week"
@@ -1164,10 +1296,18 @@ msgstr "매 {n}시간"
 msgid "Explore"
 msgstr "탐색"
 
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Explore sections"
+msgstr ""
+
 #: apps/web/src/routes/_app/people.$id.tsx
 #: apps/web/src/routes/_app/titles.$id.tsx
 msgid "Explore titles"
 msgstr "작품 탐색"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Explore titles to watch or rate"
+msgstr ""
 
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Export"
@@ -1293,6 +1433,14 @@ msgstr "라이브러리에서 제거 실패"
 msgid "Failed to remove profile picture"
 msgstr "프로필 사진 제거 실패"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Failed to save critic preferences"
+msgstr ""
+
+#: apps/web/src/components/settings/explore-section.tsx
+msgid "Failed to save Explore preferences"
+msgstr ""
+
 #: apps/native/src/app/(auth)/login.tsx
 msgid "Failed to sign in"
 msgstr "로그인 실패"
@@ -1377,6 +1525,18 @@ msgstr "필모그래피"
 msgid "Filters"
 msgstr "필터"
 
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Filters saved"
+msgstr ""
+
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Find movies and shows"
+msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Find title-specific US watch links on TMDB / JustWatch"
+msgstr ""
+
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Finished importing from {source}."
 msgstr "{source}에서 가져오기가 완료되었습니다."
@@ -1385,13 +1545,36 @@ msgstr "{source}에서 가져오기가 완료되었습니다."
 msgid "Finished importing your Sofa export."
 msgstr "Sofa 내보내기 가져오기가 완료되었습니다."
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Follow all critics, including new additions"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "France"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Free"
+msgid "Free"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Free / with ads"
 #~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Free providers"
+msgstr ""
 
 #: apps/web/src/components/settings/danger-section.tsx
 msgid "Free up disk space by clearing cached metadata and images"
 msgstr "캐시된 메타데이터와 이미지를 지워 디스크 공간을 확보하세요"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Free with ads"
+#~ msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "French"
@@ -1508,6 +1691,14 @@ msgstr "힌디어"
 msgid "Home"
 msgstr "홈"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Hong Kong"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Hourly"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Image cache"
@@ -1611,6 +1802,10 @@ msgstr "라이브러리에 있음"
 msgid "In Your Library"
 msgstr "내 라이브러리"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "India"
+msgstr ""
+
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Install the <0>Webhook plugin<1/></0> from Jellyfin's plugin catalog"
 msgstr "Jellyfin 플러그인 카탈로그에서 <0>Webhook 플러그인<1/></0>을 설치하세요"
@@ -1631,6 +1826,10 @@ msgstr "유효하지 않은 토큰"
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Italian"
 msgstr "이탈리아어"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Japan"
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Japanese"
@@ -1714,6 +1913,15 @@ msgstr "마지막 실행 실패"
 msgid "Last run succeeded"
 msgstr "마지막 실행 성공"
 
+#. placeholder {0}: formatDate(status.lastCheckedAt)
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Last successful check: {0}"
+#~ msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Last successful check: {lastCheckedLabel}"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(library)/_layout.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/nav-bar.tsx
@@ -1751,6 +1959,10 @@ msgstr "가져오기 연결이 끊어졌습니다. 설정에서 상태를 확인
 #: apps/web/src/components/settings/settings-shell.tsx
 msgid "Manage your account and preferences"
 msgstr "계정 및 환경설정을 관리하세요"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Manual"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Manual backup"
@@ -1866,6 +2078,14 @@ msgstr "최대"
 #~ msgid "Maximum rating"
 #~ msgstr "Maximum rating"
 
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Maximum runtime"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Maximum US content rating"
+msgstr ""
+
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Member since {memberSince}"
 msgstr "{memberSince}부터 회원"
@@ -1881,6 +2101,10 @@ msgstr "최소 8자…"
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "Minimum rating"
 #~ msgstr "Minimum rating"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Minimum TMDB score"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-schedule-section.tsx
 msgid "Monday"
@@ -2053,6 +2277,14 @@ msgstr "인터넷 연결 없음"
 msgid "No matching titles"
 msgstr "일치하는 제목 없음"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#~ msgid "No recommendations match this availability filter in the cached US offers."
+#~ msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "No recommendations match this US availability filter."
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(search)/index.tsx
 msgid "No results for \"{debouncedQuery}\""
 msgstr "\"{debouncedQuery}\"에 대한 결과가 없습니다"
@@ -2071,17 +2303,40 @@ msgid "No titles found for this genre."
 msgstr "이 장르에 해당하는 작품이 없습니다."
 
 #: apps/web/src/components/explore/discover-section.tsx
-msgid "No titles found. Try adjusting your filters."
-msgstr "제목을 찾을 수 없습니다. 필터를 조정해 보세요."
+#~ msgid "No titles found. Try adjusting your filters."
+#~ msgstr "제목을 찾을 수 없습니다. 필터를 조정해 보세요."
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "No titles match these filters. Broaden your filters or reset them to start again."
+msgstr ""
 
 #: apps/web/src/routes/_app/library.tsx
 msgid "No titles match your filters"
 msgstr "필터에 맞는 제목이 없습니다"
 
-#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "No unseen creator picks remain. Try another recommendation source."
+msgstr ""
+
 #: apps/web/src/routes/_app/upcoming.tsx
+msgid "No upcoming episodes or releases for your library match these filters in the next 90 days. Add upcoming movies or shows to your watchlist to see them here."
+msgstr ""
+
+#: apps/native/src/app/(tabs)/(home)/upcoming.tsx
 msgid "No upcoming episodes or releases in the next 90 days."
 msgstr "향후 90일 이내 예정된 에피소드 또는 출시가 없습니다."
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "No US offers are currently listed for this title."
+msgstr ""
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "No US offers listed"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "No verified matches on these pages. Check more results or broaden your filters."
+msgstr ""
 
 #: apps/native/src/components/settings/integration-card.tsx
 #: apps/web/src/components/settings/integration-card.tsx
@@ -2117,6 +2372,10 @@ msgstr "찜 목록에 있음"
 msgid "On your services"
 msgstr "내 서비스에서"
 
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Open {name} title page"
+msgstr ""
+
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Open {source} to enter code"
 msgstr "{source}를 열어 코드를 입력하세요"
@@ -2144,6 +2403,10 @@ msgstr "Plex를 열고, <0>Settings > Webhooks<1/></0>로 이동하세요"
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Open Plex, go to Settings > Webhooks"
 msgstr "Plex를 열고, Settings > Webhooks로 이동하세요"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Open provider links in Firefox"
+msgstr ""
 
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Open Radarr, go to <0>Settings > Import Lists</0>"
@@ -2190,6 +2453,15 @@ msgstr "또는"
 #: apps/native/src/app/+not-found.tsx
 msgid "Page Not Found"
 msgstr "페이지를 찾을 수 없음"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Paid"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Paid providers"
+msgstr ""
 
 #: apps/web/src/components/settings/account-section.tsx
 msgid "Parsing file..."
@@ -2252,6 +2524,10 @@ msgstr "인물"
 msgid "Person not found"
 msgstr "인물을 찾을 수 없습니다"
 
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Picked by"
+msgstr ""
+
 #: apps/web/src/components/titles/trailer-dialog.tsx
 msgid "Play trailer"
 msgstr "예고편 재생"
@@ -2270,11 +2546,13 @@ msgid "Please sign in again."
 msgstr "다시 로그인해주세요."
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Popular Movies"
 msgstr "인기 영화"
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Popular TV Shows"
 msgstr "인기 TV 프로그램"
@@ -2300,6 +2578,10 @@ msgstr "1980년 이전"
 #: apps/web/src/components/settings/backup-section.tsx
 msgid "Pre-restore backup"
 msgstr "복원 전 백업"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Preset name"
+msgstr ""
 
 #: apps/web/src/components/ui/pagination.tsx
 msgid "Previous"
@@ -2328,6 +2610,27 @@ msgstr "프로필 사진이 업데이트되었습니다"
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Provider"
 msgstr "제공자"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Provider icons open a title page when available, otherwise a provider search or home page. Availability and account requirements can change."
+msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+#~ msgid "Provider icons open provider search or home pages. Availability and account requirements can change."
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Provider type"
+msgstr ""
+
+#. placeholder {0}: selectedPlatformIds.length
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Providers ({0})"
+#~ msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Providers ({providerCount})"
+msgstr ""
 
 #: apps/web/src/components/settings/danger-section.tsx
 msgid "Purge all"
@@ -2425,7 +2728,6 @@ msgstr "별 {stars, plural, other {#개}}로 평가됨"
 
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
-#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/components/library/library-filters.tsx
 #: apps/web/src/components/people/filmography-grid.tsx
 #: apps/web/src/components/titles/star-rating.tsx
@@ -2465,10 +2767,22 @@ msgstr "준비됨 — 아직 수신된 이벤트 없음"
 msgid "Recent Searches"
 msgstr "최근 검색"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Recent videos — recommendation review required"
+msgstr ""
+
 #: apps/native/src/components/search/recently-viewed-list.ios.tsx
 #: apps/native/src/components/search/recently-viewed-list.tsx
 msgid "Recently Viewed"
 msgstr "최근 본 항목"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Recommendation availability"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Recommendation source"
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Recommendations"
@@ -2490,6 +2804,10 @@ msgstr "리디렉션 중…"
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Refresh"
 msgstr "새로고침"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Refresh recommendations"
+msgstr ""
 
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Refresh system health"
@@ -2583,9 +2901,10 @@ msgstr "프로필 사진 제거"
 msgid "Removed from library"
 msgstr "라이브러리에서 제거되었습니다"
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
 #: apps/web/src/components/titles/title-availability.tsx
-#~ msgid "Rent"
-#~ msgstr ""
+msgid "Rent"
+msgstr ""
 
 #: apps/web/src/routes/setup.tsx
 msgid "Request an API key"
@@ -2606,6 +2925,11 @@ msgstr "활성 Plex Pass 구독이 필요합니다."
 #: apps/native/src/components/settings/integration-configs.ts
 msgid "Requires Emby Server 4.7.9+ and an active Emby Premiere license."
 msgstr "Emby Server 4.7.9+ 및 활성 Emby Premiere 라이선스가 필요합니다."
+
+#: apps/web/src/components/explore/discover-section.tsx
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Reset filters"
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Restart"
@@ -2647,9 +2971,15 @@ msgstr "시청 기록, 시청 목록, 평점을 가져오는 중..."
 #: apps/native/src/components/settings/integrations-section.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.ios.tsx
 #: apps/native/src/components/ui/server-unreachable-banner.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: apps/web/src/components/explore/discover-section.tsx
 #: apps/web/src/lib/orpc/client.ts
 msgid "Retry"
 msgstr "다시 시도"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Retry loading saved filters"
+msgstr ""
 
 #: apps/web/src/routes/__root.tsx
 msgid "Return home"
@@ -2663,6 +2993,10 @@ msgstr "찾은 항목을 검토하고 가져올 항목을 선택하세요."
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Run now"
 msgstr "지금 실행"
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "Runtime"
+#~ msgstr ""
 
 #: apps/native/src/components/dashboard/upcoming-row.tsx
 #: apps/web/src/components/dashboard/upcoming-item.tsx
@@ -2686,9 +3020,29 @@ msgstr "저장"
 msgid "Save name"
 msgstr "이름 저장"
 
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Save new preset"
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Save your current filters to use them again later."
+msgstr ""
+
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "Saved"
 msgstr "저장됨"
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved Discover filters"
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved filters"
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Saved filters deleted"
+msgstr ""
 
 #: apps/web/src/routes/_app/onboarding.tsx
 msgid "Saving…"
@@ -2718,11 +3072,23 @@ msgstr "예약된 백업이 비활성화되었습니다"
 msgid "Scheduled backups enabled"
 msgstr "예약된 백업이 활성화되었습니다"
 
+#: apps/web/src/components/explore/horizontal-title-scroller.tsx
+msgid "Scroll left"
+msgstr ""
+
+#: apps/web/src/components/explore/horizontal-title-scroller.tsx
+msgid "Scroll right"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(search)/_layout.tsx
 #: apps/native/src/components/navigation/native-tab-bar.tsx
 #: apps/web/src/components/command-palette.tsx
 msgid "Search"
 msgstr "검색"
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Search {name}"
+msgstr ""
 
 #: apps/web/src/components/dashboard/stats-section.tsx
 msgid "Search for movies and TV shows to start tracking"
@@ -2849,6 +3215,10 @@ msgstr "설정 안내"
 msgid "Setup required"
 msgstr "초기 설정 필요"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Show all recommendations"
+msgstr ""
+
 #: apps/native/src/components/ui/expandable-text.tsx
 #: apps/web/src/components/expandable-text.tsx
 msgid "Show less"
@@ -2942,6 +3312,10 @@ msgstr "Sofa v{latestVersion}을 사용할 수 있습니다"
 msgid "Sofa will automatically log movies and episodes when you finish watching them"
 msgstr "시청을 완료하면 Sofa가 자동으로 영화와 에피소드를 기록합니다"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Some critic channels could not be checked. Try again later."
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/app/change-password.tsx
 #: apps/native/src/app/person/[id].tsx
@@ -2975,6 +3349,10 @@ msgstr "정렬"
 #: apps/web/src/components/people/filmography-grid.tsx
 msgid "Sort filmography"
 msgstr "필모그래피 정렬"
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "South Korea"
+msgstr ""
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Spanish"
@@ -3029,9 +3407,18 @@ msgstr "스트리밍"
 msgid "Streaming data provided by <0/><1>JustWatch</1>"
 msgstr ""
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Streaming providers"
+msgstr ""
+
 #: apps/web/src/components/settings/streaming-services-section.tsx
 #~ msgid "Streaming Services"
 #~ msgstr "Streaming Services"
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Subscription"
+msgstr ""
 
 #: apps/web/src/components/settings/streaming-services-section.tsx
 msgid "Subscriptions"
@@ -3052,6 +3439,10 @@ msgstr "{name}(으)로 전환"
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 msgid "Takes effect after restarting the app"
 msgstr "앱을 다시 시작하면 적용됩니다"
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "The last check could not reach every selected channel. Existing recommendations are preserved."
+msgstr ""
 
 #: apps/native/src/app/+not-found.tsx
 msgid "The page you're looking for doesn't exist."
@@ -3195,6 +3586,10 @@ msgstr "Sofa 관심 목록의 타이틀은 Sonarr가 이 목록을 폴링할 때
 msgid "TMDB Rating"
 msgstr "TMDB 평점"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "TMDB score"
+msgstr ""
+
 #: apps/web/src/components/library/library-filters.tsx
 #~ msgid "To"
 #~ msgstr "To"
@@ -3242,6 +3637,7 @@ msgstr "예고편"
 
 #: apps/native/src/app/(tabs)/(explore)/index.tsx
 #: apps/web/src/components/explore/hero-banner.tsx
+#: apps/web/src/components/settings/explore-section.tsx
 #: apps/web/src/routes/_app/explore.tsx
 msgid "Trending Today"
 msgstr "오늘의 인기 콘텐츠"
@@ -3298,6 +3694,42 @@ msgstr "TV 프로그램"
 msgid "Type"
 msgstr "유형"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to check critic channels"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Unable to check current availability. Try again."
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Unable to delete saved filters"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Unable to load critics. Retry"
+msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#~ msgid "Unable to load recommendations."
+#~ msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Unable to refresh recommendation availability."
+msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Unable to save filters. You can save up to 50 presets."
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "United Kingdom"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "United States"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "unknown"
 msgstr "알 수 없음"
@@ -3343,6 +3775,14 @@ msgstr "S{sNum} E{eNum} 시청 취소"
 msgid "Up next"
 msgstr "다음 에피소드"
 
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Up to {rating}"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "Up to {value}"
+msgstr ""
+
 #: apps/native/src/app/(tabs)/(home)/upcoming.tsx
 #: apps/native/src/components/dashboard/upcoming-section.tsx
 #: apps/web/src/components/dashboard/upcoming-section.tsx
@@ -3350,6 +3790,10 @@ msgstr "다음 에피소드"
 #: apps/web/src/routes/_app/upcoming.tsx
 msgid "Upcoming"
 msgstr "예정"
+
+#: apps/web/src/routes/_app/upcoming.tsx
+msgid "Upcoming episodes and movie releases for titles in your library over the next 90 days."
+msgstr ""
 
 #: apps/native/src/app/(tabs)/(settings)/index.tsx
 #~ msgid "Update available: {0}"
@@ -3385,6 +3829,10 @@ msgstr "비밀번호 변경"
 #: apps/native/src/app/change-password.tsx
 #~ msgid "Update Password"
 #~ msgstr ""
+
+#: apps/web/src/components/explore/discovery-presets.tsx
+msgid "Update preset"
+msgstr ""
 
 #: apps/web/src/components/settings/backup-restore-section.tsx
 #: apps/web/src/components/settings/imports-section.tsx
@@ -3423,6 +3871,22 @@ msgstr "프로필 사진 업로드"
 msgid "URL copied to clipboard"
 msgstr "URL이 클립보드에 복사되었습니다"
 
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+msgid "US"
+msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "US availability checked {checked}"
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+msgid "US availability checked per title. Free includes ad-supported offers; library services may require a library card."
+msgstr ""
+
+#: apps/web/src/components/explore/discover-section.tsx
+#~ msgid "US content rating"
+#~ msgstr ""
+
 #: apps/native/src/app/(auth)/register.tsx
 msgid "Use at least 8 characters"
 msgstr "최소 8자 이상 사용하세요"
@@ -3443,6 +3907,19 @@ msgstr "TMDB에서 보기"
 #: apps/web/src/components/update-toast.tsx
 msgid "View release"
 msgstr "릴리스 보기"
+
+#. placeholder {0}: creator.name
+#: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Visit {0}'s channel"
+#~ msgstr ""
+
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "Visit {name}"
+msgstr ""
+
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Visit channel"
+msgstr ""
 
 #: apps/web/src/components/settings/imports-section.tsx
 msgid "Waiting for authorization..."
@@ -3474,6 +3951,14 @@ msgstr "시청 기록"
 #: apps/web/src/components/titles/title-availability.tsx
 #~ msgid "Watch on {name}"
 #~ msgstr ""
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Watch or rate titles to build your recommendations."
+msgstr ""
+
+#: apps/web/src/components/titles/creator-credits.tsx
+msgid "Watch the recommendation"
+msgstr ""
 
 #: apps/native/src/components/titles/season-accordion.tsx
 #: apps/native/src/lib/title-actions.ts
@@ -3528,6 +4013,10 @@ msgstr "웹훅 URL"
 msgid "Wednesday"
 msgstr "수요일"
 
+#: apps/web/src/components/settings/critics-section.tsx
+msgid "Weekly"
+msgstr ""
+
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Weekly on {dayName}"
 msgstr "매주 {dayName}"
@@ -3549,6 +4038,11 @@ msgstr "어떤 서비스로 시청하시나요?"
 #: apps/web/src/components/titles/title-availability.tsx
 msgid "Where to Watch"
 msgstr "시청 가능한 곳"
+
+#: apps/web/src/components/dashboard/title-discovery-context.tsx
+#: apps/web/src/components/titles/title-availability.tsx
+msgid "With ads"
+msgstr ""
 
 #: apps/web/src/components/titles/title-availability.tsx
 #~ msgid "With Ads"
@@ -3604,3 +4098,7 @@ msgstr "이름"
 #: apps/web/src/components/auth-form.tsx
 msgid "Your name…"
 msgstr "이름…"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Your watch history"
+msgstr ""

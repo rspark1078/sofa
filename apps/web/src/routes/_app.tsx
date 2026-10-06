@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 
 import { CommandPalette } from "@/components/command-palette";
 import { MobileTabBar, NavBar } from "@/components/nav-bar";
@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UpdateToast } from "@/components/update-toast";
 import { authClient } from "@/lib/auth/client";
 import { client } from "@/lib/orpc/client";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
@@ -29,6 +30,8 @@ export const Route = createFileRoute("/_app")({
 
 function AppLayout() {
   const { session, updateCheck } = Route.useRouteContext();
+  const { pathname } = useLocation();
+  const wide = pathname === "/explore" || pathname === "/dashboard";
   return (
     <>
       <div className="relative z-0 min-h-screen overflow-x-clip pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-0">
@@ -42,7 +45,10 @@ function AppLayout() {
         <div className="bg-primary/3 pointer-events-none fixed top-1/4 left-1/2 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[200px]" />
         <main
           id="main-content"
-          className="relative mx-auto max-w-6xl py-6 ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] sm:ps-[max(1.5rem,env(safe-area-inset-left))] sm:pe-[max(1.5rem,env(safe-area-inset-right))]"
+          className={cn(
+            "relative mx-auto py-6 ps-[max(1rem,env(safe-area-inset-left))] pe-[max(1rem,env(safe-area-inset-right))] sm:ps-[max(1.5rem,env(safe-area-inset-left))] sm:pe-[max(1.5rem,env(safe-area-inset-right))]",
+            wide ? "max-w-[1600px]" : "max-w-6xl",
+          )}
         >
           <Outlet />
         </main>
