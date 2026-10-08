@@ -4,17 +4,28 @@ import path from "node:path";
 
 import { z } from "zod";
 
+import { CreatorVideoPickCheck } from "@sofa/api/schemas";
+import {
+  beginCreatorVideoCheck,
+  updateCreatorVideoCheck,
+  getLatestCreatorVideoCheck,
+  saveCreatorMovieObservations,
+  updateCreatorMovieMatch,
+} from "@sofa/db/queries/creator-checks";
 import { importVerifiedCreatorPicks } from "@sofa/db/queries/creator-recommendations";
 import { searchMovies, getMovieDetails } from "@sofa/tmdb/client";
 
-import { extractModelPicks } from "./creator-pick-model";
-import { getSetting, setSetting } from "./settings";
+import { analyzeModelMovies, CreatorModelError } from "./creator-pick-model";
+import {
+  assertYouTubeRequestAllowed,
+  fetchCreatorYouTube,
+  getYouTubeRetryAfter,
+  pauseYouTubeRequests,
+  YouTubeCooldownError,
+} from "./creator-youtube";
+import { getSetting } from "./settings";
 
-export const PickCheck = z.object({
-  state: z.enum(["added", "review", "failed"]),
-  picksAdded: z.number(),
-  reason: z.string(),
-});
+export const PickCheck = CreatorVideoPickCheck;
 type Candidate = { title: string; year: number | null; startSeconds: number | null };
 // Only explicit, quoted title/year endorsements qualify. Review coverage is not endorsement.
 export function extractExplicitPicks(text: string): Candidate[] {
@@ -26,9 +37,17 @@ export function extractExplicitPicks(text: string): Candidate[] {
   }
   return [...new Map(result.map((pick) => [pick.title + pick.year, pick])).values()].slice(0, 10);
 }
+class SourceHttpError extends Error {
+  constructor(public readonly status: number) {
+    super("Source unavailable");
+  }
+}
 export async function boundedText(url: string, limit: number) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(15_000), redirect: "error" });
-  if (!response.ok) throw new Error("Source unavailable");
+  const response = await fetchCreatorYouTube(url, {
+    signal: AbortSignal.timeout(15_000),
+    redirect: "error",
+  });
+  if (!response.ok) throw new SourceHttpError(response.status);
   const reader = response.body?.getReader();
   if (!reader) throw new Error("Empty source");
   const chunks: Uint8Array[] = [];
@@ -65,7 +84,37 @@ const Player = z.object({
     })
     .optional(),
 });
-export async function readVideoEvidence(videoId: string, channelId: string) {
+const Captions = z.object({
+  events: z
+    .array(
+      z.object({
+        tStartMs: z.number().optional(),
+        segs: z.array(z.object({ utf8: z.string() })).optional(),
+      }),
+    )
+    .max(50000),
+});
+function captionText(raw: string) {
+  return Captions.parse(JSON.parse(raw))
+    .events.filter((event) => event.segs?.length)
+    .map(
+      (event) =>
+        (event.tStartMs === undefined ? "" : `[${Math.floor(event.tStartMs / 1000)}] `) +
+        event.segs!.map((segment) => segment.utf8).join(""),
+    )
+    .filter((line) => line.trim())
+    .join("\n");
+}
+export type VideoEvidence = {
+  text: string;
+  sourceKind: "description" | "captions";
+  code?: "captions_rate_limited" | "captions_unavailable";
+  retryAt?: string;
+};
+export async function readVideoEvidenceDetails(
+  videoId: string,
+  channelId: string,
+): Promise<VideoEvidence> {
   if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) throw new Error("Invalid video ID");
   const html = await boundedText(`https://www.youtube.com/watch?v=${videoId}`, 5_000_000);
   const match = html.match(/var ytInitialPlayerResponse = (.*?);<\/script>/);
@@ -73,9 +122,16 @@ export async function readVideoEvidence(videoId: string, channelId: string) {
   const player = Player.parse(JSON.parse(match[1]));
   if (player.videoDetails.videoId !== videoId || player.videoDetails.channelId !== channelId)
     throw new Error("Video identity mismatch");
-  let text = player.videoDetails.shortDescription;
-  const track = player.captions?.playerCaptionsTracklistRenderer.captionTracks.find(
-    (item) => item.languageCode === "en",
+  const description = player.videoDetails.shortDescription;
+  const partial = (
+    code: "captions_rate_limited" | "captions_unavailable",
+    retryAt = new Date(Date.now() + 3600_000).toISOString(),
+  ): VideoEvidence => ({ text: description, sourceKind: "description", code, retryAt });
+  const cooldown = getYouTubeRetryAfter();
+  if (cooldown > Date.now())
+    return partial("captions_rate_limited", new Date(cooldown).toISOString());
+  const track = player.captions?.playerCaptionsTracklistRenderer.captionTracks.find((item) =>
+    /^en(?:-|$)/.test(item.languageCode),
   );
   if (track) {
     const url = new URL(track.baseUrl);
@@ -89,172 +145,277 @@ export async function readVideoEvidence(videoId: string, channelId: string) {
     )
       throw new Error("Invalid caption source");
     url.searchParams.set("fmt", "json3");
-    const raw = await boundedText(url.toString(), 2_000_000);
-    if (raw) {
-      const captions = z
-        .object({
-          events: z
-            .array(z.object({ segs: z.array(z.object({ utf8: z.string() })).optional() }))
-            .max(50000),
-        })
-        .parse(JSON.parse(raw ?? "null"));
-      text +=
-        "\n" +
-        captions.events
-          .map((event) => event.segs?.map((segment) => segment.utf8).join("") ?? "")
-          .join(" ");
-    }
-  }
-  if (track && text === player.videoDetails.shortDescription && process.env.CREATOR_CAPTION_TOOL) {
-    const folder = await mkdtemp(path.join(tmpdir(), "sofa-critic-"));
     try {
-      const child = Bun.spawn(
-        [
-          process.env.CREATOR_CAPTION_TOOL,
-          "--ignore-config",
-          "--skip-download",
-          "--no-playlist",
-          "--write-subs",
-          "--write-auto-subs",
-          "--sub-langs",
-          "en",
-          "--sub-format",
-          "json3",
-          "--socket-timeout",
-          "10",
-          "--retries",
-          "0",
-          "-o",
-          path.join(folder, "captions"),
-          `https://www.youtube.com/watch?v=${videoId}`,
-        ],
-        { stdout: "ignore", stderr: "ignore" },
-      );
-      const timer = setTimeout(() => child.kill(), 45_000);
-      try {
-        if ((await child.exited) !== 0) throw new Error("Captions unavailable");
-        const file = (await readdir(folder)).find((name) => name.endsWith(".json3"));
-        if (file) {
-          const filename = path.join(folder, file);
-          if ((await stat(filename)).size > 2_000_000) throw new Error("Captions too large");
-          const captions = z
-            .object({
-              events: z
-                .array(
-                  z.object({
-                    tStartMs: z.number().optional(),
-                    segs: z.array(z.object({ utf8: z.string() })).optional(),
-                  }),
-                )
-                .max(50000),
-            })
-            .parse(JSON.parse(await readFile(filename, "utf8")));
-          text +=
-            "\n" +
-            captions.events
-              .filter((event) => event.segs)
-              .map(
-                (event) =>
-                  `[${Math.floor((event.tStartMs ?? 0) / 1000)}] ` +
-                  event.segs!.map((segment) => segment.utf8).join(""),
-              )
-              .join("\n");
-        }
-      } finally {
-        clearTimeout(timer);
+      const raw = await boundedText(url.toString(), 2_000_000);
+      if (raw) {
+        const captions = captionText(raw);
+        if (captions) return { text: description + "\n" + captions, sourceKind: "captions" };
       }
-    } finally {
-      await rm(folder, { recursive: true, force: true });
+    } catch (error) {
+      if (error instanceof YouTubeCooldownError) {
+        return partial("captions_rate_limited", new Date(error.retryAt).toISOString());
+      }
     }
   }
-  return text;
+  if (!process.env.CREATOR_CAPTION_TOOL) return partial("captions_unavailable");
+  const folder = await mkdtemp(path.join(tmpdir(), "sofa-critic-"));
+  try {
+    assertYouTubeRequestAllowed();
+    const child = Bun.spawn(
+      [
+        process.env.CREATOR_CAPTION_TOOL,
+        "--ignore-config",
+        "--quiet",
+        "--no-warnings",
+        "--skip-download",
+        "--no-playlist",
+        "--write-subs",
+        "--write-auto-subs",
+        "--sub-langs",
+        "en,en-US,en-GB",
+        "--sub-format",
+        "json3",
+        "--socket-timeout",
+        "10",
+        "--retries",
+        "0",
+        "--extractor-retries",
+        "0",
+        "--fragment-retries",
+        "0",
+        "-o",
+        path.join(folder, "captions"),
+        `https://www.youtube.com/watch?v=${videoId}`,
+      ],
+      { stdout: "ignore", stderr: Bun.file(path.join(folder, "download.log")) },
+    );
+    const timer = setTimeout(() => child.kill(), 45_000);
+    try {
+      const exit = await child.exited;
+      if (exit !== 0) {
+        const logFile = path.join(folder, "download.log");
+        const message = (await stat(logFile)).size <= 64000 ? await readFile(logFile, "utf8") : "";
+        if (/HTTP Error 429|Too Many Requests/i.test(message)) {
+          return partial("captions_rate_limited", new Date(pauseYouTubeRequests()).toISOString());
+        }
+        return partial("captions_unavailable");
+      }
+      const file = (await readdir(folder)).find((name) => name.endsWith(".json3"));
+      if (!file) return partial("captions_unavailable");
+      const filename = path.join(folder, file);
+      if ((await stat(filename)).size > 2_000_000) return partial("captions_unavailable");
+      const captions = captionText(await readFile(filename, "utf8"));
+      return captions
+        ? { text: description + "\n" + captions, sourceKind: "captions" }
+        : partial("captions_unavailable");
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (error) {
+    if (error instanceof YouTubeCooldownError)
+      return partial("captions_rate_limited", new Date(error.retryAt).toISOString());
+    return partial("captions_unavailable");
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+}
+export async function readVideoEvidence(videoId: string, channelId: string) {
+  return (await readVideoEvidenceDetails(videoId, channelId)).text;
 }
 export function getVideoPickCheck(creatorId: string, videoId: string) {
-  const raw = getSetting(`creator:${creatorId}:video:${videoId}:picks`);
+  const latest = getLatestCreatorVideoCheck(creatorId, videoId);
+  if (latest)
+    return PickCheck.parse({
+      state: latest.state,
+      picksAdded: latest.picksAdded,
+      reason: latest.reason ?? "",
+      code: latest.errorCode ?? undefined,
+      retryAt: latest.retryAt?.toISOString() ?? null,
+      moviesDiscussed: latest.moviesDiscussed,
+      moviesRecommended: latest.moviesRecommended,
+      sourceKind: latest.sourceKind,
+      sourceCharacters: latest.sourceCharacters,
+      analyzedCharacters: latest.analyzedCharacters,
+    });
   try {
-    return PickCheck.parse(JSON.parse(raw ?? "null"));
+    return PickCheck.parse(
+      JSON.parse(getSetting(`creator:${creatorId}:video:${videoId}:picks`) ?? "null"),
+    );
   } catch {
     return null;
   }
+}
+export function shouldCheckCreatorVideo(creatorId: string, videoId: string) {
+  const latest = getLatestCreatorVideoCheck(creatorId, videoId);
+  if (!latest) return true; // Legacy summaries have no audit trail: perform one real audited check.
+  if (latest.retryAt) return latest.retryAt.getTime() <= Date.now();
+  return latest.state === "failed";
 }
 const pending = new Map<string, Promise<z.infer<typeof PickCheck>>>();
 export async function processCreatorVideo(
   creatorId: string,
   channelId: string,
   video: { videoId: string; videoTitle: string; publishedAt: string },
+  channelCheckId?: string,
 ) {
   const key = `creator:${creatorId}:video:${video.videoId}:picks`;
   const existing = getVideoPickCheck(creatorId, video.videoId);
-  if (existing && existing.state !== "failed") return { ...existing, picksAdded: 0 };
+  if (existing && !shouldCheckCreatorVideo(creatorId, video.videoId))
+    return { ...existing, picksAdded: 0, attempted: false };
   const shared = pending.get(key);
-  if (shared) {
-    const result = await shared;
-    return { ...result, picksAdded: 0 };
-  }
+  if (shared) return { ...(await shared), picksAdded: 0, attempted: false };
   const request = (async () => {
+    const checkId = beginCreatorVideoCheck({
+      creatorId,
+      channelCheckId,
+      ...video,
+      model: process.env.CREATOR_PICK_MODEL ?? "explicit-rules",
+    });
+    let stage: "evidence" | "model" | "matching" | "complete" = "evidence";
     let result: z.infer<typeof PickCheck>;
     try {
-      const evidence = await readVideoEvidence(video.videoId, channelId);
-      const candidates =
-        (await extractModelPicks(evidence, video.videoTitle)) ?? extractExplicitPicks(evidence);
+      const evidence = await readVideoEvidenceDetails(video.videoId, channelId);
+      stage = "model";
+      updateCreatorVideoCheck(checkId, {
+        stage,
+        sourceKind: evidence.sourceKind,
+        sourceCharacters: evidence.text.length,
+        analyzedCharacters: 0,
+        errorCode: evidence.code,
+      });
+      const modelObservations = await analyzeModelMovies(evidence.text, video.videoTitle);
+      const observations =
+        modelObservations ??
+        extractExplicitPicks(evidence.text).map((movie) =>
+          Object.assign({}, movie, {
+            assessment: "recommended" as const,
+            evidence: evidence.text.slice(0, 2000),
+          }),
+        );
+      const rows = saveCreatorMovieObservations(
+        checkId,
+        observations.map((movie) => ({
+          movieTitle: movie.title,
+          releaseYear: movie.year,
+          assessment: movie.assessment,
+          evidence: movie.evidence.slice(0, 4000),
+          startSeconds: movie.startSeconds,
+          matchStatus: "pending",
+        })),
+      );
+      stage = "matching";
+      updateCreatorVideoCheck(checkId, {
+        stage,
+        analyzedCharacters:
+          modelObservations === null ? evidence.text.length : Math.min(evidence.text.length, 24000),
+        moviesDiscussed: observations.length,
+        moviesRecommended: observations.filter((movie) => movie.assessment === "recommended")
+          .length,
+      });
       const picks: {
         tmdbId: number;
         movieTitle: string;
         startSeconds: number | null;
-        evidence?: string;
+        evidence: string;
       }[] = [];
-      let ambiguous = false;
-      for (const candidate of candidates) {
-        const movies = await searchMovies(candidate.title);
-        const matches =
-          movies.results?.filter(
-            (movie) =>
-              (movie.title === candidate.title || movie.original_title === candidate.title) &&
-              (candidate.year === null || movie.release_date?.startsWith(String(candidate.year))),
-          ) ?? [];
-        if ((movies.total_pages ?? 1) > 1 || matches.length !== 1 || !matches[0].id) {
-          ambiguous = true;
-          continue;
+      let ambiguous = false,
+        lookupFailed = false;
+      for (const [index, candidate] of observations.entries()) {
+        try {
+          const movies = await searchMovies(candidate.title);
+          const matches =
+            movies.results?.filter(
+              (movie) =>
+                (movie.title === candidate.title || movie.original_title === candidate.title) &&
+                (candidate.year === null || movie.release_date?.startsWith(String(candidate.year))),
+            ) ?? [];
+          if ((movies.total_pages ?? 1) > 1 || matches.length !== 1 || !matches[0].id) {
+            updateCreatorMovieMatch(rows[index].id, "ambiguous", null);
+            if (candidate.assessment === "recommended") ambiguous = true;
+            continue;
+          }
+          const details = await getMovieDetails(matches[0].id);
+          if (
+            details.id !== matches[0].id ||
+            (candidate.year !== null &&
+              !details.release_date?.startsWith(String(candidate.year))) ||
+            (details.title !== candidate.title && details.original_title !== candidate.title)
+          ) {
+            updateCreatorMovieMatch(rows[index].id, "ambiguous", null);
+            if (candidate.assessment === "recommended") ambiguous = true;
+            continue;
+          }
+          const imdbId =
+            typeof details.imdb_id === "string" && /^tt\d{7,10}$/.test(details.imdb_id)
+              ? details.imdb_id
+              : null;
+          updateCreatorMovieMatch(rows[index].id, "matched", details.id, imdbId);
+          if (candidate.assessment === "recommended")
+            picks.push({
+              tmdbId: details.id,
+              movieTitle: details.title!,
+              startSeconds: candidate.startSeconds,
+              evidence: candidate.evidence,
+            });
+        } catch {
+          lookupFailed = true;
+          updateCreatorMovieMatch(rows[index].id, "unavailable", null);
         }
-        const details = await getMovieDetails(matches[0].id);
-        if (
-          details.id !== matches[0].id ||
-          (candidate.year !== null && !details.release_date?.startsWith(String(candidate.year))) ||
-          (details.title !== candidate.title && details.original_title !== candidate.title)
-        ) {
-          ambiguous = true;
-          continue;
-        }
-        picks.push({
-          tmdbId: details.id,
-          movieTitle: details.title!,
-          startSeconds: candidate.startSeconds,
-          evidence: "evidence" in candidate ? String(candidate.evidence) : undefined,
-        });
       }
       const picksAdded = picks.length ? importVerifiedCreatorPicks(creatorId, video, picks) : 0;
       result = {
-        state: ambiguous || !picks.length ? "review" : "added",
+        state: lookupFailed ? "failed" : ambiguous || !picks.length ? "review" : "added",
         picksAdded,
-        reason: ambiguous
-          ? "Movie identity needs review"
-          : !picks.length
-            ? "No verified explicit endorsement found; review required"
-            : "Explicit endorsements matched to TMDB",
+        reason: lookupFailed
+          ? "Movie lookup unavailable"
+          : ambiguous
+            ? "Movie identity needs review"
+            : !picks.length
+              ? "No verified endorsement; discussion records preserved"
+              : "Verified endorsements matched to TMDB",
+        code: lookupFailed ? "movie_lookup_failed" : evidence.code,
+        retryAt: lookupFailed
+          ? new Date(Date.now() + 3600_000).toISOString()
+          : (evidence.retryAt ?? null),
+        moviesDiscussed: observations.length,
+        moviesRecommended: observations.filter((movie) => movie.assessment === "recommended")
+          .length,
+        sourceKind: evidence.sourceKind,
       };
-    } catch {
+      stage = "complete";
+    } catch (error) {
+      const code =
+        error instanceof YouTubeCooldownError
+          ? "youtube_rate_limited"
+          : error instanceof CreatorModelError
+            ? error.code
+            : stage === "evidence"
+              ? "video_evidence_unavailable"
+              : "movie_lookup_failed";
       result = {
         state: "failed",
         picksAdded: 0,
-        reason: "Video or movie verification unavailable; retry required",
+        reason: "Video check could not finish",
+        code,
+        retryAt: new Date(
+          error instanceof YouTubeCooldownError ? error.retryAt : Date.now() + 3600_000,
+        ).toISOString(),
       };
     }
-    setSetting(key, JSON.stringify(result));
+    updateCreatorVideoCheck(checkId, {
+      state: result.state,
+      stage,
+      picksAdded: result.picksAdded,
+      errorCode: result.code,
+      reason: result.reason,
+      retryAt: result.retryAt ? new Date(result.retryAt) : null,
+      finishedAt: new Date(),
+    });
     return result;
   })();
   pending.set(key, request);
   try {
-    return await request;
+    return { ...(await request), attempted: true };
   } finally {
     pending.delete(key);
   }

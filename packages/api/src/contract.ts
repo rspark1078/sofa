@@ -404,10 +404,20 @@ export const contract = {
           .object({
             accessType: z.enum(["all", "free", "paid"]).optional(),
             source: RecommendationSource.optional(),
+            cursor: z
+              .string()
+              .max(64)
+              .nullable()
+              .default(null)
+              .describe(
+                "Opaque cursor from the previous response; omit to start a new scrolling session",
+              ),
+            limit: z.number().int().min(1).max(50).default(20),
           })
           .optional(),
       )
-      .output(DiscoverRecommendationsOutput),
+      .output(DiscoverRecommendationsOutput)
+      .errors({ CONFLICT: { data: appErrorData(AppErrorCode.RECOMMENDATION_SESSION_EXPIRED) } }),
   },
 
   // ─── People ─────────────────────────────────────────────────
@@ -475,7 +485,7 @@ export const contract = {
         method: "POST",
         path: "/account/critic-refresh",
         tags: ["Account"],
-        summary: "Check selected critics for recent videos",
+        summary: "Manually check selected critics (administrator only)",
       })
       .output(CreatorRefreshStatus),
     addCritic: oc

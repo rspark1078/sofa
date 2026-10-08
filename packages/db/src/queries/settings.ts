@@ -65,6 +65,7 @@ export function listCreatorRefreshUserIds() {
   return db
     .select({ id: user.id })
     .from(user)
+    .where(eq(user.role, "admin"))
     .all()
     .map(({ id }) => id);
 }

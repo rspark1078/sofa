@@ -2,6 +2,7 @@ import { call } from "@orpc/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { auth } from "@sofa/auth/server";
+import { updateCriticPreferences } from "@sofa/core/settings";
 import { importJobs } from "@sofa/db/schema";
 import { clearAllTables, insertUser, testDb } from "@sofa/test/db";
 
@@ -117,5 +118,76 @@ describe("import job ownership", () => {
 
     const job = await call(implementedRouter.imports.getJob, { id: jobId }, ctx);
     expect(job.id).toBe(jobId);
+  });
+});
+
+describe("manual critic refresh authorization", () => {
+  test("rejects non-admin refresh before starting any scans", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    try {
+      getSession.mockResolvedValue(sessionFor("user-1", "user"));
+      await expect(
+        call(implementedRouter.account.refreshCreators, undefined, ctx),
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(getSession).toHaveBeenCalledWith(
+        expect.objectContaining({ query: { disableCookieCache: true } }),
+      );
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+  test("allows administrator manual refresh", async () => {
+    insertUser("admin-1");
+    updateCriticPreferences("admin-1", { creatorIds: [], refreshFrequency: "manual" });
+    getSession.mockResolvedValue(sessionFor("admin-1", "admin"));
+    expect(await call(implementedRouter.account.refreshCreators, undefined, ctx)).toMatchObject({
+      failed: false,
+      videosChecked: 0,
+      picksAdded: 0,
+    });
+  });
+});
+
+describe("critic scan frequency authorization", () => {
+  test("non-admins may change critic selections but cannot change frequency", async () => {
+    insertUser("user-1");
+    getSession.mockResolvedValue(sessionFor("user-1", "user"));
+    await expect(
+      call(
+        implementedRouter.account.updateCriticPreferences,
+        { creatorIds: [], refreshFrequency: "weekly" },
+        ctx,
+      ),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(
+      await call(
+        implementedRouter.account.updateCriticPreferences,
+        { creatorIds: [], refreshFrequency: "daily" },
+        ctx,
+      ),
+    ).toMatchObject({ creatorIds: [], refreshFrequency: "daily" });
+  });
+  test("admins may change frequency, but a cached admin role cannot bypass demotion", async () => {
+    insertUser("admin-1");
+    getSession.mockResolvedValue(sessionFor("admin-1", "admin"));
+    expect(
+      await call(
+        implementedRouter.account.updateCriticPreferences,
+        { creatorIds: [], refreshFrequency: "weekly" },
+        ctx,
+      ),
+    ).toMatchObject({ refreshFrequency: "weekly" });
+    getSession
+      .mockReset()
+      .mockResolvedValueOnce(sessionFor("admin-1", "admin"))
+      .mockResolvedValueOnce(sessionFor("admin-1", "user"));
+    await expect(
+      call(
+        implementedRouter.account.updateCriticPreferences,
+        { creatorIds: [], refreshFrequency: "hourly" },
+        ctx,
+      ),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

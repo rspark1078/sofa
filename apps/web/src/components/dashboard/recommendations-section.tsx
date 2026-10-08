@@ -1,6 +1,6 @@
 import { useLingui } from "@lingui/react/macro";
-import { IconThumbUp } from "@tabler/icons-react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { IconLoader, IconThumbUp } from "@tabler/icons-react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import type { z } from "zod";
@@ -14,13 +14,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { getAppErrorCode } from "@/lib/error-messages";
 import { orpc } from "@/lib/orpc/client";
+import { AppErrorCode } from "@sofa/api/errors";
 import { RecommendationSource } from "@sofa/api/schemas";
 
 import { FeedSection } from "./feed-section";
 import { TitleGrid, TitleGridSectionSkeleton } from "./title-grid";
 
 export function RecommendationsSection() {
+  const [revision, setRevision] = useState(0);
   const [source, setSource] = useState<z.infer<typeof RecommendationSource>>("all");
   const [accessType, setAccessType] = useState<"all" | "free" | "paid">("all");
   const {
@@ -37,20 +41,47 @@ export function RecommendationsSection() {
   const effectiveSource =
     source !== "all" &&
     source !== "personal" &&
+    source !== "critics" &&
     !selectedCreators.some((creator) => creator.id === source)
       ? "all"
       : source;
-  const { data, isPending, isPlaceholderData, isError, refetch } = useQuery({
-    ...orpc.discover.recommendations.queryOptions({
-      input: { accessType, source: effectiveSource },
-    }),
-    enabled: !!criticSettings,
-    placeholderData: keepPreviousData,
+  const queryOptions = orpc.discover.recommendations.infiniteOptions({
+    input: (cursor: string | null) => ({ accessType, source: effectiveSource, cursor, limit: 20 }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
-
+  const {
+    data,
+    error,
+    isPending,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  } = useInfiniteQuery({
+    ...queryOptions,
+    queryKey: [...queryOptions.queryKey, revision],
+    enabled: !!criticSettings,
+  });
+  const sessionExpired = getAppErrorCode(error) === AppErrorCode.RECOMMENDATION_SESSION_EXPIRED;
+  const restart = () => setRevision((value) => value + 1);
+  const sentinelRef = useInfiniteScroll({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+  });
   const { t } = useLingui();
-
-  const items = data?.items ?? [];
+  const items = [
+    ...new Map(
+      (data?.pages.flatMap((page) => page.items) ?? []).map((item) => [
+        item.type + ":" + item.tmdbId,
+        item,
+      ]),
+    ).values(),
+  ];
 
   return (
     <FeedSection
@@ -68,16 +99,19 @@ export function RecommendationsSection() {
             <SelectTrigger size="sm" aria-label={t`Recommendation source`}>
               <SelectValue>
                 {effectiveSource === "all"
-                  ? t`All sources`
-                  : effectiveSource === "personal"
-                    ? t`Your watch history`
-                    : (selectedCreators.find((creator) => creator.id === effectiveSource)?.name ??
-                      source)}
+                  ? t`All Sources`
+                  : effectiveSource === "critics"
+                    ? t`All Critics`
+                    : effectiveSource === "personal"
+                      ? t`Your Watch History`
+                      : (selectedCreators.find((creator) => creator.id === effectiveSource)?.name ??
+                        source)}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t`All sources`}</SelectItem>
-              <SelectItem value="personal">{t`Your watch history`}</SelectItem>
+              <SelectItem value="all">{t`All Sources`}</SelectItem>
+              <SelectItem value="personal">{t`Your Watch History`}</SelectItem>
+              <SelectItem value="critics">{t`All Critics`}</SelectItem>
               {selectedCreators.map((creator) => (
                 <SelectItem key={creator.id} value={creator.id}>
                   {creator.name}
@@ -100,14 +134,14 @@ export function RecommendationsSection() {
           <Button
             variant="outline"
             size="sm"
-            disabled={!criticSettings || isPending || isPlaceholderData}
-            onClick={() => void refetch()}
+            disabled={!criticSettings || isPending}
+            onClick={restart}
           >{t`Refresh recommendations`}</Button>
         </div>
       }
     >
       <p className="text-muted-foreground text-sm">{t`Creator picks are curated from linked videos. US availability is checked separately; picks already in your library are hidden.`}</p>
-      {data?.creators && (
+      {data?.pages[0]?.creators && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-label={t`Creator channels`}>
           {selectedCreators.map((creator) => (
             <a
@@ -122,9 +156,9 @@ export function RecommendationsSection() {
           ))}
         </div>
       )}
-      {settingsPending || (!settingsError && (isPending || isPlaceholderData)) ? (
+      {settingsPending || (!settingsError && isPending) ? (
         <TitleGridSectionSkeleton />
-      ) : isError || settingsError ? (
+      ) : (isError && !data) || settingsError ? (
         <div className="space-y-2">
           <p className="text-muted-foreground text-sm">{t`Unable to refresh recommendation availability.`}</p>
           <Button
@@ -132,8 +166,31 @@ export function RecommendationsSection() {
             onClick={() => void (settingsError ? refetchSettings() : refetch())}
           >{t`Retry`}</Button>
         </div>
-      ) : items.length > 0 ? (
-        <TitleGrid items={items} wide />
+      ) : items.length > 0 || hasNextPage || isFetchNextPageError ? (
+        <>
+          <TitleGrid items={items} wide />
+          {isFetchNextPageError && (
+            <div className="space-y-2 py-4 text-center">
+              <p className="text-muted-foreground text-sm">
+                {sessionExpired
+                  ? t`Recommendation list expired. Refresh to continue.`
+                  : t`Unable to load more titles.`}
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => (sessionExpired ? restart() : void fetchNextPage())}
+              >
+                {sessionExpired ? t`Refresh recommendations` : t`Retry`}
+              </Button>
+            </div>
+          )}
+          <div ref={sentinelRef} />
+          {isFetchingNextPage && (
+            <div className="flex items-center justify-center py-4">
+              <IconLoader className="text-muted-foreground size-5 animate-spin" />
+            </div>
+          )}
+        </>
       ) : (
         <div className="space-y-2">
           <p className="text-muted-foreground text-sm">

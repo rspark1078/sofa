@@ -314,8 +314,8 @@ export function startJobs() {
   schedule("scheduledBackup", getBackupCronFromSettings(), scheduledBackupJob);
   schedule("nightlyRefreshLibrary", "0 3 * * *", nightlyRefreshLibrary);
   schedule("refreshAvailability", "0 */6 * * *", refreshAvailabilityJob);
-  schedule("refreshCreatorFeeds", "*/15 * * * *", refreshDueCreators);
   schedule("refreshRecommendations", "0 */12 * * *", refreshRecommendationsJob);
+  schedule("refreshCreatorFeeds", "*/15 * * * *", refreshDueCreators);
   schedule("refreshTvChildren", "30 */12 * * *", refreshTvChildrenJob);
   schedule("cacheImages", "0 1,13 * * *", cacheImagesJob);
   schedule("refreshCredits", "0 2 * * *", refreshCreditsJob);

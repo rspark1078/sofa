@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 
 import { CACHE_DIR } from "@sofa/config";
 import { ensureBackupDir } from "@sofa/core/backup";
+import { recoverInterruptedCreatorRefreshes } from "@sofa/core/creator-refresh";
 import { recoverInterruptedCronRuns } from "@sofa/core/cron";
 import { ensureImageDirs, imageCacheEnabled } from "@sofa/core/image-cache";
 import { registerJobScheduleProvider } from "@sofa/core/system-health";
@@ -60,6 +61,11 @@ const clearedPayloads = clearFinishedImportPayloads();
 if (clearedPayloads > 0) {
   log.info(`Cleared stored payloads of ${clearedPayloads} finished import job(s)`);
 }
+
+// Recover creator audits left unfinished by a previous shutdown.
+const interruptedCreatorChecks = recoverInterruptedCreatorRefreshes();
+if (interruptedCreatorChecks.channels || interruptedCreatorChecks.videos)
+  log.warn("Recovered interrupted creator checks", interruptedCreatorChecks);
 
 // Wire up job schedule provider for system health
 registerJobScheduleProvider(getJobSchedules);

@@ -13,8 +13,28 @@ import {
 
 const defaults = buildTrustedProxyList(DEFAULT_TRUSTED_PROXIES).list;
 const none = buildTrustedProxyList([]).list;
+const explicitProxies = buildTrustedProxyList(["127.0.0.1", "::1", "172.18.0.5"]).list;
 
 describe("resolveClientIp", () => {
+  test.each([
+    "192.168.1.5",
+    "10.0.0.5",
+    "172.18.0.6",
+    "fc00::5",
+    "127.0.0.1",
+    "::1",
+    "::ffff:192.168.1.5",
+  ])("default trust ignores spoofed forwarded IP from %s", (peer) => {
+    expect(resolveClientIp("203.0.113.77", peer, defaults)).toBe(normalizeAddress(peer));
+  });
+  test("trusting one Docker proxy does not trust neighboring clients", () => {
+    expect(resolveClientIp("203.0.113.77", "172.18.0.6", explicitProxies)).toBe("172.18.0.6");
+  });
+  test("a LAN client behind an explicit proxy cannot spoof an earlier hop", () => {
+    expect(resolveClientIp("203.0.113.77, 192.168.1.5", "127.0.0.1", explicitProxies)).toBe(
+      "192.168.1.5",
+    );
+  });
   test("direct internet client spoofing X-Forwarded-For is keyed on the peer", () => {
     expect(resolveClientIp("6.6.6.6", "203.0.113.9", defaults)).toBe("203.0.113.9");
   });
@@ -23,7 +43,7 @@ describe("resolveClientIp", () => {
     expect(resolveClientIp(null, "203.0.113.9", defaults)).toBe("203.0.113.9");
   });
 
-  test("LAN client direct, no header (all-trusted fallback)", () => {
+  test("LAN client direct, no header", () => {
     expect(resolveClientIp(null, "192.168.1.5", defaults)).toBe("192.168.1.5");
   });
 
@@ -32,23 +52,27 @@ describe("resolveClientIp", () => {
   });
 
   test("local proxy, internet client", () => {
-    expect(resolveClientIp("198.51.100.7", "172.18.0.5", defaults)).toBe("198.51.100.7");
+    expect(resolveClientIp("198.51.100.7", "172.18.0.5", explicitProxies)).toBe("198.51.100.7");
   });
 
   test("local proxy, LAN client", () => {
-    expect(resolveClientIp("192.168.1.5", "127.0.0.1", defaults)).toBe("192.168.1.5");
+    expect(resolveClientIp("192.168.1.5", "127.0.0.1", explicitProxies)).toBe("192.168.1.5");
   });
 
   test("spoof through a local proxy", () => {
-    expect(resolveClientIp("6.6.6.6, 198.51.100.7", "172.18.0.5", defaults)).toBe("198.51.100.7");
+    expect(resolveClientIp("6.6.6.6, 198.51.100.7", "172.18.0.5", explicitProxies)).toBe(
+      "198.51.100.7",
+    );
   });
 
   test("malformed hop left of a LAN client", () => {
-    expect(resolveClientIp("garbage, 192.168.1.5", "127.0.0.1", defaults)).toBe("192.168.1.5");
+    expect(resolveClientIp("garbage, 192.168.1.5", "127.0.0.1", explicitProxies)).toBe(
+      "192.168.1.5",
+    );
   });
 
   test("malformed hop right after the peer", () => {
-    expect(resolveClientIp("garbage", "127.0.0.1", defaults)).toBe("127.0.0.1");
+    expect(resolveClientIp("garbage", "127.0.0.1", explicitProxies)).toBe("127.0.0.1");
   });
 
   test("trust nothing", () => {
@@ -56,7 +80,7 @@ describe("resolveClientIp", () => {
   });
 
   test("IPv6 client through a local proxy", () => {
-    expect(resolveClientIp("2001:db8::1", "::1", defaults)).toBe("2001:db8::1");
+    expect(resolveClientIp("2001:db8::1", "::1", explicitProxies)).toBe("2001:db8::1");
   });
 
   test("unknown peer", () => {

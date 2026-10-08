@@ -1,6 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import type { z } from "zod";
 
+import { AppErrorCode } from "@sofa/api/errors";
 import {
   AddRecommendationCreatorInput,
   CreatorCredit,
@@ -66,11 +67,13 @@ export function getCreatorPickIds(
   selectedCreatorIds: string[] | null = null,
 ) {
   if (source === "personal") return [];
-  const picks = listCreatorMoviePicks(source === "all" ? undefined : source);
+  const picks = listCreatorMoviePicks(
+    source === "all" || source === "critics" ? undefined : source,
+  );
   const groups = getRecommendationCreators()
     .filter(
       (creator) =>
-        (source === "all" || creator.id === source) &&
+        (source === "all" || source === "critics" || creator.id === source) &&
         (selectedCreatorIds === null || selectedCreatorIds.includes(creator.id)),
     )
     .map((creator) => picks.filter((pick) => pick.creatorSlug === creator.id));
@@ -126,26 +129,50 @@ export function mergeRecommendationCandidates<T extends { tmdbId: number; type: 
       }
     }
   }
-  return result.slice(0, 50);
+  return result;
 }
 
-export async function getRecommendationCandidates(userId: string, source: Source = "all") {
+function recommendationReferences(userId: string, source: Source) {
   const personal =
     source === "all" || source === "personal"
-      ? getRecommendationsFeed(userId, "all", 50).filter(
+      ? getRecommendationsFeed(userId, "all", Infinity).filter(
           (title): title is NonNullable<typeof title> => title != null,
         )
       : [];
-  const ids = getCreatorPickIds(source, getCriticPreferences(userId).creatorIds).slice(0, 50);
+  const creators = getCreatorPickIds(source, getCriticPreferences(userId).creatorIds).map(
+    (tmdbId) => ({ tmdbId, type: "movie" as const }),
+  );
+  const references = mergeRecommendationCandidates<{ tmdbId: number; type: string }>(
+    personal,
+    creators,
+  );
+  return { personal, references };
+}
+
+async function resolveRecommendationReferences(
+  userId: string,
+  pool: ReturnType<typeof recommendationReferences>,
+  references: ReturnType<typeof recommendationReferences>["references"],
+) {
+  const personalByIdentity = new Map(
+    pool.personal.map((title) => [title.type + ":" + title.tmdbId, title]),
+  );
+  const creatorReferences = references.filter(
+    (title) => !personalByIdentity.has(title.type + ":" + title.tmdbId),
+  );
   const details: Awaited<ReturnType<typeof getMovieDetails>>[] = [];
-  for (let offset = 0; offset < ids.length; offset += 5) {
-    details.push(...(await Promise.all(ids.slice(offset, offset + 5).map(getCreatorMovie))));
+  for (let offset = 0; offset < creatorReferences.length; offset += 5) {
+    details.push(
+      ...(await Promise.all(
+        creatorReferences.slice(offset, offset + 5).map((title) => getCreatorMovie(title.tmdbId)),
+      )),
+    );
   }
-  const inputs = details.map((movie, index) => ({
-    tmdbId: ids[index],
+  const inputs = details.map((movie) => ({
+    tmdbId: movie.id,
     type: "movie" as const,
     title:
-      movie.title ?? listCreatorMoviePicks().find((pick) => pick.tmdbId === ids[index])!.movieTitle,
+      movie.title ?? listCreatorMoviePicks().find((pick) => pick.tmdbId === movie.id)!.movieTitle,
     posterPath: movie.poster_path ?? null,
     backdropPath: movie.backdrop_path ?? null,
     releaseDate: movie.release_date || null,
@@ -154,13 +181,99 @@ export async function getRecommendationCandidates(userId: string, source: Source
     voteAverage: movie.vote_average ?? null,
   }));
   const local = ensureBrowseTitlesExist(inputs);
-  const tracked = new Set(getAllTrackedTitleIds(userId));
-  const creators = inputs
-    .map((movie) => Object.assign({}, movie, local.get(movie.tmdbId + "-movie")!))
-    .filter((movie) => !tracked.has(movie.id));
-  // Round-robin preserves personal ranking while giving each creator an equal opportunity.
-  return mergeRecommendationCandidates<(typeof creators)[number] | (typeof personal)[number]>(
-    personal,
-    creators,
+  const creatorsByIdentity = new Map(
+    inputs.map((movie) => [
+      movie.type + ":" + movie.tmdbId,
+      Object.assign({}, movie, local.get(movie.tmdbId + "-movie")!),
+    ]),
   );
+  const tracked = new Set(getAllTrackedTitleIds(userId));
+  return references
+    .map(
+      (reference) =>
+        personalByIdentity.get(reference.type + ":" + reference.tmdbId) ??
+        creatorsByIdentity.get(reference.type + ":" + reference.tmdbId),
+    )
+    .filter((movie): movie is NonNullable<typeof movie> => movie != null && !tracked.has(movie.id));
+}
+
+export async function getRecommendationCandidates(userId: string, source: Source = "all") {
+  const pool = recommendationReferences(userId, source);
+  return resolveRecommendationReferences(userId, pool, pool.references);
+}
+
+// A scrolling session retains its original candidate ordering while tracking and
+// availability are checked afresh per batch. Cursors are scoped to their owner/filters.
+const pageSessions = new Map<
+  string,
+  {
+    userId: string;
+    source: Source;
+    accessType: string;
+    creatorIds: string;
+    pool: ReturnType<typeof recommendationReferences>;
+    expiresAt: number;
+  }
+>();
+const PAGE_SESSION_TTL = 60 * 60 * 1000;
+export function clearRecommendationPageSessions() {
+  pageSessions.clear();
+}
+function expiredPage(): never {
+  throw new ORPCError("CONFLICT", { data: { code: AppErrorCode.RECOMMENDATION_SESSION_EXPIRED } });
+}
+export async function getRecommendationCandidatePage(
+  userId: string,
+  source: Source = "all",
+  cursor: string | null = null,
+  limit = 20,
+  accessType = "all",
+) {
+  const now = Date.now();
+  for (const [key, session] of pageSessions) if (session.expiresAt <= now) pageSessions.delete(key);
+  const creatorIds = JSON.stringify(getCriticPreferences(userId).creatorIds);
+  let id: string;
+  let offset = 0;
+  let session: NonNullable<ReturnType<typeof pageSessions.get>>;
+  if (cursor !== null) {
+    const match = /^([a-f0-9-]{36}):([0-9]+)$/.exec(cursor);
+    if (!match) expiredPage();
+    id = match[1];
+    offset = Number(match[2]);
+    const existing = pageSessions.get(id);
+    if (
+      !existing ||
+      existing.userId !== userId ||
+      existing.source !== source ||
+      existing.accessType !== accessType ||
+      existing.creatorIds !== creatorIds ||
+      !Number.isSafeInteger(offset) ||
+      offset <= 0 ||
+      offset >= existing.pool.references.length
+    )
+      expiredPage();
+    session = existing;
+  } else {
+    id = crypto.randomUUID();
+    session = {
+      userId,
+      source,
+      accessType,
+      creatorIds,
+      pool: recommendationReferences(userId, source),
+      expiresAt: now + PAGE_SESSION_TTL,
+    };
+    // Limit retained sessions globally and per account; eviction is recoverable in the UI.
+    const own = [...pageSessions].filter(([, value]) => value.userId === userId);
+    if (own.length >= 4) pageSessions.delete(own[0][0]);
+    if (pageSessions.size >= 100) pageSessions.delete(pageSessions.keys().next().value!);
+    pageSessions.set(id, session);
+  }
+  const end = Math.min(offset + limit, session.pool.references.length);
+  const candidates = await resolveRecommendationReferences(
+    userId,
+    session.pool,
+    session.pool.references.slice(offset, end),
+  );
+  return { candidates, nextCursor: end < session.pool.references.length ? `${id}:${end}` : null };
 }

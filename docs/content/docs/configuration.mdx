@@ -141,11 +141,13 @@ These are only needed if you're proxying TMDB requests or using an alternative e
 | --- | --- | --- |
 | `CORS_ORIGIN` | `http://localhost:3000` | Allowed CORS origin |
 | `PORT` | `3000` | Server listening port |
-| `TRUSTED_PROXIES` | loopback + private ranges | Comma-separated IPs/CIDRs of reverse proxies whose `X-Forwarded-For` hops are trusted for sign-in rate limiting; `none` to trust none |
+| `TRUSTED_PROXIES` | none | Comma-separated IPs/CIDRs of reverse proxies whose `X-Forwarded-For` hops are trusted for sign-in rate limiting; `none` to trust none |
 
 Set `CORS_ORIGIN` to your public URL when using a reverse proxy.
 
-Sofa rate-limits sign-in attempts per client IP. The default works when Sofa is reached directly, or through a reverse proxy or Cloudflare Tunnel (`cloudflared`) running on the same host or Docker network. If your proxy runs elsewhere (for example on a VPS that reaches Sofa over the internet or Tailscale, or Cloudflare proxying straight to Sofa's port), add its addresses to `TRUSTED_PROXIES` (Cloudflare publishes its ranges at https://www.cloudflare.com/ips/). Otherwise every user shares the proxy's rate limit, and Sofa logs `Ignored X-Forwarded-For from …` once. Set `none` if untrusted devices on your LAN can reach Sofa directly and you don't use a proxy.
+Sofa rate-limits sign-in attempts per client IP. By default, forwarded headers are ignored and the direct connection's IP is used. This protects direct home-network clients as well as internet, Docker and loopback clients from spoofing their rate-limit identity.
+
+If using a reverse proxy or Cloudflare Tunnel, explicitly set `TRUSTED_PROXIES` to the proxy's actual addresses, for example `127.0.0.1,::1` for a proxy running on the same host. Use exact Docker proxy addresses or a dedicated trusted proxy subnet rather than the entire Docker or home network. Configure the proxy to append or replace `X-Forwarded-For` correctly. Without this setting, proxied users share the proxy's rate limit. `none` (or leaving the variable unset) is appropriate for direct access.
 
 ## Update Checks
 

@@ -1,6 +1,12 @@
 import { beforeEach, expect, test, vi } from "vitest";
 
-import { clearAllTables, insertStatus, insertTitle, insertUser } from "@sofa/test/db";
+import {
+  clearAllTables,
+  insertRecommendation,
+  insertStatus,
+  insertTitle,
+  insertUser,
+} from "@sofa/test/db";
 
 const { getMovieDetails } = vi.hoisted(() => ({
   getMovieDetails: vi.fn<typeof import("@sofa/tmdb/client").getMovieDetails>(),
@@ -16,9 +22,11 @@ import {
 
 import {
   clearCreatorMovieCache,
+  clearRecommendationPageSessions,
   getCreatorCredits,
   getCreatorPickIds,
   getRecommendationCandidates,
+  getRecommendationCandidatePage,
   mergeRecommendationCandidates,
 } from "../src/creator-recommendations";
 import { updateCriticPreferences } from "../src/settings";
@@ -45,6 +53,7 @@ beforeEach(() => {
   clearAllTables();
   seedCreatorCatalog();
   clearCreatorMovieCache();
+  clearRecommendationPageSessions();
   getMovieDetails.mockReset();
   getMovieDetails.mockImplementation(async (id: number) => movieDetails(id));
 });
@@ -149,4 +158,172 @@ test("saved selections constrain combined and individual sources per account", a
   updateCriticPreferences("user-1", { creatorIds: [], refreshFrequency: "manual" });
   expect(getCreatorPickIds("all", [])).toEqual([]);
   expect(await getRecommendationCandidates("user-1")).toEqual([]);
+});
+
+test("combined recommendations retain every distinct candidate beyond the old cap", () => {
+  const personal = Array.from({ length: 60 }, (_, index) => ({ tmdbId: index + 1, type: "movie" }));
+  const creators = Array.from({ length: 60 }, (_, index) => ({
+    tmdbId: index + 31,
+    type: "movie",
+  }));
+  const combined = mergeRecommendationCandidates(personal, creators);
+  expect(combined).toHaveLength(90);
+  expect(new Set(combined.map((item) => item.tmdbId))).toEqual(
+    new Set([...personal, ...creators].map((item) => item.tmdbId)),
+  );
+});
+
+test("pages hydrate only their batch and preserve every distinct recommendation", async () => {
+  insertUser();
+  const first = await getRecommendationCandidatePage("user-1", "all", null, 2);
+  expect(first.candidates).toHaveLength(2);
+  expect(first.nextCursor).toEqual(expect.any(String));
+  expect(getMovieDetails).toHaveBeenCalledTimes(2);
+  const collected = [...first.candidates];
+  let cursor = first.nextCursor;
+  while (cursor !== null) {
+    const page = await getRecommendationCandidatePage("user-1", "all", cursor, 2);
+    collected.push(...page.candidates);
+    cursor = page.nextCursor;
+  }
+  expect(collected.map((movie) => movie.tmdbId)).toEqual(
+    (await getRecommendationCandidates("user-1")).map((movie) => movie.tmdbId),
+  );
+  expect(new Set(collected.map((movie) => movie.tmdbId)).size).toBe(collected.length);
+});
+test("tracked-only pages still advance the cursor to later recommendations", async () => {
+  insertUser();
+  const ids = getCreatorPickIds();
+  insertStatus("user-1", insertTitle({ id: "tracked", tmdbId: ids[0] }), "watchlist");
+  const first = await getRecommendationCandidatePage("user-1", "all", null, 1);
+  expect(first.candidates).toEqual([]);
+  expect(first.nextCursor).toEqual(expect.any(String));
+  const next = await getRecommendationCandidatePage("user-1", "all", first.nextCursor!, 1);
+  expect(next.candidates[0].tmdbId).toBe(ids[1]);
+});
+
+test("all critics combines only selected critics and respects selecting none", async () => {
+  insertUser();
+  updateCriticPreferences("user-1", {
+    creatorIds: ["jeremy-jahns", "chris-stuckmann"],
+    refreshFrequency: "daily",
+  });
+  const expected = getCreatorPickIds("all", ["jeremy-jahns", "chris-stuckmann"]);
+  expect(getCreatorPickIds("critics", ["jeremy-jahns", "chris-stuckmann"])).toEqual(expected);
+  expect(
+    (await getRecommendationCandidates("user-1", "critics")).map((movie) => movie.tmdbId),
+  ).toEqual(expected);
+  updateCriticPreferences("user-1", { creatorIds: [], refreshFrequency: "manual" });
+  expect(await getRecommendationCandidates("user-1", "critics")).toEqual([]);
+});
+
+test("all critics excludes personal-only recommendations while all sources includes them", async () => {
+  insertUser();
+  insertTitle({ id: "history-source", tmdbId: 900001 });
+  insertTitle({ id: "personal-only", tmdbId: 900002 });
+  insertStatus("user-1", "history-source", "completed");
+  insertRecommendation("history-source", "personal-only", { rank: 1 });
+  const critics = await getRecommendationCandidates("user-1", "critics");
+  expect(critics.some((title) => title.tmdbId === 900002)).toBe(false);
+  const combined = await getRecommendationCandidates("user-1", "all");
+  expect(combined.some((title) => title.tmdbId === 900002)).toBe(true);
+  expect(combined).toHaveLength(critics.length + 1);
+});
+
+function personalPool() {
+  insertUser();
+  insertTitle({ id: "page-source", tmdbId: 999000 });
+  insertStatus("user-1", "page-source", "completed");
+  for (let i = 1; i <= 5; i++) {
+    insertTitle({ id: `page-${i}`, tmdbId: 999000 + i });
+    insertRecommendation("page-source", `page-${i}`, { rank: i });
+  }
+}
+
+test("tracking an earlier personal candidate cannot skip the next unseen title", async () => {
+  personalPool();
+  const first = await getRecommendationCandidatePage("user-1", "personal", null, 2);
+  expect(first.candidates.map((title) => title.id)).toEqual(["page-1", "page-2"]);
+  insertStatus("user-1", "page-1", "watchlist");
+  const second = await getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2);
+  expect(second.candidates.map((title) => title.id)).toEqual(["page-3", "page-4"]);
+  const third = await getRecommendationCandidatePage("user-1", "personal", second.nextCursor, 2);
+  expect(third.candidates.map((title) => title.id)).toEqual(["page-5"]);
+  expect(third.nextCursor).toBeNull();
+  expect(getMovieDetails).not.toHaveBeenCalled();
+});
+
+test("new recommendations enter a fresh session without reordering an active one", async () => {
+  personalPool();
+  const first = await getRecommendationCandidatePage("user-1", "personal", null, 2);
+  insertTitle({ id: "new-first", tmdbId: 999099 });
+  insertRecommendation("page-source", "new-first", { rank: 0 });
+  const second = await getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2);
+  expect(second.candidates.map((title) => title.id)).toEqual(["page-3", "page-4"]);
+  const refreshed = await getRecommendationCandidatePage("user-1", "personal", null, 2);
+  expect(refreshed.candidates[0].id).toBe("new-first");
+});
+
+test("newly tracked future candidates are hidden without losing subsequent pages", async () => {
+  personalPool();
+  const first = await getRecommendationCandidatePage("user-1", "personal", null, 2);
+  insertStatus("user-1", "page-3", "watchlist");
+  insertStatus("user-1", "page-4", "completed");
+  const second = await getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2);
+  expect(second.candidates).toEqual([]);
+  const third = await getRecommendationCandidatePage("user-1", "personal", second.nextCursor, 2);
+  expect(third.candidates.map((title) => title.id)).toEqual(["page-5"]);
+});
+
+test("cursors reject another account, source, availability filter or changed critic selection", async () => {
+  personalPool();
+  insertUser("other");
+  const first = await getRecommendationCandidatePage("user-1", "personal", null, 2, "free");
+  const expected = { code: "CONFLICT", data: { code: "RECOMMENDATION_SESSION_EXPIRED" } };
+  await expect(
+    getRecommendationCandidatePage("other", "personal", first.nextCursor, 2, "free"),
+  ).rejects.toMatchObject(expected);
+  await expect(
+    getRecommendationCandidatePage("user-1", "all", first.nextCursor, 2, "free"),
+  ).rejects.toMatchObject(expected);
+  await expect(
+    getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2, "paid"),
+  ).rejects.toMatchObject(expected);
+  updateCriticPreferences("user-1", { creatorIds: [], refreshFrequency: "manual" });
+  await expect(
+    getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2, "free"),
+  ).rejects.toMatchObject(expected);
+});
+
+test("expired or lost sessions return a recoverable error and a fresh first page works", async () => {
+  personalPool();
+  const clock = vi.spyOn(Date, "now");
+  try {
+    const first = await getRecommendationCandidatePage("user-1", "personal", null, 2);
+    clock.mockReturnValue(Date.now() + 3600_001);
+    await expect(
+      getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2),
+    ).rejects.toMatchObject({ data: { code: "RECOMMENDATION_SESSION_EXPIRED" } });
+    const fresh = await getRecommendationCandidatePage("user-1", "personal", null, 2);
+    expect(fresh.candidates).toHaveLength(2);
+    clearRecommendationPageSessions();
+    await expect(
+      getRecommendationCandidatePage("user-1", "personal", fresh.nextCursor, 2),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+  } finally {
+    clock.mockRestore();
+  }
+});
+
+test("retrying the same page is deterministic and per-account eviction is recoverable", async () => {
+  personalPool();
+  const first = await getRecommendationCandidatePage("user-1", "personal", null, 2);
+  const page = await getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2);
+  expect(await getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2)).toEqual(
+    page,
+  );
+  for (let i = 0; i < 4; i++) await getRecommendationCandidatePage("user-1", "personal", null, 2);
+  await expect(
+    getRecommendationCandidatePage("user-1", "personal", first.nextCursor, 2),
+  ).rejects.toMatchObject({ code: "CONFLICT" });
 });

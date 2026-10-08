@@ -21,6 +21,7 @@ import { orpc } from "@/lib/orpc/client";
 import { AddRecommendationCreatorInput, CriticPreferences } from "@sofa/api/schemas";
 import { formatDate } from "@sofa/i18n/format";
 
+import { CreatorCheckStatus } from "./creator-check-status";
 import criticAvatars from "./critic-avatars.json";
 
 export function CriticsSection({ isAdmin = false }: { isAdmin?: boolean }) {
@@ -258,54 +259,58 @@ export function CriticsSection({ isAdmin = false }: { isAdmin?: boolean }) {
                     </Button>
                   </form>
                 )}
-                <div className="space-y-2">
-                  <p id="critic-refresh-label" className="text-sm font-medium">
-                    <Trans>Check for new videos</Trans>
-                  </p>
-                  <Select
-                    value={data?.preferences.refreshFrequency ?? "daily"}
-                    disabled={disabled}
-                    onValueChange={(value) => {
-                      if (data) {
-                        const parsed = CriticPreferences.shape.refreshFrequency.safeParse(value);
-                        if (parsed.success)
-                          save({ ...data.preferences, refreshFrequency: parsed.data });
-                      }
-                    }}
-                  >
-                    <SelectTrigger aria-labelledby="critic-refresh-label">
-                      <SelectValue>
-                        {
-                          frequencies.find(
-                            (frequency) =>
-                              frequency.value === (data?.preferences.refreshFrequency ?? "daily"),
-                          )?.label
+                {isAdmin && (
+                  <div className="space-y-2">
+                    <p id="critic-refresh-label" className="text-sm font-medium">
+                      <Trans>Check for new videos</Trans>
+                    </p>
+                    <Select
+                      value={data?.preferences.refreshFrequency ?? "daily"}
+                      disabled={disabled}
+                      onValueChange={(value) => {
+                        if (data) {
+                          const parsed = CriticPreferences.shape.refreshFrequency.safeParse(value);
+                          if (parsed.success)
+                            save({ ...data.preferences, refreshFrequency: parsed.data });
                         }
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {frequencies.map((frequency) => (
-                        <SelectItem key={frequency.value} value={frequency.value}>
-                          {frequency.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-muted-foreground text-xs">
-                    <Trans>
-                      Checks your selected channels while the server is running. Clear
-                      recommendations with exact movie matches are added automatically. Other videos
-                      need review.
-                    </Trans>
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  disabled={disabled || refresh.isPending || selected.length === 0}
-                  onClick={() => refresh.mutate(undefined)}
-                >
-                  {refresh.isPending ? t`Checking channels…` : t`Check now`}
-                </Button>
+                      }}
+                    >
+                      <SelectTrigger aria-labelledby="critic-refresh-label">
+                        <SelectValue>
+                          {
+                            frequencies.find(
+                              (frequency) =>
+                                frequency.value === (data?.preferences.refreshFrequency ?? "daily"),
+                            )?.label
+                          }
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {frequencies.map((frequency) => (
+                          <SelectItem key={frequency.value} value={frequency.value}>
+                            {frequency.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-muted-foreground text-xs">
+                      <Trans>
+                        Checks your selected channels while the server is running. Clear
+                        recommendations with exact movie matches are added automatically. Other
+                        videos need review.
+                      </Trans>
+                    </p>
+                  </div>
+                )}
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    disabled={disabled || refresh.isPending || selected.length === 0}
+                    onClick={() => refresh.mutate(undefined)}
+                  >
+                    {refresh.isPending ? t`Checking channels…` : t`Check now`}
+                  </Button>
+                )}
                 <p className="text-muted-foreground text-xs">
                   {status?.lastCheckedAt
                     ? t`Last successful check: ${lastCheckedLabel}`
@@ -344,15 +349,7 @@ export function CriticsSection({ isAdmin = false }: { isAdmin?: boolean }) {
                         <p className="text-muted-foreground text-xs">
                           {video.creatorName} · {formatDate(video.publishedAt)}
                         </p>
-                        <p className="text-muted-foreground text-xs">
-                          {!video.pickCheck
-                            ? t`Awaiting recommendation check`
-                            : video.pickCheck.state === "added"
-                              ? t`Verified recommendations saved`
-                              : video.pickCheck.state === "failed"
-                                ? t`Verification unavailable; retry required`
-                                : t`Recommendation review required`}
-                        </p>
+                        <CreatorCheckStatus check={video.pickCheck} />
                       </div>
                     ))}
                   </div>

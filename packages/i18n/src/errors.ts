@@ -29,6 +29,7 @@ const APP_ERROR_MESSAGES: Record<AppErrorCode, MessageDescriptor> = {
   IMPORT_ALREADY_RUNNING: msg`An import is already in progress`,
   IMPORT_CANNOT_CANCEL: msg`This import cannot be cancelled`,
   REGISTRATION_CLOSED: msg`Registration is currently closed`,
+  RECOMMENDATION_SESSION_EXPIRED: msg`Recommendation list expired. Refresh to continue.`,
   EXPORT_FAILED: msg`Failed to export data`,
 };
 

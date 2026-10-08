@@ -161,11 +161,21 @@ export const criticPreferences = os.account.criticPreferences
   }));
 export const updateCriticPreferencesHandler = os.account.updateCriticPreferences
   .use(authed)
-  .handler(({ context, input }) => updateCriticPreferences(context.user.id, input));
+  .handler(async ({ context, input }) => {
+    if (input.refreshFrequency !== getCriticPreferences(context.user.id).refreshFrequency) {
+      // Do not trust cached roles when changing a scan schedule.
+      const current = await auth.api.getSession({
+        headers: context.headers,
+        query: { disableCookieCache: true },
+      });
+      if (current?.user?.role !== "admin") throw new ORPCError("FORBIDDEN");
+    }
+    return updateCriticPreferences(context.user.id, input);
+  });
 
 export const creatorRefreshStatus = os.account.creatorRefreshStatus
   .use(authed)
   .handler(({ context }) => getCreatorRefreshStatus(context.user.id));
 export const refreshCreators = os.account.refreshCreators
-  .use(authed)
+  .use(admin)
   .handler(({ context }) => refreshUserCreators(context.user.id));

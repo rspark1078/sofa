@@ -108,6 +108,6 @@ export function verifyRecommendationCandidates<T extends { tmdbId: number; type:
     candidates,
     accessType === "free" ? "free_or_ads" : accessType,
     undefined,
-    10,
+    candidates.length,
   );
 }

@@ -123,7 +123,10 @@ describe("Explore preferences", () => {
 
 describe("Critic preferences", () => {
   test("defaults preserve all critics and daily checks", () => {
-    expect(getCriticPreferences("user-1")).toEqual({ creatorIds: null, refreshFrequency: "daily" });
+    expect(getCriticPreferences("user-1")).toEqual({
+      creatorIds: null,
+      refreshFrequency: "daily",
+    });
   });
   test("persists personal selections without changing another account", () => {
     updateCriticPreferences("user-1", {

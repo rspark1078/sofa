@@ -570,6 +570,20 @@ export const CriticPreferences = z.object({
   refreshFrequency: z.enum(["manual", "hourly", "daily", "weekly"]).default("daily"),
 });
 
+// Shared by extraction, persistence reads and API output; optional fields support legacy checks.
+export const CreatorVideoPickCheck = z.object({
+  state: z.enum(["added", "review", "failed"]),
+  picksAdded: z.number().int().nonnegative(),
+  reason: z.string(),
+  code: z.string().optional(),
+  retryAt: z.string().datetime().nullable().optional(),
+  moviesDiscussed: z.number().int().nonnegative().optional(),
+  moviesRecommended: z.number().int().nonnegative().optional(),
+  sourceKind: z.enum(["description", "captions"]).nullable().optional(),
+  sourceCharacters: z.number().int().nonnegative().optional(),
+  analyzedCharacters: z.number().int().nonnegative().optional(),
+});
+
 export const CreatorRefreshStatus = z.object({
   videosChecked: z.number(),
   picksAdded: z.number(),
@@ -583,13 +597,7 @@ export const CreatorRefreshStatus = z.object({
       creatorSlug: z.string(),
       creatorName: z.string(),
       videoUrl: z.string().url(),
-      pickCheck: z
-        .object({
-          state: z.enum(["added", "review", "failed"]),
-          picksAdded: z.number(),
-          reason: z.string(),
-        })
-        .nullable(),
+      pickCheck: CreatorVideoPickCheck.nullable(),
     }),
   ),
 });
@@ -844,6 +852,7 @@ export const DiscoverRecommendationsOutput = z
   .object({
     items: z.array(RecommendationItemSchema),
     creators: z.array(RecommendationCreator),
+    nextCursor: z.string().nullable(),
   })
   .meta({
     description: "Personalized title recommendations based on the user's library",

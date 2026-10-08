@@ -8,18 +8,11 @@ import { createLogger } from "@sofa/logger";
 
 const log = createLogger("server");
 
-/** Loopback and private ranges: a reverse proxy on the same host or Docker network. */
-export const DEFAULT_TRUSTED_PROXIES = [
-  "127.0.0.0/8",
-  "::1/128",
-  "10.0.0.0/8",
-  "172.16.0.0/12",
-  "192.168.0.0/16",
-  "fc00::/7",
-];
+/** Direct access is safe by default; reverse proxies must be explicitly configured. */
+export const DEFAULT_TRUSTED_PROXIES: string[] = [];
 
 /**
- * Parses `TRUSTED_PROXIES`: a comma-separated list of IPs/CIDRs. Unset or blank → the defaults;
+ * Parses `TRUSTED_PROXIES`: a comma-separated list of IPs/CIDRs. Unset or blank → trust nothing;
  * "none" → trust nothing (the TCP peer address is always the client).
  */
 export function parseTrustedProxies(raw: string | undefined): string[] {

@@ -407,6 +407,14 @@ msgstr ""
 msgid "All"
 msgstr ""
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#~ msgid "All critics"
+#~ msgstr "All critics"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "All Critics"
+msgstr "All Critics"
+
 #: apps/native/src/app/(tabs)/(library)/index.tsx
 #: apps/native/src/components/library/filter-sheet.tsx
 #: apps/web/src/components/explore/discover-section.tsx
@@ -423,8 +431,12 @@ msgid "All providers"
 msgstr "All providers"
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
-msgid "All sources"
-msgstr "All sources"
+#~ msgid "All sources"
+#~ msgstr "All sources"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "All Sources"
+msgstr "All Sources"
 
 #: apps/web/src/components/settings/registration-section.tsx
 msgid "Allow new users to create accounts"
@@ -557,7 +569,7 @@ msgstr "Availability could not be refreshed. Try again later."
 #~ msgid "Available to stream"
 #~ msgstr "Available to stream"
 
-#: apps/web/src/components/settings/critics-section.tsx
+#: apps/web/src/components/settings/creator-check-status.tsx
 msgid "Awaiting recommendation check"
 msgstr "Awaiting recommendation check"
 
@@ -649,6 +661,10 @@ msgstr ""
 msgid "Cancel editing"
 msgstr ""
 
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Captions were unavailable. Spoken recommendations may be missing."
+msgstr "Captions were unavailable. Spoken recommendations may be missing."
+
 #: apps/native/src/app/title/[id].tsx
 #: apps/web/src/components/titles/cast-carousel.tsx
 msgid "Cast"
@@ -706,6 +722,10 @@ msgstr "Channels have not been checked yet."
 msgid "Check configuration"
 msgstr ""
 
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Check details are unavailable."
+msgstr "Check details are unavailable."
+
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Check for new videos"
 msgstr "Check for new videos"
@@ -725,6 +745,14 @@ msgstr "Check now"
 #: apps/web/src/components/settings/system-health-section.tsx
 msgid "Checked <0/>"
 msgstr ""
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Checked available captions and description."
+msgstr "Checked available captions and description."
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Checked the description only; spoken content may be missing."
+msgstr "Checked the description only; spoken content may be missing."
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "Checking channels…"
@@ -1059,6 +1087,10 @@ msgid "Critic name"
 msgstr "Critic name"
 
 #: apps/web/src/components/settings/critics-section.tsx
+#~ msgid "Critic reviews are refreshed manually by an administrator. Automatic scanning is disabled."
+#~ msgstr "Critic reviews are refreshed manually by an administrator. Automatic scanning is disabled."
+
+#: apps/web/src/components/settings/critics-section.tsx
 msgid "Critics and creators"
 msgstr "Critics and creators"
 
@@ -1261,6 +1293,10 @@ msgstr "Edit profile photo"
 msgid "Editor"
 msgstr ""
 
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Eligible for retry after {retryLabel}."
+msgstr "Eligible for retry after {retryLabel}."
+
 #: apps/native/src/app/(auth)/login.tsx
 #: apps/native/src/app/(auth)/register.tsx
 #: apps/web/src/components/auth-form.tsx
@@ -1293,6 +1329,15 @@ msgstr ""
 #: apps/web/src/components/settings/integration-configs.tsx
 msgid "Enable the <0>Playback</0> event category"
 msgstr ""
+
+#. placeholder {0}: check.moviesRecommended
+#: apps/web/src/components/settings/creator-check-status.tsx
+#~ msgid "Endorsements detected: {0}"
+#~ msgstr "Endorsements detected: {0}"
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Endorsements detected: {moviesRecommended}"
+msgstr "Endorsements detected: {moviesRecommended}"
 
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "English"
@@ -2350,6 +2395,10 @@ msgstr "movie"
 msgid "Movie"
 msgstr ""
 
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Movie identity lookup was unavailable. Some recommendations remain unverified."
+msgstr "Movie identity lookup was unavailable. Some recommendations remain unverified."
+
 #: apps/native/src/app/(tabs)/(home)/upcoming.tsx
 #: apps/native/src/app/(tabs)/(library)/history.tsx
 #: apps/native/src/app/(tabs)/(library)/index.tsx
@@ -2376,6 +2425,15 @@ msgstr "Movies {period}"
 #: apps/web/src/components/dashboard/stats-display.tsx
 msgid "Movies {select}"
 msgstr ""
+
+#. placeholder {0}: check.moviesDiscussed
+#: apps/web/src/components/settings/creator-check-status.tsx
+#~ msgid "Movies discussed: {0}"
+#~ msgstr "Movies discussed: {0}"
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Movies discussed: {moviesDiscussed}"
+msgstr "Movies discussed: {moviesDiscussed}"
 
 #: apps/native/src/app/(tabs)/(home)/index.tsx
 #~ msgid "Movies this month"
@@ -2702,6 +2760,10 @@ msgstr "Parsing file..."
 msgid "Parsing..."
 msgstr ""
 
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Part of the available text was omitted from this check."
+msgstr "Part of the available text was omitted from this check."
+
 #: apps/native/src/app/(auth)/login.tsx
 #: apps/native/src/app/(auth)/register.tsx
 #: apps/web/src/components/auth-form.tsx
@@ -3021,7 +3083,12 @@ msgstr ""
 msgid "Recommendation availability"
 msgstr "Recommendation availability"
 
-#: apps/web/src/components/settings/critics-section.tsx
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+#: packages/i18n/src/errors.ts
+msgid "Recommendation list expired. Refresh to continue."
+msgstr "Recommendation list expired. Refresh to continue."
+
+#: apps/web/src/components/settings/creator-check-status.tsx
 msgid "Recommendation review required"
 msgstr "Recommendation review required"
 
@@ -3252,6 +3319,10 @@ msgstr ""
 #: apps/web/src/lib/orpc/client.ts
 msgid "Retry"
 msgstr ""
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Retry is eligible on the next refresh."
+msgstr "Retry is eligible on the next refresh."
 
 #: apps/web/src/components/explore/discovery-presets.tsx
 msgid "Retry loading saved filters"
@@ -3757,9 +3828,25 @@ msgstr "That time is in the future"
 msgid "That URL doesn't look right. Include the full server address."
 msgstr "That URL doesn't look right. Include the full server address."
 
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "The check was interrupted by a server restart."
+msgstr "The check was interrupted by a server restart."
+
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "The last check could not complete every channel or recommendation check. Existing recommendations are preserved."
 msgstr "The last check could not complete every channel or recommendation check. Existing recommendations are preserved."
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "The local recommendation model was unavailable."
+msgstr "The local recommendation model was unavailable."
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "The model response could not be validated. Recommendations could not be verified."
+msgstr "The model response could not be validated. Recommendations could not be verified."
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "The model response was incomplete. Recommendations could not be verified."
+msgstr "The model response was incomplete. Recommendations could not be verified."
 
 #: apps/native/src/app/+not-found.tsx
 msgid "The page you're looking for doesn't exist."
@@ -3772,6 +3859,10 @@ msgstr ""
 #: apps/web/src/routes/_app/titles.$id.tsx
 msgid "The title you're looking for doesn't exist or may have been removed from the database."
 msgstr ""
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "The video's text could not be retrieved."
+msgstr "The video's text could not be retrieved."
 
 #: apps/web/src/components/command-palette.tsx
 msgid "then"
@@ -4076,6 +4167,7 @@ msgstr "Unable to delete saved filters"
 msgid "Unable to load critics. Retry"
 msgstr "Unable to load critics. Retry"
 
+#: apps/web/src/components/dashboard/recommendations-section.tsx
 #: apps/web/src/components/explore/discover-section.tsx
 msgid "Unable to load more titles."
 msgstr "Unable to load more titles."
@@ -4274,11 +4366,20 @@ msgstr "User menu"
 msgid "User Rating"
 msgstr "User Rating"
 
-#: apps/web/src/components/settings/critics-section.tsx
+#: apps/web/src/components/settings/creator-check-status.tsx
 msgid "Verification unavailable; retry required"
 msgstr "Verification unavailable; retry required"
 
-#: apps/web/src/components/settings/critics-section.tsx
+#. placeholder {0}: check.picksAdded
+#: apps/web/src/components/settings/creator-check-status.tsx
+#~ msgid "Verified picks added: {0}"
+#~ msgstr "Verified picks added: {0}"
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "Verified picks added: {picksAdded}"
+msgstr "Verified picks added: {picksAdded}"
+
+#: apps/web/src/components/settings/creator-check-status.tsx
 msgid "Verified recommendations saved"
 msgstr "Verified recommendations saved"
 
@@ -4497,9 +4598,21 @@ msgid "Your name…"
 msgstr "Your name…"
 
 #: apps/web/src/components/dashboard/recommendations-section.tsx
-msgid "Your watch history"
-msgstr "Your watch history"
+#~ msgid "Your watch history"
+#~ msgstr "Your watch history"
+
+#: apps/web/src/components/dashboard/recommendations-section.tsx
+msgid "Your Watch History"
+msgstr "Your Watch History"
 
 #: apps/web/src/components/settings/critics-section.tsx
 msgid "YouTube channel URL"
 msgstr "YouTube channel URL"
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "YouTube requests are temporarily paused after a rate limit. Retry when the cooldown ends."
+msgstr "YouTube requests are temporarily paused after a rate limit. Retry when the cooldown ends."
+
+#: apps/web/src/components/settings/creator-check-status.tsx
+msgid "YouTube temporarily limited caption requests. Spoken recommendations may be missing."
+msgstr "YouTube temporarily limited caption requests. Spoken recommendations may be missing."

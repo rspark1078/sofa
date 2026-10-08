@@ -5,12 +5,14 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
-function respond(picks: unknown[]) {
+function respond(movies: unknown[]) {
   vi.stubEnv("CREATOR_PICK_MODEL", "test-model");
   const mock = vi
     .fn<typeof fetch>()
     .mockResolvedValueOnce(
-      new Response(JSON.stringify({ done: true, message: { content: JSON.stringify({ picks }) } })),
+      new Response(
+        JSON.stringify({ done: true, message: { content: JSON.stringify({ movies }) } }),
+      ),
     )
     .mockResolvedValue(
       new Response(
@@ -35,26 +37,24 @@ test("keeps source-grounded positive picks and rejects fabricated or negative ev
     startSeconds: null,
   };
   respond([
-    positive,
-    { ...positive, title: "Other", evidence: "I recommend Other." },
-    { ...positive, evidence: "I do not recommend Challengers." },
+    { title: "Challengers", year: 2024, assessment: "recommended", lineStart: 0, lineEnd: 0 },
+    { title: "Other", year: 2024, assessment: "recommended", lineStart: 0, lineEnd: 0 },
+    { title: "Negative", year: 2024, assessment: "recommended", lineStart: 1, lineEnd: 1 },
   ]);
   expect(
-    await extractModelPicks(positive.evidence + " I do not recommend Challengers.", "Reviews"),
+    await extractModelPicks(positive.evidence + "\nI do not recommend Negative.", "Reviews"),
   ).toEqual([positive]);
 });
 test("does not attach unrelated generic praise to a movie", async () => {
   respond([
-    { title: "Challengers", year: 2024, evidence: "It is my favorite film.", startSeconds: null },
+    { title: "Challengers", year: 2024, assessment: "recommended", lineStart: 1, lineEnd: 1 },
   ]);
-  expect(await extractModelPicks("Challengers. It is my favorite film.", "Review")).toEqual([]);
+  expect(await extractModelPicks("Challengers.\nIt is my favorite film.", "Review")).toEqual([]);
 });
 test("rejects invalid model output and connection failures without inventing picks", async () => {
   const mock = respond([]);
   mock.mockReset().mockResolvedValueOnce(new Response("offline", { status: 503 }));
-  await expect(extractModelPicks("source", "Review")).rejects.toThrow(
-    "Local recommendation model unavailable",
-  );
+  await expect(extractModelPicks("source", "Review")).rejects.toThrow("model_unavailable");
 });
 
 test("independent verification rejects other people’s recommendations", async () => {
@@ -62,8 +62,9 @@ test("independent verification rejects other people’s recommendations", async 
     {
       title: "Challengers",
       year: null,
-      evidence: "A listener recommends Challengers.",
-      startSeconds: 999,
+      assessment: "recommended",
+      lineStart: 0,
+      lineEnd: 0,
     },
   ]);
   mock.mockResolvedValueOnce(
@@ -87,10 +88,25 @@ test("uses source timestamps rather than model-generated timestamps", async () =
     {
       title: "Challengers",
       year: null,
-      evidence: "[12] I recommend Challengers.",
-      startSeconds: 999,
+      assessment: "recommended",
+      lineStart: 0,
+      lineEnd: 0,
     },
   ]);
   const result = await extractModelPicks("[12] I recommend Challengers.", "Review");
   expect(result?.[0].startSeconds).toBe(12);
+});
+
+test("truncated output has a distinct retryable error code", async () => {
+  const mock = respond([]);
+  mock
+    .mockReset()
+    .mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ done: true, done_reason: "length", message: { content: "{" } }),
+      ),
+    );
+  await expect(extractModelPicks("source", "Review")).rejects.toMatchObject({
+    code: "model_truncated",
+  });
 });

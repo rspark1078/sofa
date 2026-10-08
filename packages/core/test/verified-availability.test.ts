@@ -115,12 +115,12 @@ test("Free recommendations include ad-supported offers", async () => {
   expect(items[0].usAvailability.offers.map((offer) => offer.offerType)).toEqual(["ads"]);
 });
 
-test("recommendation verification stops after ten matches instead of fetching the entire candidate pool", async () => {
+test("recommendation verification retains the entire candidate pool", async () => {
   getWatchProviders.mockResolvedValue(availability());
   const candidates = Array.from({ length: 50 }, (_, index) => ({
     tmdbId: index + 10,
     type: "movie" as const,
   }));
-  expect(await verifyRecommendationCandidates(candidates)).toHaveLength(10);
-  expect(getWatchProviders).toHaveBeenCalledTimes(10);
+  expect(await verifyRecommendationCandidates(candidates)).toHaveLength(50);
+  expect(getWatchProviders).toHaveBeenCalledTimes(50);
 });

@@ -8,7 +8,7 @@ import {
 } from "@sofa/core/browse";
 import {
   getCreatorCredits,
-  getRecommendationCandidates,
+  getRecommendationCandidatePage,
   getRecommendationCreators,
 } from "@sofa/core/creator-recommendations";
 import { getRecommendationSources } from "@sofa/core/discovery";
@@ -81,8 +81,15 @@ export const recommendations = os.discover.recommendations
   .use(authed)
   .handler(async ({ context, input }) => {
     assertTmdbConfigured();
-    const candidates = await getRecommendationCandidates(context.user.id, input?.source);
-    if (candidates.length === 0) return { items: [], creators: getRecommendationCreators() };
+    const { candidates, nextCursor } = await getRecommendationCandidatePage(
+      context.user.id,
+      input?.source,
+      input?.cursor,
+      input?.limit,
+      input?.accessType,
+    );
+    if (candidates.length === 0)
+      return { items: [], creators: getRecommendationCreators(), nextCursor };
     const verified = await verifyRecommendationCandidates(
       candidates.map((title) => Object.assign({}, title, { type: title.type as "movie" | "tv" })),
       input?.accessType,
@@ -91,7 +98,7 @@ export const recommendations = os.discover.recommendations
       context.user.id,
       verified.map((title) => title.id),
     );
-    const items = verified.slice(0, 10).map((title) => ({
+    const items = verified.map((title) => ({
       id: title.id,
       tmdbId: title.tmdbId,
       type: title.type,
@@ -105,5 +112,5 @@ export const recommendations = os.discover.recommendations
       recommendationSources: sources.get(title.id) ?? [],
       creatorCredits: getCreatorCredits(title.tmdbId, title.type),
     }));
-    return { items, creators: getRecommendationCreators() };
+    return { items, creators: getRecommendationCreators(), nextCursor };
   });

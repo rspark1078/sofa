@@ -598,3 +598,90 @@ export const creatorFeedEntries = sqliteTable(
     uniqueIndex("creatorFeedEntries_creatorId_videoId").on(table.creatorId, table.videoId),
   ],
 );
+
+// Append-only refresh audit. Movie mentions do not automatically become picks.
+export const creatorChannelChecks = sqliteTable(
+  "creatorChannelChecks",
+  {
+    id: uuidPk(),
+    creatorId: text("creatorId")
+      .notNull()
+      .references(() => recommendationCreators.id, { onDelete: "cascade" }),
+    requestedByUserId: text("requestedByUserId").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    trigger: text("trigger", { enum: ["manual", "scheduled"] }).notNull(),
+    status: text("status", { enum: ["running", "success", "cached", "failed"] }).notNull(),
+    source: text("source", { enum: ["atom", "channel_page", "cache"] }),
+    videosFound: int("videosFound").notNull().default(0),
+    errorCode: text("errorCode"),
+    startedAt: int("startedAt", { mode: "timestamp" }).notNull(),
+    finishedAt: int("finishedAt", { mode: "timestamp" }),
+  },
+  (table) => [
+    index("creatorChannelChecks_creatorId_startedAt").on(table.creatorId, table.startedAt),
+  ],
+);
+export const creatorVideoChecks = sqliteTable(
+  "creatorVideoChecks",
+  {
+    id: uuidPk(),
+    creatorId: text("creatorId")
+      .notNull()
+      .references(() => recommendationCreators.id, { onDelete: "cascade" }),
+    channelCheckId: text("channelCheckId").references(() => creatorChannelChecks.id, {
+      onDelete: "set null",
+    }),
+    videoId: text("videoId").notNull(),
+    videoTitle: text("videoTitle").notNull(),
+    publishedAt: text("publishedAt").notNull(),
+    state: text("state", { enum: ["running", "added", "review", "failed"] }).notNull(),
+    stage: text("stage", { enum: ["evidence", "model", "matching", "complete"] }).notNull(),
+    model: text("model"),
+    sourceKind: text("sourceKind", { enum: ["description", "captions"] }),
+    sourceCharacters: int("sourceCharacters").notNull().default(0),
+    analyzedCharacters: int("analyzedCharacters").notNull().default(0),
+    moviesDiscussed: int("moviesDiscussed").notNull().default(0),
+    moviesRecommended: int("moviesRecommended").notNull().default(0),
+    picksAdded: int("picksAdded").notNull().default(0),
+    errorCode: text("errorCode"),
+    reason: text("reason"),
+    retryAt: int("retryAt", { mode: "timestamp" }),
+    startedAt: int("startedAt", { mode: "timestamp" }).notNull(),
+    finishedAt: int("finishedAt", { mode: "timestamp" }),
+  },
+  (table) => [
+    index("creatorVideoChecks_creatorId_videoId_startedAt").on(
+      table.creatorId,
+      table.videoId,
+      table.startedAt,
+    ),
+  ],
+);
+export const creatorMovieObservations = sqliteTable(
+  "creatorMovieObservations",
+  {
+    id: uuidPk(),
+    videoCheckId: text("videoCheckId")
+      .notNull()
+      .references(() => creatorVideoChecks.id, { onDelete: "cascade" }),
+    movieTitle: text("movieTitle").notNull(),
+    releaseYear: int("releaseYear"),
+    assessment: text("assessment", {
+      enum: ["recommended", "discussed", "negative", "uncertain"],
+    }).notNull(),
+    evidence: text("evidence").notNull(),
+    startSeconds: int("startSeconds"),
+    tmdbId: int("tmdbId"),
+    imdbId: text("imdbId"),
+    matchStatus: text("matchStatus", {
+      enum: ["pending", "matched", "ambiguous", "unavailable"],
+    }).notNull(),
+    createdAt: int("createdAt", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [
+    index("creatorMovieObservations_videoCheckId").on(table.videoCheckId),
+    index("creatorMovieObservations_tmdbId").on(table.tmdbId),
+    index("creatorMovieObservations_imdbId").on(table.imdbId),
+  ],
+);
